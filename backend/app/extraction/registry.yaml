@@ -1,0 +1,46 @@
+# Pre-extraction registry. Each entry is a datapoint the ingestion pipeline extracts from
+# every report. Adding a field is a config change: add an entry here.
+#
+# key:          stable identifier stored in `datapoints.key`
+# label:        human label shown in the UI
+# multi:        true when a report can have many values (goals), false for a single figure
+# queries:      retrieval queries used to find candidate chunks (hybrid search + rerank)
+# top_k:        how many chunks to pass to the model
+# instructions: extraction prompt for this field
+
+- key: fte
+  label: Employees (FTE)
+  multi: false
+  top_k: 10
+  queries:
+    - "number of employees in FTE full-time equivalents at year end"
+    - "average number of FTEs workforce headcount"
+    - "total workforce FTE employees"
+  instructions: |
+    Extract the company's total number of employees expressed as full-time equivalents (FTE)
+    for the fiscal year of this report. Prefer the group-wide, year-end FTE figure. If the
+    report only gives headcount, extract it and set unit to "headcount". If both year-end and
+    average figures exist, extract the year-end figure and mention "year-end" in the period.
+    Set qualifiers such as basis ("year-end" or "average"), scope ("group", "excluding
+    temporary staff") and the comparison figure for the previous year when given.
+    Return at most one item. value must be the number exactly as written in the quote.
+
+- key: sustainability_goal
+  label: Sustainability goals
+  multi: true
+  top_k: 24
+  queries:
+    - "sustainability targets and goals net zero emissions reduction target year"
+    - "climate ambition scope 1 2 3 emissions reduction target by 2030 baseline"
+    - "sustainability commitments renewable energy water waste circularity targets"
+    - "diversity inclusion gender target percentage women in leadership"
+    - "sustainable finance volume target billion"
+  instructions: |
+    Extract the company's stated sustainability goals and targets: forward-looking,
+    quantified or clearly defined commitments (emissions, energy, water, waste, circularity,
+    biodiversity, sustainable finance, diversity, safety, etc.). For each goal set:
+    label = short name of the goal; value = the target as written (e.g. "net zero",
+    "-50%", "100%"); unit = unit or metric; period = target year; qualifiers for
+    baseline year, scope, and status/progress where stated. Skip past achievements that
+    are not goals, and skip generic statements without a concrete commitment. Return each
+    distinct goal once. The quote must be copied verbatim from exactly one chunk.

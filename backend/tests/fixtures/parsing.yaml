@@ -1,0 +1,160 @@
+# Parser quality dataset: selected pages cut from the real annual reports
+# (tests/fixtures/pdf/*.pdf). `page` is the 1-based page inside the fixture file,
+# `source_page` the page in the original report, for reference.
+#
+# Expectations per page:
+#   text_contains  verbatim snippets that must appear in the extracted page text
+#   table_cells    values that must appear inside a detected table on the page
+#   no_tables      true when the page has no real table and none should be detected
+#   order          [earlier, later] snippets; `earlier` must come first in the page text
+
+- file: abn-amro.pdf
+  company: ABN AMRO
+  pages:
+    - page: 1
+      source_page: 14
+      kind: infographic
+      text_contains: ["19,916", "20,455", "Internal & external full-time equivalents"]
+    - page: 2
+      source_page: 15
+      kind: two-column text
+      text_contains: ["net reduction of the workforce by 5,200 full-time equivalents (FTEs) by 2028"]
+      no_tables: true
+      order: [["Year in review", "Board changes"]]
+    - page: 3
+      source_page: 19
+      kind: text
+      text_contains: ["reaching net-zero emissions by 2050"]
+      no_tables: true
+    - page: 4
+      source_page: 47
+      kind: financial tables
+      text_contains: ["Number of internal employees (end of period, in FTEs)", "23,126", "21,976"]
+      table_cells: ["23,126", "21,976", "135,764"]
+    - page: 5
+      source_page: 256
+      kind: text table
+      text_contains: ["DE&I"]
+      table_cells: ["Focus Area", "Programmes & Activities 2025"]
+
+- file: asml-governance.pdf
+  company: ASML
+  pages:
+    - page: 1
+      source_page: 42
+      kind: infographic
+      text_contains: ["CEO vs. average per FTE", "Total remuneration"]
+    - page: 2
+      source_page: 58
+      kind: five-year table
+      text_contains: ["Average number of payroll employees in FTEs", "43,267"]
+      table_cells: ["28,223", "43,267", "32,667,251", "Net sales"]
+    - page: 3
+      source_page: 59
+      kind: text
+      text_contains: ["divided by the average number of payroll employees in FTE", "43,267"]
+      no_tables: true
+
+- file: asml-strategic.pdf
+  company: ASML
+  pages:
+    - page: 1
+      source_page: 4
+      kind: infographic
+      text_contains: ["44,000", "Total employees (FTEs)", "Total net sales"]
+      no_tables: true
+    - page: 2
+      source_page: 9
+      kind: interview text
+      text_contains: ["What progress did you make in 2025?"]
+      no_tables: true
+    - page: 3
+      source_page: 31
+      kind: two-column text
+      text_contains: ["Strengthen ecosystem relationships"]
+      no_tables: true
+    - page: 4
+      source_page: 37
+      kind: two-column text
+      text_contains: ["sustainability"]
+      no_tables: true
+
+- file: cm-com.pdf
+  company: CM.com
+  pages:
+    - page: 1
+      source_page: 24
+      kind: text with nav bar
+      text_contains: ["gross profit growth of at least 15% year-on-year"]
+      no_tables: true
+    - page: 2
+      source_page: 39
+      kind: gender table
+      text_contains: ["Management", "Board", "30.0%", "2032"]
+    - page: 3
+      source_page: 55
+      kind: five-year table
+      text_contains: ["Average number of employees of CM.com during the year, converted to full-time equivalents (FTE)", "648"]
+      table_cells: ["648", "675", "259,394"]
+    - page: 4
+      source_page: 100
+      kind: financial statement
+      text_contains: ["Result after tax", "(3,786)", "(19,813)"]
+      table_cells: ["259,394", "274,249", "(3,786)"]
+
+- file: heineken.pdf
+  company: Heineken
+  pages:
+    - page: 1
+      source_page: 8
+      kind: key figures tables
+      text_contains: ["Average number of employees (FTE)", "87,870", "88,497"]
+      table_cells: ["87,870", "88,497", "Total assets"]
+    - page: 2
+      source_page: 22
+      kind: two-column text
+      text_contains: ["net zero across Scope 1, 2 and 3 by 2040"]
+      no_tables: true
+    - page: 3
+      source_page: 96
+      kind: notes text
+      text_contains: ["The average number of full-time equivalent (FTE) employees, excluding contractors, in 2025 was 87,870 (2024: 88,497)"]
+    - page: 4
+      source_page: 146
+      kind: goals infographic
+      text_contains: ["Reach net zero across our value chain by", "2040", "2.6 hl/hl"]
+      no_tables: true
+    - page: 5
+      source_page: 173
+      kind: metrics infographic
+      text_contains: ["Our carbon footprint", "million tonnes CO2eq"]
+
+- file: shell.pdf
+  company: Shell
+  pages:
+    - page: 1
+      source_page: 9
+      kind: text
+      text_contains: ["employing around 85,000 people"]
+      no_tables: true
+      order: [["This is Shell", "Shell is a global group of energy and petrochemical"]]
+    - page: 2
+      source_page: 12
+      kind: text
+      text_contains: ["Our strategy is to deliver more value with less emissions"]
+      no_tables: true
+    - page: 3
+      source_page: 117
+      kind: tables and text
+      text_contains: ["We employed 72,000 people in Shell, excluding portfolio companies", "16,613"]
+      table_cells: ["Number of employees", "Breakdown by region"]
+    - page: 4
+      source_page: 307
+      kind: financial note tables
+      text_contains: ["33. Employees", "11,183"]
+      table_cells: ["Remuneration", "11,183", "Integrated Gas"]
+    - page: 5
+      source_page: 401
+      kind: tables
+      text_contains: ["Employees by country", "8,565", "16,613"]
+      table_cells: ["Netherlands", "India"]
