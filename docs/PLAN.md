@@ -27,7 +27,7 @@ How to run it: [README](../README.md). Why it is built this way: [DESIGN.md](DES
 
 - [ ] Multi-search for comparison questions across companies
 - [ ] Expand a chunk to its page when it looks truncated
-- [ ] Apply the tuned retrieval settings: 60 candidates, top 12, abstain below 0.2
+- [x] Apply the tuned retrieval settings: 60 candidates, top 12, abstain below 0.2
 - [ ] Fix or drop full-text search (AND query matches nothing for half the questions)
 - [ ] Strip repeated page furniture (navigation bars) before chunking
 

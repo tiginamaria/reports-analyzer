@@ -8,6 +8,10 @@ Raw results: `backend/eval/results/*.json`. Run on 2026-10-16, Apple M-series (M
 
 ## Summary
 
+"Current" below means the MVP as evaluated. Recommendations 1 and 2 (60 candidates, top 12,
+abstain below 0.2) have since been applied in `retrieval/search.py`; `e2e_eval current`
+evaluates the code as it is.
+
 - **Answers are trustworthy; coverage is the gap.** On 52 questions the current pipeline is
   correct on 88% of answerable questions, partially correct on another 10%, never
   wrong, and never invents a figure for a question the reports do not answer. All 121
@@ -339,8 +343,8 @@ supported by the failure analysis but not yet run.
 
 | # | Change | Where | Evidence | Effort |
 |---|---|---|---|---|
-| 1 | `RETRIEVAL_CANDIDATES` 40 to **60**, `RERANK_TOP_K` 8 to **12** | `retrieval/search.py` | Measured: correct 87.8 to 92.7%, factoids 100%, +1.3 s, +0.8¢ per question | Constants |
-| 2 | `RERANK_MIN_SCORE` 0.003 to **0.2** | `retrieval/search.py` | Measured: out-of-corpus questions skip the LLM, no false abstention (min answerable score 0.949) | Constant |
+| 1 | **Applied.** `RETRIEVAL_CANDIDATES` 40 to **60**, `RERANK_TOP_K` 8 to **12** | `retrieval/search.py` | Measured: correct 87.8 to 92.7%, factoids 100%, +1.3 s, +0.8¢ per question | Constants |
+| 2 | **Applied.** `RERANK_MIN_SCORE` 0.003 to **0.2** | `retrieval/search.py` | Measured: out-of-corpus questions skip the LLM, no false abstention (min answerable score 0.949) | Constant |
 | 3 | Check `stop_reason == "max_tokens"` and raise a clear error; raise the extraction cap to 16,000 | `llm/anthropic_provider.py`, `extraction/extractor.py` | Measured: truncation makes goal extraction fail silently | Small |
 | 4 | Embed all chunks of a report in one `encode` call (or slices of 512) | `ingestion/pipeline.py` | Measured: +47% embedding throughput, identical vectors; about 15% off total ingestion | Small |
 | 5 | Query decomposition for comparisons: when the analysis names several companies or years, retrieve per company and year and merge | `chat/pipeline.py`, `chat/schemas.py` | Expected: fixes 3 of the 5 remaining failures; comparisons are 63% correct | Medium |
