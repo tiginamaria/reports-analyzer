@@ -14,11 +14,16 @@ from pathlib import Path
 
 import pymupdf
 
-from app.config import get_settings
 from app.textutil import clean_page_text
 
 PROGRESS_EVERY_PAGES = 10
 TEXT_BLOCK = 0  # PyMuPDF block type; 1 is an image
+
+# A detected table is kept only if it has at least this many rows and numeric cells; layout
+# grids and navigation bars fail the numeric test. Changing these changes what gets indexed,
+# so already ingested reports must be re-ingested.
+TABLE_MIN_ROWS = 2
+TABLE_MIN_NUMERIC_CELLS = 3
 
 
 @dataclass
@@ -42,13 +47,12 @@ ProgressFn = Callable[[int, int], None]  # (pages done, total pages)
 
 
 def parse_pdf(path: Path, progress: ProgressFn | None = None) -> ParsedDocument:
-    settings = get_settings()
     doc = ParsedDocument(pages=[], bodies=[])
     with pymupdf.open(path) as pdf:
         for index in range(pdf.page_count):
             page = pdf[index]
             page_no = index + 1
-            rects = _table_rects(page, settings.table_min_rows, settings.table_min_numeric_cells)
+            rects = _table_rects(page, TABLE_MIN_ROWS, TABLE_MIN_NUMERIC_CELLS)
             doc.pages.append(_page_text(page))
             doc.bodies.append(_page_text(page, exclude=rects))
             doc.tables.extend(Table(page_no, text) for text in _table_texts(page, rects))

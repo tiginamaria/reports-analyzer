@@ -228,4 +228,3 @@ frontend/src
 - Verification proves a quote exists; it does not prove the model read it correctly.
 - Comparison questions across many companies rely on a single retrieval pass with the
   company filter removed; an agentic multi-search loop is the natural next step.
-- Fuzzy quote matches are accepted with a warning badge; the threshold is in `config.py`.

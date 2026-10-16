@@ -8,11 +8,13 @@ from dataclasses import dataclass
 from sqlalchemy import text as sql
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.models import Chunk, Report
 from app.retrieval.embedder import get_embedder, get_reranker
 
 RRF_K = 60  # standard smoothing constant; higher values flatten the rank bonus
+RETRIEVAL_CANDIDATES = 40  # chunks fetched by each search and kept after fusion, for reranking
+RERANK_TOP_K = 8  # chunks kept after reranking, the context the model sees
+RERANK_MIN_SCORE = 0.003  # sigmoid of reranker logit; below this the chat abstains
 
 
 @dataclass
@@ -25,10 +27,9 @@ class Hit:
 def retrieve(
     db: Session, query: str, report_ids: list[str] | None = None, top_k: int | None = None
 ) -> list[Hit]:
-    """The top chunks for a query, best first: both searches fetch `retrieval_candidates`
-    chunks, the fused list is reranked and cut to `top_k` (default `rerank_top_k`)."""
-    settings = get_settings()
-    candidates = settings.retrieval_candidates
+    """The top chunks for a query, best first: both searches fetch `RETRIEVAL_CANDIDATES`
+    chunks, the fused list is reranked and cut to `top_k` (default `RERANK_TOP_K`)."""
+    candidates = RETRIEVAL_CANDIDATES
     query_vector = get_embedder().embed_query(query)
     rankings = [
         vector_search(db, query_vector, candidates, report_ids),
@@ -36,7 +37,7 @@ def retrieve(
     ]
     hits = _load_hits(db, rrf_merge(rankings)[:candidates])
     _rerank(query, hits)
-    return hits[: top_k or settings.rerank_top_k]
+    return hits[: top_k or RERANK_TOP_K]
 
 
 def rrf_merge(rankings: list[list[str]], k: int = RRF_K) -> list[tuple[str, float]]:

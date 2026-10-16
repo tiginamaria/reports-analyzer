@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
+from app.extraction import prompts
 from app.extraction.numbers import parse_number
 from app.extraction.schemas import ExtractedItem, ExtractionResult, ReportMetadata
 from app.llm import LLMError, LLMProvider
@@ -66,7 +66,7 @@ def _extract_datapoints(
         return []
     try:
         result = provider.complete_json(
-            system=get_settings().prompt_extract,
+            system=prompts.EXTRACT,
             user=_extraction_prompt(report, spec, hits),
             schema=ExtractionResult,
             max_tokens=6000,
@@ -118,7 +118,7 @@ def _build_datapoint(
     if chunk is None:
         status = "failed"
     else:
-        status = verify_against_chunk(db, chunk, item.quote, get_settings().fuzzy_quote_threshold)
+        status = verify_against_chunk(db, chunk, item.quote)
     return Datapoint(
         report_id=report.id,
         key=spec.key,
@@ -155,5 +155,5 @@ def detect_metadata(provider: LLMProvider, pages: list[str], filename: str) -> R
     sample = "\n\n".join(page[:METADATA_CHARS_PER_PAGE] for page in pages[:METADATA_PAGES])
     user = f"Filename: {filename}\n\nFirst pages:\n{sample}"
     return provider.complete_json(
-        system=get_settings().prompt_detect_metadata, user=user, schema=ReportMetadata, small=True
+        system=prompts.DETECT_METADATA, user=user, schema=ReportMetadata, small=True
     )

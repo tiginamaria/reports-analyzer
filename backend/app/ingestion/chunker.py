@@ -16,6 +16,13 @@ from typing import Literal
 from app.ingestion.parser import ParsedDocument
 from app.textutil import word_count
 
+# Windows of words with overlap (roughly 0.75 words per token); chunks shorter than the
+# minimum carry no meaning and are dropped. Changing these changes what gets indexed, so
+# already ingested reports must be re-ingested.
+CHUNK_MAX_WORDS = 400
+CHUNK_OVERLAP_WORDS = 60
+CHUNK_MIN_WORDS = 5
+
 
 @dataclass
 class ChunkDraft:
@@ -29,7 +36,10 @@ class ChunkDraft:
 
 
 def chunk_document(
-    doc: ParsedDocument, max_words: int, overlap_words: int, min_words: int
+    doc: ParsedDocument,
+    max_words: int = CHUNK_MAX_WORDS,
+    overlap_words: int = CHUNK_OVERLAP_WORDS,
+    min_words: int = CHUNK_MIN_WORDS,
 ) -> list[ChunkDraft]:
     if not 0 <= overlap_words < max_words:
         raise ValueError("overlap_words must be smaller than max_words")

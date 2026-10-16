@@ -16,11 +16,12 @@ from typing import Any, Literal, cast
 
 from sqlalchemy.orm import Session
 
+from app.chat import prompts
 from app.chat.schemas import ChatAnswer, Citation, QueryAnalysis
 from app.config import get_settings
 from app.llm import ChatTurn, LLMError, LLMProvider, Role
 from app.models import INDEXED_STATUSES, Message, Report
-from app.retrieval.search import Hit, format_context, retrieve
+from app.retrieval.search import RERANK_MIN_SCORE, Hit, format_context, retrieve
 from app.textutil import normalize
 from app.verify import verify_against_chunk
 
@@ -72,7 +73,7 @@ def run_chat(
 
     hits = retrieve(db, analysis.standalone_question, report_ids=[report.id for report in scope])
     best_score = max((hit.score for hit in hits), default=0.0)
-    if not hits or best_score < settings.rerank_min_score:
+    if not hits or best_score < RERANK_MIN_SCORE:
         reason = "The ingested reports do not appear to cover this. Not stated in the report."
         meta = {"best_rerank_score": best_score, "skipped_llm": True}
         yield ChatEvent("answer", _abstain(db, reason, analysis, meta, hits))
@@ -81,7 +82,7 @@ def run_chat(
     yield ChatEvent("stage", {"name": "generating", "chunks": len(hits)})
     try:
         answer = provider.complete_json(
-            system=settings.prompt_answer,
+            system=prompts.ANSWER,
             user=_answer_prompt(analysis.standalone_question, hits),
             schema=ChatAnswer,
             max_tokens=4000,
@@ -134,7 +135,7 @@ def _analyse(provider: LLMProvider, question: str, turns: list[ChatTurn]) -> Que
     user = f"Conversation so far:\n{transcript or '(none)'}\n\nQuestion: {question}"
     try:
         return provider.complete_json(
-            system=get_settings().prompt_query_analysis,
+            system=prompts.QUERY_ANALYSIS,
             user=user,
             schema=QueryAnalysis,
             small=True,
@@ -229,9 +230,7 @@ def _verify_citation(db: Session, citation: Citation, hit: Hit | None) -> dict[s
     None when the model cited a chunk it was never given."""
     if hit is None:
         return {"chunk_id": citation.chunk_id, "quote": citation.quote, "verification": "failed"}
-    status = verify_against_chunk(
-        db, hit.chunk, citation.quote, get_settings().fuzzy_quote_threshold
-    )
+    status = verify_against_chunk(db, hit.chunk, citation.quote)
     return {
         "chunk_id": citation.chunk_id,
         "quote": citation.quote,

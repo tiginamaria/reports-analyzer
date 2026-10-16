@@ -7,9 +7,9 @@ Exact match after normalisation is "verified". A fuzzy match above the threshold
 from __future__ import annotations
 
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 from typing import Literal
 
+from rapidfuzz import fuzz
 from sqlalchemy.orm import Session
 
 from app.models import Chunk, Page
@@ -18,6 +18,8 @@ from app.textutil import normalize
 Status = Literal["verified", "fuzzy", "failed"]
 
 MIN_QUOTE_CHARS = 3
+# Similarity at or above which a non-exact quote counts as "fuzzy" rather than "failed".
+FUZZY_THRESHOLD = 0.92
 
 
 @dataclass
@@ -26,7 +28,9 @@ class VerifyResult:
     score: float
 
 
-def verify_quote(quote: str, sources: list[str], fuzzy_threshold: float = 0.92) -> VerifyResult:
+def verify_quote(
+    quote: str, sources: list[str], fuzzy_threshold: float = FUZZY_THRESHOLD
+) -> VerifyResult:
     """Check the quote against each source; the first exact match wins, otherwise the best
     fuzzy score decides."""
     needle = normalize(quote)
@@ -43,7 +47,7 @@ def verify_quote(quote: str, sources: list[str], fuzzy_threshold: float = 0.92) 
     return VerifyResult("failed", best)
 
 
-def verify_against_chunk(db: Session, chunk: Chunk, quote: str, fuzzy_threshold: float) -> Status:
+def verify_against_chunk(db: Session, chunk: Chunk, quote: str) -> Status:
     """Verify a quote cited from a chunk against the stored text of the chunk's page, the
     source of truth, and against the chunk itself: a table chunk is text clipped to the table
     region, which can read differently from the page's block text."""
@@ -53,24 +57,15 @@ def verify_against_chunk(db: Session, chunk: Chunk, quote: str, fuzzy_threshold:
         .one_or_none()
     )
     sources = [page.text] if page else []
-    return verify_quote(quote, [*sources, chunk.content], fuzzy_threshold).status
+    return verify_quote(quote, [*sources, chunk.content]).status
 
 
 def _fuzzy_ratio(needle: str, haystack: str) -> float:
-    """Best similarity between the needle and any window of the haystack of similar length."""
+    """Best similarity (0..1) between the needle and any equally long window of the haystack.
+    A needle longer than the haystack is compared whole: `partial_ratio` would otherwise slide
+    the haystack over the needle and score a short source inside a long invented quote as 1."""
     if not haystack:
         return 0.0
     if len(needle) >= len(haystack):
-        return SequenceMatcher(None, needle, haystack, autojunk=False).ratio()
-    # Anchor on the first word to avoid scanning every offset.
-    first_word = needle.split(" ", 1)[0]
-    window = len(needle) + 4
-    best = 0.0
-    start = 0
-    while (idx := haystack.find(first_word, start)) >= 0:
-        candidate = haystack[idx : idx + window]
-        best = max(best, SequenceMatcher(None, needle, candidate, autojunk=False).ratio())
-        if best > 0.99:
-            break
-        start = idx + 1
-    return best
+        return fuzz.ratio(needle, haystack) / 100
+    return fuzz.partial_ratio(needle, haystack) / 100

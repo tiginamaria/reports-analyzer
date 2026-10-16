@@ -152,12 +152,49 @@ to the event loop through a queue.
 
 ## Verification
 
-`app/verify.py`. Quote and source are normalised (NFKC, typographic quotes and dashes unified,
-ligatures expanded, whitespace collapsed, lower-cased). An exact substring match is
-`verified`. Otherwise a windowed `SequenceMatcher` ratio is computed; at or above 0.92 the
-quote is `fuzzy` (shown with a warning), below it `failed`. The sources are the chunk's page
-text and the chunk text itself: a table chunk is text clipped to the table region, which can
-read differently from the page's block text.
+Every figure shown to the user comes with a quote, and the quote is checked in code, not by
+the model. The model returns each claim as a `chunk_id` and a `quote` copied from that chunk;
+`app/verify.py` decides whether the quote is really there.
+
+1. **Was the chunk given to the model?** A citation of a chunk id that was not in the prompt
+   is `failed` straight away.
+2. **Sources.** The stored text of the chunk's page (`pages.text`, the source of truth) and
+   the chunk's own text: a table chunk is text clipped to the table region, which can read
+   differently from the page's block text. A match in either counts.
+3. **Normalise** quote and sources: NFKC, typographic quotes and dashes unified, ligatures
+   expanded, whitespace collapsed, lower-cased. Models do not reproduce PDF typography.
+4. **Match.** An exact substring match is `verified`. Otherwise a RapidFuzz `partial_ratio`
+   (best alignment of the quote against any window of the source) is computed; at or above
+   0.92 the quote is `fuzzy`, below it `failed`. A quote longer than the source is compared
+   whole, so a short table chunk inside a long invented quote does not score 1.
+
+What the status does:
+
+| Where | `verified` | `fuzzy` | `failed` |
+|---|---|---|---|
+| Chat citation | Green badge | Amber badge, counts as support | Struck through, counted in `dropped_citations` |
+| Chat answer | | | An `answered` reply with no verified or fuzzy citation becomes `not_found` |
+| Datapoint | Stored and shown with a badge | Same, with a warning badge | Still stored and shown, with a red badge |
+
+What it guarantees and what it does not:
+
+- A verified quote is on the cited page of the cited report, character for character after
+  normalisation. The page link in the UI lets the user check it.
+- The answer text itself is not checked: the model can still misread a correct quote.
+- Fuzzy matching tolerates small edits, and a changed digit or an inserted "not" is a small
+  edit (see below). Fuzzy is shown as a warning for this reason.
+- The downgrade only applies to `answered` replies with at least one citation: an
+  `answered` reply without citations, or a `partial` reply whose quotes all failed, keeps its
+  status.
+
+**RapidFuzz over `difflib`.** `difflib.SequenceMatcher` needs no dependency but is pure
+Python and has no substring search, so it has to scan windows anchored on the quote's first
+word: about 13 ms per quote, and a typo in that word fails the quote. RapidFuzz is a
+compiled dependency whose `partial_ratio` checks every offset (about 0.3 ms per quote), but it
+scores near-misses a few points higher. On a small generated set (60 sentences from the six
+fixture reports, 570 variants) real quotes passed 96% of the time instead of 83%, and invented
+text was rejected 100% by both. Neither catches a changed digit or an inserted "not" (both
+accept over 90%); that needs a separate check, not a stricter threshold.
 
 ## Frontend
 
@@ -199,6 +236,7 @@ read differently from the page's block text.
 | Postgres + pgvector | Chroma, Qdrant, SQLite | A second store to sync, or weaker full-text search |
 | PyMuPDF | Docling, `pymupdf4llm`, LlamaParse, vision LLM | Slow on CPU, third-party upload, or high cost on 400 pages; PyMuPDF reached 1.00 on the labelled pages |
 | Fixed word windows per page | Heading-based sections, semantic chunking | Headings in these reports are unreliable; windows with overlap are predictable and the page is the citation unit anyway |
+| RapidFuzz `partial_ratio` | `difflib.SequenceMatcher` | No dependency, but 40x slower and misses quotes with a typo in the first word |
 | Local `bge-m3` | OpenAI or Voyage embeddings | Ties the index to one vendor |
 | Server-rendered page images | `react-pdf` / pdf.js in the browser | A 400-page PDF per citation is slow; one PNG per cited page is not |
 | Chunk RAG | Whole report in context, GraphRAG, agents | Slow and costly on 400 pages, or out of scope |
@@ -210,7 +248,7 @@ read differently from the page's block text.
 | Drawback | Mitigation |
 |---|---|
 | Two providers double the test surface | Shared prompts, Pydantic validation, one integration test per configured provider |
-| Strict quote check can flag correct answers | Text normalisation, labelled fuzzy fallback with a threshold setting |
+| Strict quote check can flag correct answers | Text normalisation, labelled fuzzy fallback with a threshold constant |
 | A verified quote can still be misread | Stated limitation; a golden question set is the next step |
 | Embedding 400 pages on CPU takes 10 to 15 minutes | Background ingestion with progress; Metal on a Mac brings it to about 2 minutes |
 | First run downloads about 4.5 GB of models | Cached in a named volume, stated in the README |

@@ -119,10 +119,7 @@ def _store_pages(db: Session, report: Report, doc: ParsedDocument) -> None:
 
 
 def _chunk(db: Session, report: Report, doc: ParsedDocument) -> list[Chunk]:
-    settings = get_settings()
-    drafts = chunk_document(
-        doc, settings.chunk_max_words, settings.chunk_overlap_words, settings.chunk_min_words
-    )
+    drafts = chunk_document(doc)
     prefix = _chunk_id_prefix(report)
     chunks = [
         Chunk(
