@@ -1,0 +1,3981 @@
+{
+  "variant": "noheader",
+  "chunks": 4625,
+  "modes": {
+    "pipeline": {
+      "vector": {
+        "n": 41,
+        "page_hit": 0.659,
+        "mrr": 0.388,
+        "page_recall": 0.482,
+        "facts": 0.585,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.259,
+            "page_recall": 0.323,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.667,
+            "mrr": 0.454,
+            "page_recall": 0.561,
+            "facts": 0.633,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.083,
+            "page_recall": 0.111,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.467,
+            "mrr": 0.245,
+            "page_recall": 0.367,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.769,
+            "mrr": 0.471,
+            "page_recall": 0.548,
+            "facts": 0.731,
+            "report_precision": 1.0
+          }
+        }
+      },
+      "fts": {
+        "n": 41,
+        "page_hit": 0.22,
+        "mrr": 0.151,
+        "page_recall": 0.15,
+        "facts": 0.146,
+        "report_precision": 0.512,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.125,
+            "mrr": 0.021,
+            "page_recall": 0.062,
+            "facts": 0,
+            "report_precision": 0.75
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.233,
+            "mrr": 0.19,
+            "page_recall": 0.178,
+            "facts": 0.2,
+            "report_precision": 0.433
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.111,
+            "page_recall": 0.111,
+            "facts": 0,
+            "report_precision": 0.667
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.333,
+            "mrr": 0.2,
+            "page_recall": 0.2,
+            "facts": 0.067,
+            "report_precision": 0.6
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.154,
+            "mrr": 0.123,
+            "page_recall": 0.122,
+            "facts": 0.192,
+            "report_precision": 0.462
+          }
+        }
+      },
+      "fts_or": {
+        "n": 41,
+        "page_hit": 0.366,
+        "mrr": 0.196,
+        "page_recall": 0.256,
+        "facts": 0.39,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.25,
+            "mrr": 0.167,
+            "page_recall": 0.083,
+            "facts": 0.125,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.433,
+            "mrr": 0.224,
+            "page_recall": 0.328,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0,
+            "mrr": 0.0,
+            "page_recall": 0.0,
+            "facts": 0,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.2,
+            "mrr": 0.156,
+            "page_recall": 0.2,
+            "facts": 0.133,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.462,
+            "mrr": 0.22,
+            "page_recall": 0.288,
+            "facts": 0.538,
+            "report_precision": 1.0
+          }
+        }
+      },
+      "hybrid": {
+        "n": 41,
+        "page_hit": 0.634,
+        "mrr": 0.363,
+        "page_recall": 0.457,
+        "facts": 0.512,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.625,
+            "mrr": 0.239,
+            "page_recall": 0.281,
+            "facts": 0.25,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.633,
+            "mrr": 0.407,
+            "page_recall": 0.528,
+            "facts": 0.6,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.25,
+            "page_recall": 0.222,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.467,
+            "mrr": 0.333,
+            "page_recall": 0.367,
+            "facts": 0.267,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.731,
+            "mrr": 0.379,
+            "page_recall": 0.51,
+            "facts": 0.654,
+            "report_precision": 1.0
+          }
+        }
+      },
+      "hybrid_or": {
+        "n": 41,
+        "page_hit": 0.537,
+        "mrr": 0.314,
+        "page_recall": 0.427,
+        "facts": 0.561,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.5,
+            "mrr": 0.233,
+            "page_recall": 0.188,
+            "facts": 0.25,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.6,
+            "mrr": 0.367,
+            "page_recall": 0.533,
+            "facts": 0.667,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0,
+            "mrr": 0.0,
+            "page_recall": 0.0,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.333,
+            "mrr": 0.247,
+            "page_recall": 0.267,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.654,
+            "mrr": 0.353,
+            "page_recall": 0.519,
+            "facts": 0.692,
+            "report_precision": 1.0
+          }
+        }
+      },
+      "vector+rerank": {
+        "n": 41,
+        "page_hit": 0.78,
+        "mrr": 0.527,
+        "page_recall": 0.573,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.38,
+            "page_recall": 0.354,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.602,
+            "page_recall": 0.678,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.433,
+            "page_recall": 0.439,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.581,
+            "page_recall": 0.651,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "baseline": {
+        "n": 41,
+        "page_hit": 0.756,
+        "mrr": 0.518,
+        "page_recall": 0.587,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.694,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.422,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.586,
+            "page_recall": 0.683,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "hybrid_or+rerank": {
+        "n": 41,
+        "page_hit": 0.805,
+        "mrr": 0.576,
+        "page_recall": 0.598,
+        "facts": 0.78,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.49,
+            "page_recall": 0.354,
+            "facts": 0.625,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.64,
+            "page_recall": 0.711,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.476,
+            "page_recall": 0.417,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.634,
+            "page_recall": 0.702,
+            "facts": 0.962,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "candidates=10": {
+        "n": 41,
+        "page_hit": 0.659,
+        "mrr": 0.502,
+        "page_recall": 0.482,
+        "facts": 0.537,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.625,
+            "mrr": 0.312,
+            "page_recall": 0.219,
+            "facts": 0.25,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.667,
+            "mrr": 0.578,
+            "page_recall": 0.578,
+            "facts": 0.633,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.25,
+            "page_recall": 0.222,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.467,
+            "mrr": 0.383,
+            "page_recall": 0.333,
+            "facts": 0.267,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.769,
+            "mrr": 0.571,
+            "page_recall": 0.567,
+            "facts": 0.692,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,candidates=10": {
+        "n": 41,
+        "page_hit": 0.659,
+        "mrr": 0.498,
+        "page_recall": 0.482,
+        "facts": 0.585,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.625,
+            "mrr": 0.323,
+            "page_recall": 0.219,
+            "facts": 0.375,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.7,
+            "mrr": 0.578,
+            "page_recall": 0.589,
+            "facts": 0.667,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.4,
+            "mrr": 0.333,
+            "page_recall": 0.289,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.808,
+            "mrr": 0.593,
+            "page_recall": 0.593,
+            "facts": 0.731,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "candidates=20": {
+        "n": 41,
+        "page_hit": 0.732,
+        "mrr": 0.524,
+        "page_recall": 0.567,
+        "facts": 0.61,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.421,
+            "page_recall": 0.406,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.733,
+            "mrr": 0.583,
+            "page_recall": 0.644,
+            "facts": 0.667,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.208,
+            "page_recall": 0.222,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.442,
+            "page_recall": 0.389,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.846,
+            "mrr": 0.572,
+            "page_recall": 0.67,
+            "facts": 0.769,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,candidates=20": {
+        "n": 41,
+        "page_hit": 0.707,
+        "mrr": 0.537,
+        "page_recall": 0.551,
+        "facts": 0.683,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.4,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.733,
+            "mrr": 0.611,
+            "page_recall": 0.644,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.333,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.467,
+            "mrr": 0.433,
+            "page_recall": 0.367,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.846,
+            "mrr": 0.597,
+            "page_recall": 0.657,
+            "facts": 0.808,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "candidates=60": {
+        "n": 41,
+        "page_hit": 0.805,
+        "mrr": 0.576,
+        "page_recall": 0.636,
+        "facts": 0.756,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.365,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.867,
+            "mrr": 0.673,
+            "page_recall": 0.761,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.5,
+            "page_recall": 0.506,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.62,
+            "page_recall": 0.712,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,candidates=60": {
+        "n": 41,
+        "page_hit": 0.805,
+        "mrr": 0.591,
+        "page_recall": 0.622,
+        "facts": 0.805,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.521,
+            "page_recall": 0.479,
+            "facts": 0.625,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.652,
+            "page_recall": 0.711,
+            "facts": 0.867,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.467,
+            "page_recall": 0.417,
+            "facts": 0.533,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.663,
+            "page_recall": 0.74,
+            "facts": 0.962,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "candidates=80": {
+        "n": 41,
+        "page_hit": 0.854,
+        "mrr": 0.615,
+        "page_recall": 0.667,
+        "facts": 0.756,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.521,
+            "page_recall": 0.438,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.867,
+            "mrr": 0.673,
+            "page_recall": 0.772,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.278,
+            "page_recall": 0.222,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.5,
+            "page_recall": 0.506,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.962,
+            "mrr": 0.681,
+            "page_recall": 0.76,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,candidates=80": {
+        "n": 41,
+        "page_hit": 0.829,
+        "mrr": 0.598,
+        "page_recall": 0.634,
+        "facts": 0.805,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.521,
+            "page_recall": 0.438,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.867,
+            "mrr": 0.662,
+            "page_recall": 0.739,
+            "facts": 0.9,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.489,
+            "page_recall": 0.472,
+            "facts": 0.6,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.662,
+            "page_recall": 0.728,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "top_k=3": {
+        "n": 41,
+        "page_hit": 0.683,
+        "mrr": 0.504,
+        "page_recall": 0.524,
+        "facts": 0.634,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.5,
+            "mrr": 0.271,
+            "page_recall": 0.25,
+            "facts": 0.25,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.767,
+            "mrr": 0.6,
+            "page_recall": 0.639,
+            "facts": 0.733,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.4,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.769,
+            "mrr": 0.564,
+            "page_recall": 0.596,
+            "facts": 0.808,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,top_k=3": {
+        "n": 41,
+        "page_hit": 0.707,
+        "mrr": 0.557,
+        "page_recall": 0.528,
+        "facts": 0.683,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.458,
+            "page_recall": 0.312,
+            "facts": 0.25,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.733,
+            "mrr": 0.622,
+            "page_recall": 0.628,
+            "facts": 0.8,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.467,
+            "page_recall": 0.361,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.808,
+            "mrr": 0.609,
+            "page_recall": 0.625,
+            "facts": 0.846,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "top_k=5": {
+        "n": 41,
+        "page_hit": 0.732,
+        "mrr": 0.515,
+        "page_recall": 0.569,
+        "facts": 0.683,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.625,
+            "mrr": 0.302,
+            "page_recall": 0.333,
+            "facts": 0.375,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.678,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.422,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.846,
+            "mrr": 0.581,
+            "page_recall": 0.654,
+            "facts": 0.846,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,top_k=5": {
+        "n": 41,
+        "page_hit": 0.78,
+        "mrr": 0.573,
+        "page_recall": 0.577,
+        "facts": 0.732,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.49,
+            "page_recall": 0.354,
+            "facts": 0.375,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.636,
+            "page_recall": 0.683,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.467,
+            "page_recall": 0.383,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.634,
+            "page_recall": 0.689,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "top_k=12": {
+        "n": 41,
+        "page_hit": 0.78,
+        "mrr": 0.52,
+        "page_recall": 0.652,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.406,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.61,
+            "page_recall": 0.772,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.456,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.59,
+            "page_recall": 0.766,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,top_k=12": {
+        "n": 41,
+        "page_hit": 0.805,
+        "mrr": 0.576,
+        "page_recall": 0.636,
+        "facts": 0.78,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.49,
+            "page_recall": 0.427,
+            "facts": 0.625,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.64,
+            "page_recall": 0.744,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.476,
+            "page_recall": 0.417,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.634,
+            "page_recall": 0.763,
+            "facts": 0.962,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "top_k=16": {
+        "n": 41,
+        "page_hit": 0.805,
+        "mrr": 0.522,
+        "page_recall": 0.681,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.406,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.61,
+            "page_recall": 0.789,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.192,
+            "page_recall": 0.333,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.405,
+            "page_recall": 0.478,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.59,
+            "page_recall": 0.798,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "or,top_k=16": {
+        "n": 41,
+        "page_hit": 0.829,
+        "mrr": 0.578,
+        "page_recall": 0.65,
+        "facts": 0.829,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.49,
+            "page_recall": 0.458,
+            "facts": 0.75,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.833,
+            "mrr": 0.64,
+            "page_recall": 0.744,
+            "facts": 0.867,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.667,
+            "mrr": 0.192,
+            "page_recall": 0.222,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.481,
+            "page_recall": 0.456,
+            "facts": 0.6,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.923,
+            "mrr": 0.634,
+            "page_recall": 0.763,
+            "facts": 0.962,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "rrf_k=10": {
+        "n": 41,
+        "page_hit": 0.756,
+        "mrr": 0.518,
+        "page_recall": 0.587,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.694,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.422,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.586,
+            "page_recall": 0.683,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "rrf_k=30": {
+        "n": 41,
+        "page_hit": 0.756,
+        "mrr": 0.518,
+        "page_recall": 0.587,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.694,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.422,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.586,
+            "page_recall": 0.683,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "rrf_k=100": {
+        "n": 41,
+        "page_hit": 0.756,
+        "mrr": 0.518,
+        "page_recall": 0.587,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.75,
+            "mrr": 0.318,
+            "page_recall": 0.365,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.694,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.533,
+            "mrr": 0.4,
+            "page_recall": 0.422,
+            "facts": 0.4,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.586,
+            "page_recall": 0.683,
+            "facts": 0.885,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "per_report": {
+        "n": 41,
+        "page_hit": 0.78,
+        "mrr": 0.539,
+        "page_recall": 0.593,
+        "facts": 0.707,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.427,
+            "page_recall": 0.396,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.8,
+            "mrr": 0.607,
+            "page_recall": 0.694,
+            "facts": 0.767,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.433,
+            "page_recall": 0.439,
+            "facts": 0.333,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.885,
+            "mrr": 0.601,
+            "page_recall": 0.683,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "tuned": {
+        "n": 41,
+        "page_hit": 0.854,
+        "mrr": 0.581,
+        "page_recall": 0.695,
+        "facts": 0.756,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.378,
+            "page_recall": 0.438,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.9,
+            "mrr": 0.676,
+            "page_recall": 0.822,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.5,
+            "page_recall": 0.539,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.962,
+            "mrr": 0.627,
+            "page_recall": 0.785,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "tuned+per_report": {
+        "n": 41,
+        "page_hit": 0.854,
+        "mrr": 0.609,
+        "page_recall": 0.709,
+        "facts": 0.78,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.521,
+            "page_recall": 0.51,
+            "facts": 0.625,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.9,
+            "mrr": 0.676,
+            "page_recall": 0.822,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.5,
+            "page_recall": 0.539,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.962,
+            "mrr": 0.671,
+            "page_recall": 0.808,
+            "facts": 0.962,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "tuned_or": {
+        "n": 41,
+        "page_hit": 0.829,
+        "mrr": 0.593,
+        "page_recall": 0.685,
+        "facts": 0.829,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.521,
+            "page_recall": 0.552,
+            "facts": 0.75,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.867,
+            "mrr": 0.656,
+            "page_recall": 0.778,
+            "facts": 0.867,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.6,
+            "mrr": 0.467,
+            "page_recall": 0.45,
+            "facts": 0.533,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.962,
+            "mrr": 0.667,
+            "page_recall": 0.821,
+            "facts": 1,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      },
+      "tuned_vector_only": {
+        "n": 41,
+        "page_hit": 0.854,
+        "mrr": 0.578,
+        "page_recall": 0.683,
+        "facts": 0.756,
+        "report_precision": 1.0,
+        "by_type": {
+          "comparison": {
+            "n": 8,
+            "page_hit": 0.875,
+            "mrr": 0.378,
+            "page_recall": 0.438,
+            "facts": 0.5,
+            "report_precision": 1.0
+          },
+          "factoid": {
+            "n": 30,
+            "page_hit": 0.9,
+            "mrr": 0.672,
+            "page_recall": 0.806,
+            "facts": 0.833,
+            "report_precision": 1.0
+          },
+          "followup": {
+            "n": 3,
+            "page_hit": 0.333,
+            "mrr": 0.167,
+            "page_recall": 0.111,
+            "facts": 0.667,
+            "report_precision": 1.0
+          }
+        },
+        "by_modality": {
+          "table": {
+            "n": 15,
+            "page_hit": 0.667,
+            "mrr": 0.5,
+            "page_recall": 0.539,
+            "facts": 0.467,
+            "report_precision": 1.0
+          },
+          "text": {
+            "n": 26,
+            "page_hit": 0.962,
+            "mrr": 0.622,
+            "page_recall": 0.766,
+            "facts": 0.923,
+            "report_precision": 1.0
+          }
+        },
+        "abstention": [
+          {
+            "threshold": 0.001,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.003,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.01,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.03,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.0
+          },
+          {
+            "threshold": 0.1,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.091
+          },
+          {
+            "threshold": 0.2,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.3,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          },
+          {
+            "threshold": 0.5,
+            "answerable_abstained": 0.0,
+            "unanswerable_abstained": 0.182
+          }
+        ]
+      }
+    }
+  },
+  "scope_accuracy": {
+    "contains_gold": 0.878,
+    "mean_scope_size": 1.15,
+    "misses": [
+      "abn-cmp-dividend",
+      "abn-followup-roe",
+      "asml-gross-margin-2024-vs-2025",
+      "asml-litho-units-followup",
+      "cm-net-result-followup"
+    ]
+  },
+  "timings_ms": {
+    "vector": 41.58,
+    "fts": 0.93,
+    "fts_or": 37.87,
+    "rerank_per_pair": 81.76
+  },
+  "questions": {
+    "abn-2025-cet1": {
+      "query": "How strong was ABN AMRO's core capital position (CET1) at year-end 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9987640380859375,
+      "hits": [
+        "ABN AMRO 2025 p41 0.999",
+        "ABN AMRO 2025 p36 0.998",
+        "ABN AMRO 2025 p57 0.989",
+        "ABN AMRO 2025 p40 0.918",
+        "ABN AMRO 2025 p401 0.897",
+        "ABN AMRO 2025 p20 0.895",
+        "ABN AMRO 2025 p117 0.891",
+        "ABN AMRO 2025 p373 0.883"
+      ]
+    },
+    "abn-2025-cost-income": {
+      "query": "What cost/income ratio did ABN AMRO report for 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9997437596321106,
+      "hits": [
+        "ABN AMRO 2025 p407 1.000",
+        "ABN AMRO 2025 p47 1.000",
+        "ABN AMRO 2025 p36 0.999",
+        "ABN AMRO 2025 p4 0.999",
+        "ABN AMRO 2025 p20 0.996",
+        "ABN AMRO 2025 p40 0.995",
+        "ABN AMRO 2025 p40 0.994",
+        "ABN AMRO 2025 p314 0.994"
+      ]
+    },
+    "abn-2025-new-ceo": {
+      "query": "Who became the new CEO of ABN AMRO in 2025, and whom did that person replace?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9973599314689636,
+      "hits": [
+        "ABN AMRO 2025 p146 0.997",
+        "ABN AMRO 2025 p155 0.997",
+        "ABN AMRO 2025 p15 0.996",
+        "ABN AMRO 2025 p6 0.995",
+        "ABN AMRO 2025 p145 0.991",
+        "ABN AMRO 2025 p403 0.988",
+        "ABN AMRO 2025 p385 0.988",
+        "ABN AMRO 2025 p180 0.986"
+      ]
+    },
+    "abn-2025-renewable-financing": {
+      "query": "How much renewable energy financing had ABN AMRO provided by the end of 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9976516366004944,
+      "hits": [
+        "ABN AMRO 2025 p30 0.998",
+        "ABN AMRO 2025 p19 0.994",
+        "ABN AMRO 2025 p247 0.970",
+        "ABN AMRO 2025 p224 0.943",
+        "ABN AMRO 2025 p246 0.938",
+        "ABN AMRO 2025 p206 0.931",
+        "ABN AMRO 2025 p40 0.916",
+        "ABN AMRO 2025 p401 0.852"
+      ]
+    },
+    "abn-2025-women-senior-mgmt": {
+      "query": "What share of ABN AMRO's senior management positions were held by women in 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9973493814468384,
+      "hits": [
+        "ABN AMRO 2025 p257 0.997",
+        "ABN AMRO 2025 p32 0.996",
+        "ABN AMRO 2025 p14 0.985",
+        "ABN AMRO 2025 p260 0.975",
+        "ABN AMRO 2025 p144 0.969",
+        "ABN AMRO 2025 p253 0.967",
+        "ABN AMRO 2025 p173 0.962",
+        "ABN AMRO 2025 p153 0.961"
+      ]
+    },
+    "abn-2024-cfo": {
+      "query": "Who was ABN AMRO's Chief Financial Officer during 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9992064833641052,
+      "hits": [
+        "ABN AMRO 2024 p214 0.999",
+        "ABN AMRO 2024 p38 0.999",
+        "ABN AMRO 2024 p450 0.999",
+        "ABN AMRO 2024 p468 0.999",
+        "ABN AMRO 2024 p14 0.994",
+        "ABN AMRO 2024 p164 0.993",
+        "ABN AMRO 2024 p183 0.992",
+        "ABN AMRO 2024 p174 0.990"
+      ]
+    },
+    "abn-2024-internal-fte": {
+      "query": "How many internal employees (in FTEs) did ABN AMRO have at the end of 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9995251893997192,
+      "hits": [
+        "ABN AMRO 2024 p47 1.000",
+        "ABN AMRO 2024 p48 0.998",
+        "ABN AMRO 2024 p11 0.998",
+        "ABN AMRO 2024 p197 0.997",
+        "ABN AMRO 2024 p467 0.990",
+        "ABN AMRO 2024 p26 0.979",
+        "ABN AMRO 2024 p466 0.959",
+        "ABN AMRO 2024 p304 0.957"
+      ]
+    },
+    "abn-2024-roe-target": {
+      "query": "What return on equity target for 2026 did ABN AMRO set out in its 2024 annual report?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9995976090431213,
+      "hits": [
+        "ABN AMRO 2024 p36 1.000",
+        "ABN AMRO 2024 p18 0.999",
+        "ABN AMRO 2024 p36 0.998",
+        "ABN AMRO 2024 p46 0.997",
+        "ABN AMRO 2024 p40 0.991",
+        "ABN AMRO 2024 p5 0.971",
+        "ABN AMRO 2024 p196 0.970",
+        "ABN AMRO 2024 p41 0.957"
+      ]
+    },
+    "abn-2024-sustainable-asset-volume": {
+      "query": "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9998142123222351,
+      "hits": [
+        "ABN AMRO 2024 p29 1.000",
+        "ABN AMRO 2024 p29 1.000",
+        "ABN AMRO 2024 p18 0.999",
+        "ABN AMRO 2024 p5 0.998",
+        "ABN AMRO 2024 p334 0.986",
+        "ABN AMRO 2024 p40 0.968",
+        "ABN AMRO 2024 p30 0.967",
+        "ABN AMRO 2024 p270 0.966"
+      ]
+    },
+    "abn-2024-eps": {
+      "query": "What were ABN AMRO's earnings per share for 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9989965558052063,
+      "hits": [
+        "ABN AMRO 2024 p128 0.999",
+        "ABN AMRO 2024 p392 0.998",
+        "ABN AMRO 2024 p26 0.998",
+        "ABN AMRO 2024 p40 0.997",
+        "ABN AMRO 2024 p40 0.997",
+        "ABN AMRO 2024 p43 0.996",
+        "ABN AMRO 2024 p380 0.993",
+        "ABN AMRO 2024 p378 0.987"
+      ]
+    },
+    "abn-cmp-net-profit": {
+      "query": "How did ABN AMRO's net profit develop between 2024 and 2025?",
+      "scope": [
+        "ABN AMRO 2024",
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9948370456695557,
+      "hits": [
+        "ABN AMRO 2025 p40 0.995",
+        "ABN AMRO 2024 p40 0.990",
+        "ABN AMRO 2024 p128 0.989",
+        "ABN AMRO 2025 p310 0.987",
+        "ABN AMRO 2025 p40 0.983",
+        "ABN AMRO 2025 p41 0.978",
+        "ABN AMRO 2025 p4 0.977",
+        "ABN AMRO 2024 p41 0.974"
+      ]
+    },
+    "abn-cmp-dividend": {
+      "query": "Did ABN AMRO pay a higher or lower dividend per share for 2025 than for 2024?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "page_recall": 0.6666666666666666,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9979789853096008,
+      "hits": [
+        "ABN AMRO 2025 p400 0.998",
+        "ABN AMRO 2025 p370 0.995",
+        "ABN AMRO 2025 p41 0.994",
+        "ABN AMRO 2025 p121 0.993",
+        "ABN AMRO 2025 p327 0.993",
+        "ABN AMRO 2025 p44 0.992",
+        "ABN AMRO 2025 p40 0.976",
+        "ABN AMRO 2025 p40 0.972"
+      ]
+    },
+    "abn-followup-roe": {
+      "query": "What return on equity did ABN AMRO achieve in 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9993646740913391,
+      "hits": [
+        "ABN AMRO 2024 p40 0.999",
+        "ABN AMRO 2024 p46 0.999",
+        "ABN AMRO 2024 p36 0.999",
+        "ABN AMRO 2024 p36 0.998",
+        "ABN AMRO 2024 p40 0.994",
+        "ABN AMRO 2024 p5 0.994",
+        "ABN AMRO 2024 p18 0.993",
+        "ABN AMRO 2024 p128 0.981"
+      ]
+    },
+    "abn-unans-atms": {
+      "query": "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9242075681686401,
+      "hits": [
+        "ABN AMRO 2025 p26 0.924",
+        "ABN AMRO 2025 p379 0.811",
+        "ABN AMRO 2025 p18 0.669",
+        "ABN AMRO 2025 p314 0.647",
+        "ABN AMRO 2025 p10 0.631",
+        "ABN AMRO 2025 p9 0.631",
+        "ABN AMRO 2025 p325 0.610",
+        "ABN AMRO 2025 p400 0.608"
+      ]
+    },
+    "abn-unans-app-users": {
+      "query": "How many monthly active users did ABN AMRO's mobile banking app have in 2025?",
+      "scope": [
+        "ABN AMRO 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9775436520576477,
+      "hits": [
+        "ABN AMRO 2025 p26 0.978",
+        "ABN AMRO 2025 p362 0.963",
+        "ABN AMRO 2025 p26 0.916",
+        "ABN AMRO 2025 p317 0.895",
+        "ABN AMRO 2025 p401 0.867",
+        "ABN AMRO 2025 p27 0.864",
+        "ABN AMRO 2025 p40 0.836",
+        "ABN AMRO 2025 p393 0.817"
+      ]
+    },
+    "abn-unans-savings-share": {
+      "query": "What was ABN AMRO's market share in Dutch savings deposits in 2024?",
+      "scope": [
+        "ABN AMRO 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9946211576461792,
+      "hits": [
+        "ABN AMRO 2024 p40 0.995",
+        "ABN AMRO 2024 p96 0.982",
+        "ABN AMRO 2024 p11 0.964",
+        "ABN AMRO 2024 p43 0.956",
+        "ABN AMRO 2024 p98 0.941",
+        "ABN AMRO 2024 p14 0.917",
+        "ABN AMRO 2024 p380 0.910",
+        "ABN AMRO 2024 p368 0.908"
+      ]
+    },
+    "asml-2025-net-income": {
+      "query": "What was ASML's net profit for 2025?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.999514102935791,
+      "hits": [
+        "ASML 2025 p131 1.000",
+        "ASML 2025 p56 0.998",
+        "ASML 2025 p51 0.998",
+        "ASML 2025 p5 0.998",
+        "ASML 2025 p55 0.997",
+        "ASML 2025 p54 0.995",
+        "ASML 2025 p114 0.993",
+        "ASML 2025 p53 0.992"
+      ]
+    },
+    "asml-2025-euv-units": {
+      "query": "How many EUV machines did ASML recognize as sold in 2025?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 0.5,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9775221347808838,
+      "hits": [
+        "ASML 2025 p191 0.978",
+        "ASML 2025 p53 0.942",
+        "ASML 2025 p21 0.910",
+        "ASML 2025 p201 0.901",
+        "ASML 2025 p58 0.899",
+        "ASML 2025 p288 0.837",
+        "ASML 2025 p52 0.818",
+        "ASML 2025 p287 0.807"
+      ]
+    },
+    "asml-2025-backlog": {
+      "query": "How big was ASML's order backlog going into 2026?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9752012491226196,
+      "hits": [
+        "ASML 2025 p8 0.975",
+        "ASML 2025 p58 0.742",
+        "ASML 2025 p52 0.681",
+        "ASML 2025 p313 0.665",
+        "ASML 2025 p287 0.659",
+        "ASML 2025 p315 0.601",
+        "ASML 2025 p58 0.589",
+        "ASML 2025 p334 0.575"
+      ]
+    },
+    "asml-2025-china-share": {
+      "query": "What percentage of ASML's 2025 sales came from customers in China?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9990123510360718,
+      "hits": [
+        "ASML 2025 p67 0.999",
+        "ASML 2025 p21 0.971",
+        "ASML 2025 p287 0.955",
+        "ASML 2025 p58 0.945",
+        "ASML 2025 p216 0.943",
+        "ASML 2025 p51 0.940",
+        "ASML 2025 p288 0.938",
+        "ASML 2025 p54 0.928"
+      ]
+    },
+    "asml-2025-share-buyback": {
+      "query": "How much did ASML spend buying back its own shares in 2025?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 0.5,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9904560446739197,
+      "hits": [
+        "ASML 2025 p315 0.990",
+        "ASML 2025 p334 0.986",
+        "ASML 2025 p47 0.984",
+        "ASML 2025 p334 0.972",
+        "ASML 2025 p305 0.952",
+        "ASML 2025 p57 0.941",
+        "ASML 2025 p313 0.935",
+        "ASML 2025 p131 0.929"
+      ]
+    },
+    "asml-2024-rd-costs": {
+      "query": "How much did ASML invest in R&D during 2024?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": true,
+      "mrr": 0.2,
+      "page_recall": 0.5,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9994649291038513,
+      "hits": [
+        "ASML 2024 p33 0.999",
+        "ASML 2024 p300 0.999",
+        "ASML 2024 p380 0.996",
+        "ASML 2024 p42 0.996",
+        "ASML 2024 p57 0.994",
+        "ASML 2024 p59 0.982",
+        "ASML 2024 p60 0.982",
+        "ASML 2024 p348 0.971"
+      ]
+    },
+    "asml-2024-new-ceo": {
+      "query": "Who became ASML's chief executive in 2024, and whom did they replace?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 0.5,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9994533658027649,
+      "hits": [
+        "ASML 2024 p7 0.999",
+        "ASML 2024 p99 0.999",
+        "ASML 2024 p158 0.999",
+        "ASML 2024 p115 0.998",
+        "ASML 2024 p117 0.998",
+        "ASML 2024 p98 0.997",
+        "ASML 2024 p158 0.997",
+        "ASML 2024 p156 0.997"
+      ]
+    },
+    "asml-2024-scope12-emissions": {
+      "query": "What were ASML's combined scope 1 and 2 greenhouse gas emissions in 2024?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.997269332408905,
+      "hits": [
+        "ASML 2024 p200 0.997",
+        "ASML 2024 p221 0.984",
+        "ASML 2024 p206 0.980",
+        "ASML 2024 p209 0.979",
+        "ASML 2024 p221 0.978",
+        "ASML 2024 p200 0.976",
+        "ASML 2024 p198 0.956",
+        "ASML 2024 p202 0.948"
+      ]
+    },
+    "asml-2024-fte": {
+      "query": "How many full-time-equivalent staff did ASML have at the end of 2024?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.987511157989502,
+      "hits": [
+        "ASML 2024 p160 0.988",
+        "ASML 2024 p42 0.949",
+        "ASML 2024 p370 0.940",
+        "ASML 2024 p156 0.939",
+        "ASML 2024 p267 0.934",
+        "ASML 2024 p372 0.926",
+        "ASML 2024 p117 0.923",
+        "ASML 2024 p272 0.923"
+      ]
+    },
+    "asml-2024-dividend": {
+      "query": "What total dividend per share did ASML declare for financial year 2024?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9997890591621399,
+      "hits": [
+        "ASML 2024 p372 1.000",
+        "ASML 2024 p381 1.000",
+        "ASML 2024 p391 1.000",
+        "ASML 2024 p138 0.999",
+        "ASML 2024 p7 0.988",
+        "ASML 2024 p348 0.979",
+        "ASML 2024 p372 0.968",
+        "ASML 2024 p393 0.950"
+      ]
+    },
+    "asml-net-sales-2024-vs-2025": {
+      "query": "How did ASML's revenue develop between 2024 and 2025?",
+      "scope": [
+        "ASML 2024",
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9886763095855713,
+      "hits": [
+        "ASML 2024 p60 0.989",
+        "ASML 2025 p54 0.986",
+        "ASML 2025 p51 0.984",
+        "ASML 2025 p131 0.979",
+        "ASML 2025 p21 0.976",
+        "ASML 2025 p25 0.974",
+        "ASML 2025 p52 0.971",
+        "ASML 2025 p287 0.965"
+      ]
+    },
+    "asml-gross-margin-2024-vs-2025": {
+      "query": "Did ASML's gross margin improve in 2025 compared with 2024?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "page_recall": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.999434769153595,
+      "hits": [
+        "ASML 2025 p51 0.999",
+        "ASML 2025 p55 0.998",
+        "ASML 2025 p8 0.996",
+        "ASML 2025 p54 0.995",
+        "ASML 2025 p52 0.990",
+        "ASML 2025 p131 0.989",
+        "ASML 2025 p52 0.988",
+        "ASML 2025 p58 0.988"
+      ]
+    },
+    "asml-litho-units-followup": {
+      "query": "How many lithography systems did ASML sell in 2024?",
+      "scope": [
+        "ASML 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9966598749160767,
+      "hits": [
+        "ASML 2024 p55 0.997",
+        "ASML 2024 p238 0.995",
+        "ASML 2024 p344 0.963",
+        "ASML 2024 p56 0.959",
+        "ASML 2024 p53 0.941",
+        "ASML 2024 p57 0.924",
+        "ASML 2024 p7 0.915",
+        "ASML 2024 p344 0.895"
+      ]
+    },
+    "asml-unans-tsmc-share": {
+      "query": "What share of ASML's 2025 revenue came from TSMC?",
+      "scope": [
+        "ASML 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9205688238143921,
+      "hits": [
+        "ASML 2025 p52 0.921",
+        "ASML 2025 p131 0.900",
+        "ASML 2025 p287 0.874",
+        "ASML 2025 p21 0.819",
+        "ASML 2025 p54 0.800",
+        "ASML 2025 p51 0.783",
+        "ASML 2025 p287 0.773",
+        "ASML 2025 p52 0.765"
+      ]
+    },
+    "asml-unans-high-na-2026-shipments": {
+      "query": "How many High NA EUV systems does ASML plan to ship in 2026?",
+      "scope": [
+        "ASML 2024",
+        "ASML 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 0.5,
+      "best_score": 0.9671334624290466,
+      "hits": [
+        "ASML 2025 p168 0.967",
+        "ASML 2024 p22 0.938",
+        "ASML 2025 p17 0.908",
+        "ASML 2024 p137 0.898",
+        "ASML 2024 p32 0.877",
+        "ASML 2025 p9 0.877",
+        "ASML 2024 p8 0.842",
+        "ASML 2025 p10 0.836"
+      ]
+    },
+    "asml-unans-china-2030": {
+      "query": "How much revenue does ASML expect to generate from China in 2030?",
+      "scope": [
+        "ASML 2024",
+        "ASML 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9821898937225342,
+      "hits": [
+        "ASML 2025 p52 0.982",
+        "ASML 2025 p58 0.978",
+        "ASML 2025 p58 0.954",
+        "ASML 2024 p11 0.945",
+        "ASML 2025 p36 0.913",
+        "ASML 2024 p13 0.906",
+        "ASML 2024 p61 0.900",
+        "ASML 2024 p40 0.880"
+      ]
+    },
+    "cm-2025-adjusted-ebitda": {
+      "query": "What was CM.com's adjusted EBITDA for 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9937562942504883,
+      "hits": [
+        "CM.com 2025 p24 0.994",
+        "CM.com 2025 p108 0.972",
+        "CM.com 2025 p25 0.961",
+        "CM.com 2025 p55 0.954",
+        "CM.com 2025 p4 0.953",
+        "CM.com 2025 p155 0.934",
+        "CM.com 2025 p30 0.931",
+        "CM.com 2025 p115 0.921"
+      ]
+    },
+    "cm-2025-new-cfo": {
+      "query": "Who is taking over as CFO of CM.com after Jörg de Graaf left in 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9997323155403137,
+      "hits": [
+        "CM.com 2025 p43 1.000",
+        "CM.com 2025 p5 0.999",
+        "CM.com 2025 p128 0.999",
+        "CM.com 2025 p37 0.997",
+        "CM.com 2025 p25 0.996",
+        "CM.com 2025 p57 0.994",
+        "CM.com 2025 p56 0.991",
+        "CM.com 2025 p33 0.990"
+      ]
+    },
+    "cm-2025-arr": {
+      "query": "How much annual recurring revenue did CM.com have at the end of 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9964945912361145,
+      "hits": [
+        "CM.com 2025 p4 0.996",
+        "CM.com 2025 p24 0.989",
+        "CM.com 2025 p115 0.977",
+        "CM.com 2025 p25 0.974",
+        "CM.com 2025 p55 0.969",
+        "CM.com 2025 p25 0.968",
+        "CM.com 2025 p142 0.964",
+        "CM.com 2025 p117 0.960"
+      ]
+    },
+    "cm-2025-ghg-market-based": {
+      "query": "What were CM.com's total market-based greenhouse gas emissions in 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9931389689445496,
+      "hits": [
+        "CM.com 2025 p73 0.993",
+        "CM.com 2025 p70 0.944",
+        "CM.com 2025 p73 0.942",
+        "CM.com 2025 p72 0.941",
+        "CM.com 2025 p70 0.915",
+        "CM.com 2025 p71 0.903",
+        "CM.com 2025 p2 0.894",
+        "CM.com 2025 p94 0.879"
+      ]
+    },
+    "cm-2025-women-senior-management": {
+      "query": "What share of CM.com's senior management were women in 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9977554678916931,
+      "hits": [
+        "CM.com 2025 p39 0.998",
+        "CM.com 2025 p82 0.998",
+        "CM.com 2025 p38 0.997",
+        "CM.com 2025 p52 0.984",
+        "CM.com 2025 p83 0.975",
+        "CM.com 2025 p81 0.973",
+        "CM.com 2025 p24 0.947",
+        "CM.com 2025 p30 0.943"
+      ]
+    },
+    "cm-2024-messages": {
+      "query": "How many messages did CM.com process in 2024?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9955769777297974,
+      "hits": [
+        "CM.com 2024 p25 0.996",
+        "CM.com 2024 p62 0.975",
+        "CM.com 2024 p58 0.955",
+        "CM.com 2024 p34 0.919",
+        "CM.com 2024 p64 0.800",
+        "CM.com 2024 p5 0.792",
+        "CM.com 2024 p37 0.765",
+        "CM.com 2024 p63 0.763"
+      ]
+    },
+    "cm-2024-free-cash-flow": {
+      "query": "Was CM.com's free cash flow positive in 2024, and how much was it?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9996192455291748,
+      "hits": [
+        "CM.com 2024 p63 1.000",
+        "CM.com 2024 p55 0.999",
+        "CM.com 2024 p57 0.999",
+        "CM.com 2024 p4 0.998",
+        "CM.com 2024 p84 0.997",
+        "CM.com 2024 p84 0.995",
+        "CM.com 2024 p65 0.988",
+        "CM.com 2024 p62 0.981"
+      ]
+    },
+    "cm-2024-offices": {
+      "query": "How many offices did CM.com have worldwide in 2024, and in how many countries?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.9994522929191589,
+      "hits": [
+        "CM.com 2024 p5 0.999",
+        "CM.com 2024 p24 0.961",
+        "CM.com 2024 p11 0.916",
+        "CM.com 2024 p24 0.916",
+        "CM.com 2024 p64 0.880",
+        "CM.com 2024 p65 0.868",
+        "CM.com 2024 p133 0.844",
+        "CM.com 2024 p15 0.815"
+      ]
+    },
+    "cm-2024-ghg-total-market-based": {
+      "query": "What was CM.com's total carbon footprint (market-based, all scopes) in 2024?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": true,
+      "mrr": 0.5,
+      "page_recall": 0.5,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.988673985004425,
+      "hits": [
+        "CM.com 2024 p5 0.989",
+        "CM.com 2024 p124 0.973",
+        "CM.com 2024 p124 0.939",
+        "CM.com 2024 p122 0.908",
+        "CM.com 2024 p65 0.908",
+        "CM.com 2024 p64 0.907",
+        "CM.com 2024 p84 0.905",
+        "CM.com 2024 p123 0.899"
+      ]
+    },
+    "cm-2024-employee-engagement": {
+      "query": "What employee engagement score did CM.com achieve in 2024?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": true,
+      "mrr": 1.0,
+      "page_recall": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "best_score": 0.999575674533844,
+      "hits": [
+        "CM.com 2024 p136 1.000",
+        "CM.com 2024 p100 0.995",
+        "CM.com 2024 p100 0.992",
+        "CM.com 2024 p135 0.962",
+        "CM.com 2024 p112 0.958",
+        "CM.com 2024 p133 0.945",
+        "CM.com 2024 p84 0.940",
+        "CM.com 2024 p5 0.929"
+      ]
+    },
+    "cm-revenue-change-2024-2025": {
+      "query": "How did CM.com's revenue develop between 2024 and 2025?",
+      "scope": [
+        "CM.com 2024",
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9960466027259827,
+      "hits": [
+        "CM.com 2024 p57 0.996",
+        "CM.com 2024 p62 0.985",
+        "CM.com 2024 p63 0.985",
+        "CM.com 2024 p62 0.983",
+        "CM.com 2024 p63 0.983",
+        "CM.com 2024 p84 0.981",
+        "CM.com 2024 p55 0.977",
+        "CM.com 2025 p30 0.974"
+      ]
+    },
+    "cm-fte-change-2024-2025": {
+      "query": "How did CM.com's year-end headcount in FTE change from 2024 to 2025?",
+      "scope": [
+        "CM.com 2024",
+        "CM.com 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.25,
+      "page_recall": 0.3333333333333333,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.985873818397522,
+      "hits": [
+        "CM.com 2025 p141 0.986",
+        "CM.com 2024 p178 0.986",
+        "CM.com 2025 p124 0.986",
+        "CM.com 2024 p63 0.985",
+        "CM.com 2024 p84 0.982",
+        "CM.com 2025 p30 0.980",
+        "CM.com 2024 p55 0.973",
+        "CM.com 2024 p64 0.973"
+      ]
+    },
+    "cm-net-result-followup": {
+      "query": "What was CM.com's net result in 2024?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9977717995643616,
+      "hits": [
+        "CM.com 2024 p5 0.998",
+        "CM.com 2024 p57 0.998",
+        "CM.com 2024 p55 0.996",
+        "CM.com 2024 p62 0.993",
+        "CM.com 2024 p63 0.993",
+        "CM.com 2024 p95 0.991",
+        "CM.com 2024 p44 0.990",
+        "CM.com 2024 p62 0.989"
+      ]
+    },
+    "cm-2025-scope3-unanswerable": {
+      "query": "What were CM.com's scope 3 emissions in 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9943690896034241,
+      "hits": [
+        "CM.com 2025 p70 0.994",
+        "CM.com 2025 p70 0.987",
+        "CM.com 2025 p73 0.957",
+        "CM.com 2025 p60 0.952",
+        "CM.com 2025 p94 0.951",
+        "CM.com 2025 p73 0.938",
+        "CM.com 2025 p71 0.928",
+        "CM.com 2025 p93 0.848"
+      ]
+    },
+    "cm-2024-patents-unanswerable": {
+      "query": "How many patents did CM.com hold in 2024?",
+      "scope": [
+        "CM.com 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.9471662044525146,
+      "hits": [
+        "CM.com 2024 p5 0.947",
+        "CM.com 2024 p84 0.905",
+        "CM.com 2024 p64 0.901",
+        "CM.com 2024 p57 0.898",
+        "CM.com 2024 p63 0.889",
+        "CM.com 2024 p84 0.866",
+        "CM.com 2024 p65 0.862",
+        "CM.com 2024 p55 0.822"
+      ]
+    },
+    "cm-2025-water-unanswerable": {
+      "query": "How much water did CM.com consume in 2025?",
+      "scope": [
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "best_score": 0.7729257345199585,
+      "hits": [
+        "CM.com 2025 p12 0.773",
+        "CM.com 2025 p24 0.699",
+        "CM.com 2025 p72 0.697",
+        "CM.com 2025 p4 0.657",
+        "CM.com 2025 p115 0.635",
+        "CM.com 2025 p73 0.634",
+        "CM.com 2025 p4 0.621",
+        "CM.com 2025 p75 0.618"
+      ]
+    },
+    "xco-fte-2025": {
+      "query": "Which company employed more people at the end of 2025, ASML or ABN AMRO?",
+      "scope": [
+        "ABN AMRO 2025",
+        "ASML 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9825732111930847,
+      "hits": [
+        "ABN AMRO 2025 p185 0.983",
+        "ASML 2025 p131 0.950",
+        "ABN AMRO 2025 p325 0.925",
+        "ABN AMRO 2025 p326 0.921",
+        "ABN AMRO 2025 p289 0.872",
+        "ABN AMRO 2025 p190 0.841",
+        "ABN AMRO 2025 p431 0.768",
+        "ASML 2025 p342 0.762"
+      ]
+    },
+    "xco-revenue-2025": {
+      "query": "Compare the 2025 revenue of ASML and CM.com.",
+      "scope": [
+        "ASML 2025",
+        "CM.com 2025"
+      ],
+      "page_hit": true,
+      "mrr": 0.125,
+      "page_recall": 0.25,
+      "facts": false,
+      "report_precision": 1.0,
+      "best_score": 0.9423633217811584,
+      "hits": [
+        "ASML 2025 p131 0.942",
+        "CM.com 2025 p43 0.917",
+        "ASML 2025 p287 0.906",
+        "CM.com 2025 p159 0.896",
+        "ASML 2025 p287 0.883",
+        "CM.com 2025 p25 0.847",
+        "ASML 2025 p5 0.845",
+        "ASML 2025 p54 0.831"
+      ]
+    },
+    "ooc-shell-revenue": {
+      "query": "What was Shell's total revenue in 2025?",
+      "scope": [
+        "ABN AMRO 2025",
+        "ASML 2025",
+        "CM.com 2025"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 0.0,
+      "best_score": 0.0563461035490036,
+      "hits": [
+        "ASML 2025 p54 0.056",
+        "CM.com 2025 p139 0.048",
+        "ASML 2025 p195 0.037",
+        "ASML 2025 p276 0.036",
+        "ASML 2025 p163 0.033",
+        "ABN AMRO 2025 p314 0.032",
+        "ASML 2025 p131 0.031",
+        "ABN AMRO 2025 p46 0.028"
+      ]
+    },
+    "ooc-heineken-volume": {
+      "query": "How many hectolitres of beer did Heineken sell in 2024?",
+      "scope": [
+        "ABN AMRO 2024",
+        "ASML 2024",
+        "CM.com 2024"
+      ],
+      "page_hit": false,
+      "mrr": 0.0,
+      "page_recall": 0.0,
+      "facts": null,
+      "report_precision": 0.0,
+      "best_score": 0.10075072199106216,
+      "hits": [
+        "ABN AMRO 2024 p152 0.101",
+        "ABN AMRO 2024 p251 0.084",
+        "ASML 2024 p333 0.083",
+        "ABN AMRO 2024 p151 0.068",
+        "ASML 2024 p56 0.067",
+        "ASML 2024 p141 0.064",
+        "ASML 2024 p335 0.060",
+        "ABN AMRO 2024 p125 0.058"
+      ]
+    }
+  }
+}

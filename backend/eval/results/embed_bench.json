@@ -1,0 +1,17 @@
+{
+  "chunks": 512,
+  "tokens_p50": 480,
+  "tokens_max": 1295,
+  "over_1024_tokens": 1,
+  "chunks_per_second": {
+    "current (32 per call)": 8.8,
+    "one call, length-sorted": 12.9,
+    "one call, max 1024 tokens": 12.8,
+    "one call, fp16": 14.2
+  },
+  "min_cosine_to_current": {
+    "one call, length-sorted": 1.0,
+    "one call, max 1024 tokens": 0.94558,
+    "one call, fp16": 0.99975
+  }
+}

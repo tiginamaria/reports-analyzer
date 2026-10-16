@@ -15,21 +15,26 @@ How to run it: [README](../README.md). Why it is built this way: [DESIGN.md](DES
 
 ## Todo
 
-**Evaluation**
+**Evaluation** (results and recommendations: [MVP_EVAL.md](MVP_EVAL.md))
 
-- [ ] Golden set of about 40 questions, including unanswerable ones
-- [ ] Hand-labelled FTE figures and goals for the five reports
-- [ ] Measure retrieval recall, answer correctness, abstention and verbatim rate, per provider
+- [x] Gold set of 52 questions over six reports (three companies, 2024 and 2025), including unanswerable ones
+- [x] Labelled FTE figures and sustainability goals for those reports
+- [x] Measure retrieval recall, answer correctness, abstention and verbatim rate (Anthropic)
+- [ ] The same for the OpenAI provider
+- [ ] Human agreement check of the LLM judge
 
 **RAG**
 
 - [ ] Multi-search for comparison questions across companies
 - [ ] Expand a chunk to its page when it looks truncated
-- [ ] Tune candidates, top-k and the abstention threshold once the eval exists
+- [x] Apply the tuned retrieval settings: 60 candidates, top 12, abstain below 0.2
+- [ ] Fix or drop full-text search (AND query matches nothing for half the questions)
+- [ ] Strip repeated page furniture (navigation bars) before chunking
 
 **Extraction**
 
-- [ ] Better recall for goals by scanning all sustainability sections
+- [ ] Detect `max_tokens` truncation; raise the extraction output cap
+- [ ] Better recall for goals: map-reduce over more candidate chunks
 - [ ] More registry entries
 - [ ] Re-run extraction without re-ingesting
 

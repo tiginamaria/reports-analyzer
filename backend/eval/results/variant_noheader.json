@@ -1,0 +1,106 @@
+{
+  "variant": {
+    "max_words": 400,
+    "overlap_words": 60,
+    "header": false
+  },
+  "reports": {
+    "abn-2024": {
+      "chunks": 1134,
+      "table_chunks": 215,
+      "words_p10_p50_p90_max": [
+        77,
+        322,
+        400,
+        674
+      ],
+      "share_under_50_words": 0.049,
+      "table_words_p50_max": [
+        136,
+        674
+      ],
+      "duplicate_chunks": 0
+    },
+    "asml-2025": {
+      "chunks": 838,
+      "table_chunks": 158,
+      "words_p10_p50_p90_max": [
+        43,
+        309,
+        400,
+        549
+      ],
+      "share_under_50_words": 0.121,
+      "table_words_p50_max": [
+        43,
+        549
+      ],
+      "duplicate_chunks": 1
+    },
+    "cm-2024": {
+      "chunks": 422,
+      "table_chunks": 69,
+      "words_p10_p50_p90_max": [
+        27,
+        220,
+        400,
+        400
+      ],
+      "share_under_50_words": 0.149,
+      "table_words_p50_max": [
+        57,
+        288
+      ],
+      "duplicate_chunks": 19
+    },
+    "asml-2024": {
+      "chunks": 960,
+      "table_chunks": 231,
+      "words_p10_p50_p90_max": [
+        31,
+        283,
+        400,
+        670
+      ],
+      "share_under_50_words": 0.163,
+      "table_words_p50_max": [
+        41,
+        670
+      ],
+      "duplicate_chunks": 1
+    },
+    "abn-2025": {
+      "chunks": 928,
+      "table_chunks": 197,
+      "words_p10_p50_p90_max": [
+        67,
+        281,
+        400,
+        710
+      ],
+      "share_under_50_words": 0.055,
+      "table_words_p50_max": [
+        124,
+        710
+      ],
+      "duplicate_chunks": 0
+    },
+    "cm-2025": {
+      "chunks": 343,
+      "table_chunks": 81,
+      "words_p10_p50_p90_max": [
+        30,
+        209,
+        400,
+        400
+      ],
+      "share_under_50_words": 0.157,
+      "table_words_p50_max": [
+        53,
+        292
+      ],
+      "duplicate_chunks": 3
+    }
+  },
+  "build_seconds": 619.6
+}

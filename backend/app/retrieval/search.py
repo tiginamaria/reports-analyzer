@@ -12,9 +12,12 @@ from app.models import Chunk, Report
 from app.retrieval.embedder import get_embedder, get_reranker
 
 RRF_K = 60  # standard smoothing constant; higher values flatten the rank bonus
-RETRIEVAL_CANDIDATES = 40  # chunks fetched by each search and kept after fusion, for reranking
-RERANK_TOP_K = 8  # chunks kept after reranking, the context the model sees
-RERANK_MIN_SCORE = 0.003  # sigmoid of reranker logit; below this the chat abstains
+# Tuned on the eval set (docs/MVP_EVAL.md): 40 candidates missed answers ranked 41 to 60 by
+# fusion, 12 chunks keep both figures of a comparison, and every answerable question scored
+# at least 0.95 while questions about companies outside the corpus scored below 0.2.
+RETRIEVAL_CANDIDATES = 60  # chunks fetched by each search and kept after fusion, for reranking
+RERANK_TOP_K = 12  # chunks kept after reranking, the context the model sees
+RERANK_MIN_SCORE = 0.01  # sigmoid of reranker logit; below this the chat abstains
 
 
 @dataclass

@@ -1,0 +1,579 @@
+# Gold evaluation set for ABN AMRO (abn-2025 = FY2025 report, abn-2024 = FY2024 report).
+# Page numbers are 1-based PDF pages as in eval/cache/pages/*.txt.
+
+qa:
+  # ---------------------------------------------------------------- 2025 factoids
+  - id: abn-2025-cet1
+    question: "How strong was ABN AMRO's core capital position (CET1) at year-end 2025?"
+    type: factoid
+    modality: text
+    reports: [abn-2025]
+    answer: "CET1 ratio of 15.4% at year-end 2025 (Basel IV)"
+    key_facts: ["15.4"]
+    evidence:
+      - report: abn-2025
+        page: 36
+        quote: "This resulted in a CET1 ratio of 15.4% at year-end, compared with our 2026 target of 13.5%."
+      - report: abn-2025
+        page: 120
+        quote: "The reported CET1 ratio of 15.4% is well above the MDA trigger level of 11.2%."
+      - report: abn-2025
+        page: 54
+        quote: "NSFR 141% 137% Capital ratios CET1 ratio 15.4% 14.5% Total MREL 34.7% 34.6%"
+    history: []
+    notes: "Solo (ABN AMRO Bank N.V.) CET1 is 14.6% (p120); group consolidated 15.4% is the expected answer."
+
+  - id: abn-2025-cost-income
+    question: "What cost/income ratio did ABN AMRO report for 2025?"
+    type: factoid
+    modality: table
+    reports: [abn-2025]
+    answer: "64.4% in 2025 (2024: 61.7%)"
+    key_facts: ["64.4"]
+    evidence:
+      - report: abn-2025
+        page: 47
+        quote: "Net interest margin (NIM) (in bps) 152 164 Cost/income ratio 64.4 % 61.7 %"
+      - report: abn-2025
+        page: 407
+        quote: "Cost/income ratio 64.4% 61.7 % The cost/income ratio measures operating costs as a percentage of operating income."
+      - report: abn-2025
+        page: 20
+        quote: "Right-size cost base 2025 Target (2028) Cost/income ratio 64.4% < 55%"
+    history: []
+    notes: "Best evidence is the key figures table (p47); p20 shows it against the 2028 target of <55%."
+
+  - id: abn-2025-new-ceo
+    question: "Who became the new CEO of ABN AMRO in 2025, and whom did she replace?"
+    type: factoid
+    modality: text
+    reports: [abn-2025]
+    answer: "Marguerite Bérard, who succeeded Robert Swaak as CEO at the AGM on 23 April 2025"
+    key_facts: ["Marguerite Bérard", "Robert Swaak"]
+    evidence:
+      - report: abn-2025
+        page: 15
+        quote: "Marguerite Bérard succeeded Robert Swaak as Chief Executive Officer at the Annual General Meeting of Shareholders (AGM) on 23 April 2025."
+    history: []
+    notes: "Accept 'Berard' without accent."
+
+  - id: abn-2025-renewable-financing
+    question: "How much renewable energy financing had ABN AMRO provided by the end of 2025?"
+    type: factoid
+    modality: text
+    reports: [abn-2025]
+    answer: "EUR 5.8 billion by end-2025 (up from EUR 5.4 billion in 2024), towards a target of EUR 8 billion by 2028 / EUR 10 billion by 2030"
+    key_facts: ["5.8"]
+    evidence:
+      - report: abn-2025
+        page: 30
+        quote: "By the end of 2025, we had financed EUR 5.8 billion in renewable energy, up from EUR 5.4 billion in 2024."
+    history: []
+    notes: "The ambitions table on p20 also shows 5.8 vs ambition 8 (2028) but without clear labelling in the dump."
+
+  - id: abn-2025-women-senior-mgmt
+    question: "What share of ABN AMRO's senior management positions were held by women in 2025?"
+    type: factoid
+    modality: table
+    reports: [abn-2025]
+    answer: "31% of senior management (Hay 14 or higher) in 2025, below the 35% target"
+    key_facts: ["31%"]
+    evidence:
+      - report: abn-2025
+        page: 32
+        quote: "Women at senior management level (Hay 14 or higher) 31% 31% 35%"
+    history: []
+    notes: "Table columns are 2025, 2024, Target (2025). Do not confuse with Extended Leadership Team (34%) or Executive Board (50%)."
+
+  # ---------------------------------------------------------------- 2024 factoids
+  - id: abn-2024-cfo
+    question: "Who was ABN AMRO's Chief Financial Officer during 2024?"
+    type: factoid
+    modality: text
+    reports: [abn-2024]
+    answer: "Ferdinand Vaandrager (CFO since 16 November 2023, interim CFO from 1 May 2023)"
+    key_facts: ["Ferdinand Vaandrager"]
+    evidence:
+      - report: abn-2024
+        page: 167
+        quote: "As CFO, Ferdinand Vaandrager is responsible for Finance"
+    history: []
+    notes: ""
+
+  - id: abn-2024-internal-fte
+    question: "How many internal employees (in FTEs) did ABN AMRO have at the end of 2024?"
+    type: factoid
+    modality: table
+    reports: [abn-2024]
+    answer: "21,976 internal FTEs at end-2024 (plus 3,670 external FTEs)"
+    key_facts: ["21,976"]
+    evidence:
+      - report: abn-2024
+        page: 46
+        quote: "Number of internal employees (end of period, in FTEs) 21,976 20,872"
+    history: []
+    notes: "Prose on p11 only says 'more than 21,000 people (FTEs)'. Headcount is 23,299 (p303). Company-only (Bank N.V.) figure 18,725 (p467) is not the group answer."
+
+  - id: abn-2024-roe-target
+    question: "What return on equity target for 2026 did ABN AMRO set out in its 2024 annual report?"
+    type: factoid
+    modality: text
+    reports: [abn-2024]
+    answer: "A 2026 target of 9-10% return on average equity (actual 2024: 10.1%)"
+    key_facts: ["9-10%"]
+    evidence:
+      - report: abn-2024
+        page: 36
+        quote: "Our return on average equity was 10.1% in 2024, compared with a 2026 target of 9-10%."
+      - report: abn-2024
+        page: 18
+        quote: "2024 2023 Target (2026) Return on average equity 10.1% 12.2% 9-10%"
+    history: []
+    notes: "Accept '9 to 10%'. The 2025 report replaced this with a >12% 2028 target (not the answer here)."
+
+  - id: abn-2024-sustainable-asset-volume
+    question: "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?"
+    type: factoid
+    modality: table
+    reports: [abn-2024]
+    answer: "37% in 2024 (target 36%; 2023: 34%)"
+    key_facts: ["37%"]
+    evidence:
+      - report: abn-2024
+        page: 29
+        quote: "Total sustainability (acceleration) asset volume 36% 32% 37% 34%"
+    history: []
+    notes: "Table columns: Targets 2024, 2023 | Results 2024, 2023 -> result 37%, target 36%. An answer of 36% confuses target with result."
+
+  - id: abn-2024-eps
+    question: "What were ABN AMRO's earnings per share for 2024?"
+    type: factoid
+    modality: text
+    reports: [abn-2024]
+    answer: "EUR 2.72 per share in 2024 (2023: EUR 2.99)"
+    key_facts: ["2.72"]
+    evidence:
+      - report: abn-2024
+        page: 26
+        quote: "Commercial • EUR 2.72 earnings per share • 10.1% return on equity"
+      - report: abn-2024
+        page: 43
+        quote: "Key indicators per share (EUR) Earnings per share¹ 2.72 2.99"
+    history: []
+    notes: ""
+
+  # ---------------------------------------------------------------- comparisons
+  - id: abn-cmp-net-profit
+    question: "How did ABN AMRO's net profit develop between 2024 and 2025?"
+    type: comparison
+    modality: table
+    reports: [abn-2025, abn-2024]
+    answer: "Net profit fell about 6%, from EUR 2,403 million (2024) to EUR 2,252 million (2025) (roughly EUR 2.4bn to EUR 2.3bn)"
+    key_facts: ["2,252", "2,403"]
+    evidence:
+      - report: abn-2025
+        page: 40
+        quote: "Profit/(loss) for the period 2,252 2,403 -6%"
+      - report: abn-2025
+        page: 40
+        quote: "achieving a net profit of EUR 2.3 billion and a return on equity of 8.7%"
+      - report: abn-2024
+        page: 40
+        quote: "with a net profit of EUR 2.4 billion for 2024"
+    history: []
+    notes: "Accept rounded EUR 2.3bn vs EUR 2.4bn if direction (decrease) is stated."
+
+  - id: abn-cmp-dividend
+    question: "Did ABN AMRO pay a higher or lower dividend per share for 2025 than for 2024?"
+    type: comparison
+    modality: text
+    reports: [abn-2025, abn-2024]
+    answer: "Lower: total ordinary dividend of EUR 1.24 per share for 2025 vs EUR 1.35 for 2024 (both 50% payout)"
+    key_facts: ["1.24", "1.35"]
+    evidence:
+      - report: abn-2025
+        page: 121
+        quote: "brings the total dividend for 2025 to EUR 1.24 per share (2024: EUR 1.35)"
+      - report: abn-2025
+        page: 41
+        quote: "brings the total dividend for 2025 to EUR 1.24 per share"
+      - report: abn-2024
+        page: 43
+        quote: "total dividend proposed for 2024 is EUR 1.35 per share"
+    history: []
+    notes: "Ambiguity: the 2025 key-figures table (p47) shows 'Dividend per share 1.54 1.35', which includes the additional EUR 250m cash distribution on top of the 1.24 ordinary dividend; an answer citing 1.54 (higher) should be treated as partially correct only if it explains the extra distribution."
+
+  # ---------------------------------------------------------------- follow-up
+  - id: abn-followup-roe
+    question: "And what was it the year before?"
+    type: followup
+    modality: text
+    reports: [abn-2025, abn-2024]
+    answer: "10.1% return on equity in 2024"
+    key_facts: ["10.1"]
+    evidence:
+      - report: abn-2025
+        page: 47
+        quote: "Return on equity for 2025 landed at 8.7%, compared with 10.1% in 2024."
+      - report: abn-2024
+        page: 46
+        quote: "Return on equity for 2024 was above target at 10.1%, compared with 12.2% in 2023."
+      - report: abn-2024
+        page: 26
+        quote: "EUR 2.72 earnings per share • 10.1% return on equity • 157 privacy-related complaints"
+    history:
+      - role: user
+        content: "What return on equity did ABN AMRO achieve in 2025?"
+      - role: assistant
+        content: "ABN AMRO's return on equity was 8.7% in 2025."
+    notes: "Follow-up refers to ROE in 2024."
+
+  # ---------------------------------------------------------------- unanswerable
+  - id: abn-unans-atms
+    question: "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?"
+    type: unanswerable
+    modality: text
+    reports: [abn-2025]
+    answer: ""
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched both reports for: ATM, ATMs, cash machine, cash dispenser, geldautomaat, pinautomaat, Geldmaat. No ATM count. Related: Geldmaat B.V. appears only in the list of participations (33.0% stake, p430 in 2025). Dutch bank ATMs are run by Geldmaat, so ABN AMRO reports none."
+
+  - id: abn-unans-app-users
+    question: "How many monthly active users did ABN AMRO's mobile banking app have in 2025?"
+    type: unanswerable
+    modality: text
+    reports: [abn-2025]
+    answer: ""
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched both reports for: monthly active, daily active, MAU, active users, app users, logins, log-ins, digitally active, app store, play store, stars, rating near 'app'. The mobile app is mentioned qualitatively (e.g. BUUT launch, joint account opening via app) but no user count is given."
+
+  - id: abn-unans-savings-share
+    question: "What was ABN AMRO's market share in Dutch savings deposits in 2024?"
+    type: unanswerable
+    modality: text
+    reports: [abn-2024]
+    answer: ""
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched both reports for: market share, savings market, deposit market share, share of savings/deposits. Related figure exists: market share of new Dutch mortgage production 19% (2024 p96, 2025 p92), and 'Dutch savings market' appears only in a lobbying context (2024 p331). No savings/deposit market share is disclosed."
+
+fte:
+  - report: abn-2025
+    value: "23,126"
+    numeric: 23126
+    basis: year-end
+    unit: FTE
+    page: 47
+    quote: "Number of internal employees (end of period, in FTEs) 23,126 21,976"
+    alternatives:
+      - {value: "24,632", numeric: 24632, meaning: "total employee headcount at 31 December 2025 (sustainability statements)", page: 258}
+      - {value: "22,676", numeric: 22676, meaning: "average number of FTEs 2025, country-by-country reporting total", page: 325}
+      - {value: "2,216", numeric: 2216, meaning: "external employees end-2025 in FTE; internal + external = 25,342 (sum not stated)", page: 47}
+      - {value: "18,703", numeric: 18703, meaning: "FTEs of ABN AMRO Bank N.V. company-only financial statements at 31 Dec 2025 (not group)", page: 402}
+  - report: abn-2024
+    value: "21,976"
+    numeric: 21976
+    basis: year-end
+    unit: FTE
+    page: 46
+    quote: "Number of internal employees (end of period, in FTEs) 21,976 20,872"
+    alternatives:
+      - {value: "more than 21,000", numeric: 21000, meaning: "rounded prose figure 'employs more than 21,000 people (FTEs)'", page: 11}
+      - {value: "23,299", numeric: 23299, meaning: "total employee headcount at 31 December 2024", page: 303}
+      - {value: "21,199", numeric: 21199, meaning: "average number of FTEs 2024, country-by-country reporting total", page: 391}
+      - {value: "3,670", numeric: 3670, meaning: "external employees end-2024 in FTE; internal + external = 25,646 (sum not stated)", page: 46}
+      - {value: "18,725", numeric: 18725, meaning: "FTEs of ABN AMRO Bank N.V. company-only financial statements at 31 Dec 2024 (not group)", page: 467}
+
+sustainability_goals:
+  - report: abn-2025
+    goals:
+      - label: "Net-zero emissions (portfolio/economy alignment)"
+        target: "net zero"
+        year: "2050"
+        core: true
+        page: 29
+        quote: "we continue to follow its guiding principles in executing our strategy to achieve net-zero emissions by 2050"
+      - label: "Renewable energy financing - interim target"
+        target: "EUR 8 billion"
+        year: "2028"
+        core: true
+        page: 20
+        quote: "setting an interim target of EUR 8 billion by 2028 as part of our pathway to EUR 10 billion by 2030"
+      - label: "Renewable energy financing"
+        target: "EUR 10 billion"
+        year: "2030"
+        core: true
+        page: 30
+        quote: "our goal of achieving more than EUR 8 billion in renewable-energy financing by 2028 and EUR 10 billion by 2030"
+      - label: "Net-zero own operations"
+        target: "net zero (91% reduction vs 2015 base year, residual compensated with carbon removal credits)"
+        year: "2030"
+        core: true
+        page: 288
+        quote: "We have set a net-zero target for our own operations emissions in 2030."
+      - label: "Early-stage capital for the energy transition (direct equity, funds, hybrid debt)"
+        target: "up to EUR 1 billion"
+        year: "2030"
+        core: true
+        page: 247
+        quote: "By 2030, up to EUR 1 billion will be allocated to accelerate the transition to a decarbonised economy."
+      - label: "Residential mortgages carbon intensity"
+        target: "-14% vs 2025 (16.6 kgCO2/m2)"
+        year: "2030"
+        core: true
+        page: 224
+        quote: "14% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Women in Extended Leadership Team"
+        target: "at least 48%"
+        year: ""
+        core: true
+        page: 257
+        quote: "Ensure at least 48% of the Extended Leadership Team are women"
+      - label: "Women in senior and middle management"
+        target: "35%"
+        year: ""
+        core: true
+        page: 257
+        quote: "Target 35% of senior and middle management positions to be held by women"
+      - label: "Commercial real estate carbon intensity"
+        target: "-41% vs 2025 (35.7 kgCO2/m2)"
+        year: "2030"
+        core: false
+        page: 225
+        quote: "41% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Oil and gas (upstream and midstream) operational emissions intensity"
+        target: "-32% vs 2024 (9.0 kgCO2e/boe)"
+        year: "2030"
+        core: false
+        page: 227
+        quote: "32% reduction in carbon intensity by 2030 compared with 2024"
+      - label: "Deep-sea shipping climate alignment"
+        target: "fully aligned with DNV 1.5 trajectory (0% WCA; -44% carbon intensity vs 2024)"
+        year: "2030"
+        core: false
+        page: 227
+        quote: "Target is to be fully aligned with DNV 1.5 trajectory, scenario 10 (44% reduction in carbon intensity by 2030 compared with 2024)"
+      - label: "Inland shipping carbon intensity"
+        target: "-30% vs 2025 (18.3 gCO2e/tkm)"
+        year: "2030"
+        core: false
+        page: 228
+        quote: "30% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Agriculture financed emissions intensity"
+        target: "-5% vs 2025 (1.4 mtCO2e)"
+        year: "2030"
+        core: false
+        page: 229
+        quote: "5% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Road transport - trucks carbon intensity"
+        target: "-21% vs 2025 (61.1 gCO2/tkm)"
+        year: "2030"
+        core: false
+        page: 230
+        quote: "21% reduction in carbon intensity by 2030 compared with 2025 75 50 25 2030 2040 2050 0 2023 2025 IEA NZE 2050 heavy-duty vehicles"
+      - label: "Road transport - vans carbon intensity"
+        target: "-29% vs 2025 (141.4 gCO2/vkm)"
+        year: "2030"
+        core: false
+        page: 230
+        quote: "Road transport – Vans Benchmark is IEA NZE 2050 passenger cars gCO2/vkm 300 225 29% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Road transport - passenger cars carbon intensity"
+        target: "-25% vs 2025 (63.0 gCO2/vkm)"
+        year: "2030"
+        core: false
+        page: 231
+        quote: "25% reduction in carbon intensity by 2030 compared with 2025"
+      - label: "Thermal coal phase-out"
+        target: "phase out thermal coal"
+        year: "2030"
+        core: false
+        page: 226
+        quote: "ABN AMRO is dedicated to phasing out thermal coal by 2030"
+      - label: "Client investment portfolios WACI reduction"
+        target: "-50% below 2019 baseline (then ~7% p.a. towards net zero 2050)"
+        year: "2030"
+        core: false
+        page: 233
+        quote: "to be -30% below the baseline in 2025, and to be -50% below the baseline in 2030"
+      - label: "Business travel emissions"
+        target: "5 ktCO2e (-60% vs 2015)"
+        year: "2030"
+        core: false
+        page: 288
+        quote: "The target has been updated from 2.6 kilotonnes of CO2e to 5 kilotonnes of CO2e by 2030."
+      - label: "Fully electric international lease fleet"
+        target: "100% electric lease fleet"
+        year: "2030"
+        core: false
+        page: 288
+        quote: "solutions to meet our target of a fully electric international lease fleet by 2030"
+      - label: "Paris Proof buildings and 100% renewable energy"
+        target: "Paris Proof buildings; 100% renewable energy consumption"
+        year: "2030"
+        core: false
+        page: 288
+        quote: "increasing the energy efficiency of our buildings to become Paris Proof by 2030, and transition to 100% renewable energy consumption domestically and internationally"
+      - label: "Cultural diversity in management"
+        target: "8% of senior management and 9% of middle management with a migration background"
+        year: ""
+        core: false
+        page: 257
+        quote: "Achieve 8% of senior management, and 9% of middle management with a migration background"
+      - label: "Employees with occupational disabilities"
+        target: "225 employees"
+        year: "2025"
+        core: false
+        page: 32
+        quote: "Number of employees (including external employees) with disabilities 147 148 225"
+
+  - report: abn-2024
+    goals:
+      - label: "Net-zero economy / portfolio alignment"
+        target: "net zero"
+        year: "2050"
+        core: true
+        page: 30
+        quote: "supporting the transition to a net-zero economy by 2050"
+      - label: "Renewable energy and decarbonisation technologies financing"
+        target: "at least EUR 10 billion"
+        year: "2030"
+        core: true
+        page: 9
+        quote: "we aim to have financed at least EUR 10 billion in renewable energy by 2030"
+      - label: "Net-zero own operations"
+        target: "net zero"
+        year: "2030"
+        core: true
+        page: 276
+        quote: "We have set a target for net-zero emission reductions by 2030."
+      - label: "Early-stage capital for the energy transition"
+        target: "up to EUR 1 billion"
+        year: "2030"
+        core: true
+        page: 275
+        quote: "By 2030, up to EUR 1 billion will be allocated to accelerate the transition to a decarbonised economy."
+      - label: "Residential mortgages carbon intensity"
+        target: "16.6 kgCO2/m2 (-15% vs 2024)"
+        year: "2030"
+        core: true
+        page: 252
+        quote: "We have refined our previous target from 18.3 kgCO2/m2 to a new target of 16.6 kgCO2/m2 by 2030."
+      - label: "Women in Extended Leadership Team"
+        target: "at least 48%"
+        year: "2025"
+        core: true
+        page: 302
+        quote: "Ensure at least 48% of the Extended Leadership Team are women"
+      - label: "Women in senior and middle management"
+        target: "35%"
+        year: "2025"
+        core: true
+        page: 302
+        quote: "Target for 35% of senior and middle management positions to be held by women"
+      - label: "Circular loan volume"
+        target: "EUR 3.5 billion"
+        year: "2027"
+        core: false
+        page: 31
+        quote: "We have adjusted our circular loan volume target of EUR 3.5 billion by 2024 to the end of 2027."
+      - label: "Halt and reverse biodiversity loss"
+        target: "support halting and reversing biodiversity loss"
+        year: "2030"
+        core: false
+        page: 31
+        quote: "we expressed our aim to support halting and reversing biodiversity loss by 2030"
+      - label: "Thermal coal phase-out"
+        target: "phase out thermal coal"
+        year: "2030"
+        core: false
+        page: 248
+        quote: "commits to phasing out thermal coal by 2030"
+      - label: "Commercial real estate carbon intensity"
+        target: "-41% vs 2024 (35.7 kgCO2/m2)"
+        year: "2030"
+        core: false
+        page: 253
+        quote: "41% reduction in carbon intensity by 2030 compared to 2024"
+      - label: "Oil and gas (upstream and midstream) operational emissions intensity"
+        target: "-44% vs 2023 (9.0 kgCO2e/boe; -27% vs 2022 baseline)"
+        year: "2030"
+        core: false
+        page: 256
+        quote: "44% reduction in carbon intensity by 2030 compared to 2023"
+      - label: "Deep-sea shipping climate alignment"
+        target: "0% WCA, fully aligned with DNV 1.5 trajectory (-46% vs 2023)"
+        year: "2030"
+        core: false
+        page: 257
+        quote: "Target is to be fully aligned with DNV 1.5 trajectory, scenario 10 (46% reduction in carbon intensity by 2030 compared to 2023)"
+      - label: "Inland shipping carbon intensity"
+        target: "-30% vs 2024 (18.3 gCO2e/tkm)"
+        year: "2030"
+        core: false
+        page: 258
+        quote: "30% reduction in carbon intensity by 2030 compared to 2024"
+      - label: "Agriculture financed emissions intensity"
+        target: "-11% vs 2024 (1.4 mtCO2e/mln EUR)"
+        year: "2030"
+        core: false
+        page: 259
+        quote: "11% reduction in carbon intensity by 2030 compared to 2024"
+      - label: "Road transport - trucks carbon intensity"
+        target: "-24% vs 2024 (61.1 gCO2/tkm)"
+        year: "2030"
+        core: false
+        page: 260
+        quote: "24% reduction in carbon intensity by 2030 compared to 2024"
+      - label: "Road transport - vans carbon intensity"
+        target: "-35% vs 2024 (141.4 gCO2/vkm)"
+        year: "2030"
+        core: false
+        page: 260
+        quote: "Road transport – Vans Benchmark is IEA NZE 2050 passenger cars gCO2/vkm 300 225 35% reduction in carbon intensity by 2030 compared to 2024"
+      - label: "Road transport - passenger cars carbon intensity"
+        target: "-35% vs 2024 (63.0 gCO2/vkm)"
+        year: "2030"
+        core: false
+        page: 261
+        quote: "35% reduction in carbon intensity by 2030 compared to 2024 2024 2023 2030 2035 2040 0 IEA NZE 2050 passenger cars"
+      - label: "Client investment portfolios WACI reduction"
+        target: "entire range below -30% (2025) and below -50% (2030)"
+        year: "2030"
+        core: false
+        page: 263
+        quote: "Ambition 2030: entire range below -50% 2024 2021 2030 2040 2050"
+      - label: "Dutch office energy use"
+        target: "less than 50 kWh per m2 per year; energy label A"
+        year: "2030"
+        core: false
+        page: 276
+        quote: "By 2030, our Dutch offices will consume less than 50 kWh per square metre annually."
+      - label: "100% renewable energy in offices"
+        target: "100% renewable energy in all offices"
+        year: ""
+        core: false
+        page: 276
+        quote: "we are transitioning to 100% renewable energy in all our offices, both domestically and internationally"
+      - label: "Fully electric international lease fleet"
+        target: "100% electric lease fleet"
+        year: "2030"
+        core: false
+        page: 277
+        quote: "our target of a fully electric international lease fleet by 2030"
+      - label: "Cultural diversity in management"
+        target: "8% of senior management and 9% of middle management with a migration background"
+        year: "2025"
+        core: false
+        page: 302
+        quote: "Achieve 8% of senior management • 9% of middle management with a migration background"
+      - label: "Participation of people with a work-related disability"
+        target: "at least 225 people"
+        year: "2025"
+        core: false
+        page: 302
+        quote: "Support the participation of at least 225 people with a work-related disability"

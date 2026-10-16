@@ -7,6 +7,7 @@ datapoint carries a verbatim quote that is checked, in code, against the PDF tex
 
 Design, pipeline details, alternatives and risks: [docs/DESIGN.md](docs/DESIGN.md).
 Done and todo, by area: [docs/PLAN.md](docs/PLAN.md).
+Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/MVP_EVAL.md).
 
 ## What it does
 

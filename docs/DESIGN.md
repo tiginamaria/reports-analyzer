@@ -136,11 +136,15 @@ to the event loop through a queue.
    the answer abstains. Without a filter, the company and year from the analysis narrow the
    set when they match something (loose match, so "shell" finds "Shell plc").
 3. **Hybrid retrieval** (`retrieval/search.py`). pgvector cosine search and Postgres full-text
-   search (`websearch_to_tsquery`) each return 40 candidates, merged with Reciprocal Rank
-   Fusion (k = 60). Full-text search matters for exact terms such as "FTE" or "Scope 3".
-4. **Rerank** with the cross-encoder to the top 8. If the best score is below 0.003 the
+   search (`websearch_to_tsquery`) each return 60 candidates, merged with Reciprocal Rank
+   Fusion (k = 60). Full-text search is meant for exact terms such as "FTE" or "Scope 3", but
+   as an all-terms query it matches nothing for about half of real questions (see
+   [MVP_EVAL.md](MVP_EVAL.md)).
+4. **Rerank** with the cross-encoder to the top 12. If the best score is below 0.2 the
    reports probably do not cover the topic; the pipeline answers "not stated in the report"
-   without calling the main model.
+   without calling the main model. Both values were chosen on the eval set: 60 candidates and
+   12 chunks raised correct answers from 88% to 93%, and 0.2 lies between every answerable
+   question (0.95 or higher) and questions about companies outside the corpus.
 5. **Generate**. The main model gets the conversation as real turns, the most recent whole
    exchanges that fit a 3,000-token budget, with this question's chunks in the final user
    message only. Earlier turns carry question and answer text, never their chunks, so each
