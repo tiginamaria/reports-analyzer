@@ -1,0 +1,35 @@
+# Evaluation corpus: three companies, two fiscal years each, all in data/reports (sources in
+# data/reports/SOURCES.md). The 2024 reports were added so retrieval and scoping have to tell
+# two years of the same company apart, and because every 2025 report also quotes the 2024
+# figures as comparatives.
+#
+# key is the stable id used by the gold files; company and fiscal_year are the expected
+# result of metadata detection.
+
+- key: abn-2025
+  company: ABN AMRO
+  fiscal_year: 2025
+  path: ../data/reports/abn-amro-annual-report-2025.pdf
+- key: abn-2024
+  company: ABN AMRO
+  fiscal_year: 2024
+  path: ../data/reports/abn-amro-annual-report-2024.pdf
+  source: https://downloads.ctfassets.net/1u811bvgvthc/4kP1H76f9NV9aqKE5SjTxE/a049b59e013fd808d8d0ceeb9ee3a4c5/ABN_AMRO___Integrated_Annual_Report_2024.pdf
+- key: asml-2025
+  company: ASML
+  fiscal_year: 2025
+  path: ../data/reports/asml-annual-report-2025.pdf
+- key: asml-2024
+  company: ASML
+  fiscal_year: 2024
+  path: ../data/reports/asml-annual-report-2024.pdf
+  source: https://www.annualreports.com/HostedData/AnnualReportArchive/a/NASDAQ_ASML_2024.pdf
+- key: cm-2025
+  company: CM.com
+  fiscal_year: 2025
+  path: ../data/reports/cm-com-annual-report-2025.pdf
+- key: cm-2024
+  company: CM.com
+  fiscal_year: 2024
+  path: ../data/reports/cm-com-annual-report-2024.pdf
+  source: https://www.cm.com/cdn/web/en/file/investor-relations/annual-report-2024.pdf

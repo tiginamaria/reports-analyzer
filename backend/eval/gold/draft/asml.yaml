@@ -1,0 +1,589 @@
+qa:
+  # ---------------- asml-2025 factoids ----------------
+  - id: asml-2025-net-income
+    question: "What was ASML's net profit for 2025?"
+    type: factoid
+    modality: text
+    reports: [asml-2025]
+    answer: "Net income of EUR 9,609.4 million in 2025 (29.4% of total net sales; EUR 24.73 basic EPS)"
+    key_facts: ["9,609.4"]
+    evidence:
+      - report: asml-2025
+        page: 56
+        quote: "Net income for 2025 amounted to €9,609.4 million, representing 29.4% of total net sales and €24.73 basic net income per ordinary share"
+    history: []
+    notes: "Also EUR 9.6bn acceptable in rounded form."
+  - id: asml-2025-euv-units
+    question: "How many EUV machines did ASML recognize as sold in 2025?"
+    type: factoid
+    modality: table
+    reports: [asml-2025]
+    answer: "48 EUV systems recognized in 2025 (2024: 44)"
+    key_facts: ["48"]
+    evidence:
+      - report: asml-2025
+        page: 53
+        quote: "EUV systems recognized (in units) 48 2024: 44"
+      - report: asml-2025
+        page: 55
+        quote: "We recognized four EXE and 44 NXE systems in sales in 2025"
+    history: []
+    notes: "48 = 4 EXE (High NA) + 44 NXE. Page 55 prose gives the split rather than the total."
+  - id: asml-2025-backlog
+    question: "How big was ASML's order backlog going into 2026?"
+    type: factoid
+    modality: text
+    reports: [asml-2025]
+    answer: "Backlog of around EUR 38.8 billion (as reported for the end of 2025)"
+    key_facts: ["38.8"]
+    evidence:
+      - report: asml-2025
+        page: 8
+        quote: "Our backlog currently stands at a healthy level of €38.8 billion"
+    history: []
+    notes: "Question omits the literal year 2025 but refers to year-end 2025 position; the 2025 report no longer emphasises bookings."
+  - id: asml-2025-china-share
+    question: "What percentage of ASML's 2025 sales came from customers in China?"
+    type: factoid
+    modality: text
+    reports: [asml-2025]
+    answer: "29.1% of 2025 total net sales (down from 36.1% in 2024)"
+    key_facts: ["29.1%"]
+    evidence:
+      - report: asml-2025
+        page: 67
+        quote: "Customers in China represented 29.1% of our 2025 total net sales and 36.1% of our 2024 net sales"
+    history: []
+    notes: ""
+  - id: asml-2025-share-buyback
+    question: "How much did ASML spend buying back its own shares in 2025?"
+    type: factoid
+    modality: text
+    reports: [asml-2025]
+    answer: "EUR 5,950.0 million (about EUR 5.9 billion) for 8,323,320 shares repurchased in 2025"
+    key_facts: ["5,950.0"]
+    evidence:
+      - report: asml-2025
+        page: 315
+        quote: "In 2025, we repurchased 8,323,320 shares (2024: 574,925 shares) for a total consideration of €5,950.0 million (2024: €500.0 million)"
+      - report: asml-2025
+        page: 42
+        quote: "Proposed annualized dividend per share 2024: €6.40 €5.9bn Share buyback 2024: €0.5bn"
+    history: []
+    notes: "Accept EUR 5.9bn / 5.95bn. Do not confuse with EUR 8.5bn total returned to shareholders (dividends + buybacks) or the EUR 7.6bn cumulative under the 2023-2025 program."
+  # ---------------- asml-2024 factoids ----------------
+  - id: asml-2024-rd-costs
+    question: "How much did ASML invest in R&D during 2024?"
+    type: factoid
+    modality: text
+    reports: [asml-2024]
+    answer: "R&D costs of EUR 4,303.7 million (about EUR 4.3 billion) in 2024"
+    key_facts: ["4,303.7"]
+    evidence:
+      - report: asml-2024
+        page: 57
+        quote: "R&D costs were €4,303.7 million in 2024 compared with €3,980.6 million in 2023"
+      - report: asml-2024
+        page: 6
+        quote: "€28.3bn €4.3bn Total net sales R&D costs"
+    history: []
+    notes: "Rounded EUR 4.3bn acceptable; key fact could alternatively be '4.3'."
+  - id: asml-2024-new-ceo
+    question: "Who became ASML's chief executive in 2024, and whom did they replace?"
+    type: factoid
+    modality: text
+    reports: [asml-2024]
+    answer: "Christophe Fouquet was appointed President and CEO at the 2024 AGM (April 24, 2024), succeeding Peter Wennink (and co-President Martin van den Brink)"
+    key_facts: ["Christophe Fouquet", "Peter Wennink"]
+    evidence:
+      - report: asml-2024
+        page: 7
+        quote: "At the 2024 AGM, Christophe Fouquet was appointed President, Chief Executive Officer and Chair of the Board of Management of ASML, succeeding Peter Wennink"
+      - report: asml-2024
+        page: 142
+        quote: "Christophe D. Fouquet was appointed as President and CEO of ASML on April 24, 2024"
+    history: []
+    notes: "Wennink and Van den Brink were co-Presidents; mentioning only Wennink is acceptable."
+  - id: asml-2024-scope12-emissions
+    question: "What were ASML's combined scope 1 and 2 greenhouse gas emissions in 2024?"
+    type: factoid
+    modality: table
+    reports: [asml-2024]
+    answer: "32.8 kt CO2e scope 1 and 2 emissions in 2024"
+    key_facts: ["32.8"]
+    evidence:
+      - report: asml-2024
+        page: 6
+        quote: "€22.4bn Asia (headcount) 32.8 kt Scope 1 and 2 CO2e emissions"
+      - report: asml-2024
+        page: 194
+        quote: "32.8 kt 12.0 Mt Scope 1 and 2 CO2e emissions Scope 3 CO2e emissions"
+    history: []
+    notes: "Elsewhere rounded to 33 kt (e.g. p206 'from 60 kt to 33 kt'); 33 kt acceptable. The 2025 report also restates 2024 as 33 kt."
+  - id: asml-2024-fte
+    question: "How many full-time-equivalent staff did ASML have at the end of 2024?"
+    type: factoid
+    modality: table
+    reports: [asml-2024]
+    answer: "44,027 FTEs (payroll and temporary employees, as of December 31, 2024)"
+    key_facts: ["44,027"]
+    evidence:
+      - report: asml-2024
+        page: 6
+        quote: "12.0 Mt 44,027 Total employees (FTEs) 86% Customer satisfaction"
+      - report: asml-2024
+        page: 358
+        quote: "Research and Development 14,181 15,604 15,992 Total 39,086 42,416 44,027"
+    history: []
+    notes: "Alternatives: 42,786 payroll FTE (excl. 1,241 temporary); 41,697 average payroll FTE; 43,395 headcount; 'more than 44,000'."
+  - id: asml-2024-dividend
+    question: "What total dividend per share did ASML declare for financial year 2024?"
+    type: factoid
+    modality: text
+    reports: [asml-2024]
+    answer: "EUR 6.40 per ordinary share for 2024, a 4.9% increase on EUR 6.10 for 2023"
+    key_facts: ["6.40"]
+    evidence:
+      - report: asml-2024
+        page: 372
+        quote: "ASML intends to declare a total dividend for the year of 2024 of €6.40 per ordinary share, which is a 4.9% increase"
+      - report: asml-2024
+        page: 138
+        quote: "this leads to a total dividend of €6.40 per ordinary share for the year 2024"
+      - report: asml-2024
+        page: 381
+        quote: "ASML announced to declare a total dividend for the year 2024 of €6.40 per ordinary share"
+    history: []
+    notes: "Do not confuse with EUR 2.5bn total dividends paid in 2024."
+  # ---------------- comparisons ----------------
+  - id: asml-net-sales-2024-vs-2025
+    question: "How did ASML's revenue develop between 2024 and 2025?"
+    type: comparison
+    modality: table
+    reports: [asml-2025, asml-2024]
+    answer: "Total net sales rose from EUR 28.3 billion (28,262.9m) in 2024 to EUR 32.7 billion (32,667.3m) in 2025, an increase of EUR 4.4 billion or 15.6%"
+    key_facts: ["28.3", "32.7", "15.6%"]
+    evidence:
+      - report: asml-2025
+        page: 54
+        quote: "Total net sales 28,262.9 100.0 32,667.3 100.0 15.6"
+      - report: asml-2025
+        page: 54
+        quote: "In 2025, total net sales increased by €4.4 billion, representing a 15.6% year-over-year increase"
+      - report: asml-2024
+        page: 55
+        quote: "Total net sales Gross profit % of total net sales Cash and cash equivalents and short-term investments (year end) €28.3bn"
+    history: []
+    notes: "Full precision figures acceptable (28,262.9 / 32,667.3 million)."
+  - id: asml-gross-margin-2024-vs-2025
+    question: "Did ASML's gross margin improve in 2025 compared with 2024?"
+    type: comparison
+    modality: text
+    reports: [asml-2025, asml-2024]
+    answer: "Yes: gross margin rose from 51.3% in 2024 to 52.8% in 2025, up 1.5 percentage points"
+    key_facts: ["51.3%", "52.8%"]
+    evidence:
+      - report: asml-2025
+        page: 8
+        quote: "The gross margin was 52.8%, up by 1.5 percentage points from 2024"
+      - report: asml-2024
+        page: 7
+        quote: "Our gross margin was 51.3%, similar to last year"
+      - report: asml-2025
+        page: 53
+        quote: "€32.7bn €17.3bn 52.8% €13.3bn 2024: €28.3bn 2024: €14.5"
+    history: []
+    notes: ""
+  # ---------------- follow-up ----------------
+  - id: asml-litho-units-followup
+    question: "And how many did it sell the year before?"
+    type: followup
+    modality: text
+    reports: [asml-2025, asml-2024]
+    answer: "418 lithography systems in 2024 (vs. 327 in 2025)"
+    key_facts: ["418"]
+    evidence:
+      - report: asml-2025
+        page: 66
+        quote: "lithography systems (327 units in 2025, 418 units in 2024 and 449 units in 2023)"
+      - report: asml-2024
+        page: 67
+        quote: "lithography systems (418 units in 2024, 449 units in 2023 and 345 units in 2022)"
+      - report: asml-2025
+        page: 53
+        quote: "Sales of lithography systems (in units)1 Earnings per share (basic) 327 €24.73 2024: 418"
+    history:
+      - role: user
+        content: "How many lithography systems did ASML sell in 2025?"
+      - role: assistant
+        content: "ASML sold 327 lithography systems in 2025 (excluding metrology and inspection systems)."
+    notes: "Lithography units exclude metrology & inspection. Total net system sales incl. M&I were 583 units in 2024 (535 in 2025) - an answer of 583 is defensible only if clearly labelled as all systems incl. metrology/inspection."
+  # ---------------- unanswerable ----------------
+  - id: asml-unans-tsmc-share
+    question: "What share of ASML's 2025 revenue came from TSMC?"
+    type: unanswerable
+    modality: text
+    reports: [asml-2025]
+    answer: "Not disclosed. The report gives the largest customer's share (23.9% of 2025 net sales) and top-two share (38.0%) but does not name the customers, so TSMC's share cannot be determined."
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched: TSMC, Taiwan Semiconductor, largest customer, two largest customers, customer concentration, Samsung, Intel. TSMC is mentioned only for an award (p173) and glossary; largest customer unnamed (p68). A good answer may mention the unnamed largest-customer figure while stating TSMC is not identified."
+  - id: asml-unans-high-na-2026-shipments
+    question: "How many High NA EUV systems does ASML plan to ship in 2026?"
+    type: unanswerable
+    modality: text
+    reports: [asml-2025]
+    answer: "Not stated. The report says the EXE platform is expected to support high-volume manufacturing in 2027 but gives no unit shipment plan for 2026."
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched: EXE, High NA, 'ship ... 2026', 'units in 2026', 'deliver ... 2026', 'next year', capacity of N systems. Only 2025 actuals (4 EXE recognized) and HVM timing (2027, p17) found. Note: average High NA price is derivable from p286 (4 EXE for EUR 1,156.9m), so price was rejected as unanswerable."
+  - id: asml-unans-china-2030
+    question: "How much revenue does ASML expect to generate from China in 2030?"
+    type: unanswerable
+    modality: text
+    reports: [asml-2024, asml-2025]
+    answer: "Not stated. ASML gives a 2030 total revenue opportunity (approx. EUR 44-60 billion, in the 2024 report) but no regional or China-specific 2030 revenue expectation."
+    key_facts: []
+    evidence: []
+    history: []
+    notes: "Searched: China near 2027/2028/2030 (both directions), 'China' + 'expect', 'normalized sales levels to China', 2030 revenue opportunity, regional outlook. Only historic China shares (29.1% 2025, 36.1% 2024) and qualitative 'more normalized sales levels to China' (2024 p34)."
+
+fte:
+  - report: asml-2025
+    value: "44,209"
+    numeric: 44209
+    basis: year-end
+    unit: FTE
+    page: 301
+    quote: "Research and Development 15,604 15,992 16,448 Total 42,416 44,027 44,209"
+    alternatives:
+      - {value: "43,520", numeric: 43520, meaning: "payroll FTE only (excl. 689 temporary FTE), year-end 2025", page: 301}
+      - {value: "43,267", numeric: 43267, meaning: "average number of payroll employees in FTE, 2025", page: 301}
+      - {value: "44,175", numeric: 44175, meaning: "headcount (ESRS) as of December 31, 2025", page: 227}
+      - {value: "> 44,000", numeric: 44000, meaning: "rounded 'Total employees (FTEs)' in At a glance", page: 5}
+  - report: asml-2024
+    value: "44,027"
+    numeric: 44027
+    basis: year-end
+    unit: FTE
+    page: 358
+    quote: "Research and Development 14,181 15,604 15,992 Total 39,086 42,416 44,027"
+    alternatives:
+      - {value: "42,786", numeric: 42786, meaning: "payroll FTE only (excl. 1,241 temporary FTE), year-end 2024", page: 358}
+      - {value: "41,697", numeric: 41697, meaning: "average number of payroll employees in FTE, 2024", page: 358}
+      - {value: "43,395", numeric: 43395, meaning: "headcount (ESRS) as of December 31, 2024", page: 277}
+      - {value: "more than 44,000", numeric: 44000, meaning: "rounded narrative figure", page: 42}
+
+sustainability_goals:
+  - report: asml-2025
+    goals:
+      - label: "GHG neutral across the entire value chain (scope 1, 2 and 3)"
+        target: "GHG neutral"
+        year: "2040"
+        core: true
+        page: 153
+        quote: "we are aiming for GHG neutrality across our entire value chain by 2040"
+      - label: "Reduce absolute gross scope 1 and 2 emissions by 75% vs 2019 (below 15 kt)"
+        target: "-75% (below 15 kt CO2e)"
+        year: "2030"
+        core: true
+        page: 160
+        quote: "Reduce absolute gross scope 1 and 2 GHG emissions by 75% by 2030: This translates to lowering our CO2e emissions to below 15 kt by 2030"
+      - label: "Reduce absolute gross scope 1 and 2 emissions by 90% vs 2019 (below 6 kt)"
+        target: "-90% (below 6 kt CO2e)"
+        year: "2040"
+        core: false
+        page: 160
+        quote: "Reduce absolute gross scope 1 and 2 GHG emissions by 90% by 2040: This translates to lowering our CO2e emissions to below 6 kt by 2040"
+      - label: "Reduce scope 3 emissions per EUR m gross profit by 55% vs 2019 (below 19.5 Mt)"
+        target: "-55% intensity (below 19.5 Mt CO2e)"
+        year: "2030"
+        core: true
+        page: 160
+        quote: "Reduce scope 3 GHG emissions per €m gross profit by 55% by 2030: This translates to lowering our CO2e emissions to below 19.5 Mt by 2030"
+      - label: "Reduce scope 3 emissions per EUR m gross profit by 97% vs 2019 (below 2.3 Mt)"
+        target: "-97% intensity (below 2.3 Mt CO2e)"
+        year: "2040"
+        core: false
+        page: 160
+        quote: "Reduce scope 3 GHG emissions per €m gross profit by 97% by 2040: This translates to lowering our CO2e emissions to below 2.3 Mt by 2040"
+      - label: "GHG neutral scope 3 emissions from purchased goods and services (supply chain)"
+        target: "GHG neutral"
+        year: "2030"
+        core: true
+        page: 165
+        quote: "Become GHG neutral for scope 3 emissions related to purchased goods and services by 2030"
+      - label: "GHG neutral scope 3 emissions from logistics"
+        target: "GHG neutral"
+        year: "2030"
+        core: false
+        page: 168
+        quote: "We are progressing toward our target of achieving GHG neutral scope 3 emissions for logistics by 2030"
+      - label: "GHG neutral scope 3 emissions from product use"
+        target: "GHG neutral"
+        year: "2040"
+        core: false
+        page: 156
+        quote: "Become GHG neutral for scope 3 emissions from product use by 2040"
+      - label: "Commitment from top-80% suppliers (by CO2e) to reduce their footprint by 2030"
+        target: "75% of top-80% suppliers committed"
+        year: "2026"
+        core: false
+        page: 145
+        quote: "75% commitment from top 80% suppliers by 2026"
+      - label: "Cut business travel CO2e emissions per FTE by 50% vs base year"
+        target: "-50% per FTE"
+        year: "2030"
+        core: false
+        page: 169
+        quote: "reduce CO2e emissions from business travel by 50% per FTE in 2030 against the base year 2016"
+      - label: "NXE (0.33 NA EUV) energy use per wafer pass of 4.7 kWh (-63% vs 2018)"
+        target: "4.7 kWh per wafer pass"
+        year: "2027"
+        core: true
+        page: 171
+        quote: "we have extended our target to achieve an energy use per wafer pass of 4.7 kWh by 2027"
+      - label: "EXE (High NA EUV) energy use per wafer pass of 8.6 kWh"
+        target: "8.6 kWh per wafer pass"
+        year: "2028"
+        core: false
+        page: 172
+        quote: "we have set a target to achieve an energy use per wafer pass of 8.6 kWh to be achieved by 2028"
+      - label: "Additional 130 TJ energy savings under the 2026-2030 energy savings master plan"
+        target: "130 TJ reduction"
+        year: "2030"
+        core: false
+        page: 163
+        quote: "we have established an energy savings master plan toward 2030 with a target of another 130 TJ reduction by 2030"
+      - label: "Zero waste from operations to landfill and incineration"
+        target: "zero waste to landfill/incineration"
+        year: "2030"
+        core: true
+        page: 152
+        quote: "We aim to have zero waste from our operations to landfill and incineration by 2030"
+      - label: "85% recycling rate of waste from operations"
+        target: "85%"
+        year: "2030"
+        core: true
+        page: 195
+        quote: "with a new target of an 85% recycling rate by 2030"
+      - label: "Keep 90% reuse rate of parts returned from field and factory"
+        target: "90%"
+        year: "2030"
+        core: false
+        page: 192
+        quote: "with a reuse rate of 90%, we plan to continue progressing on our re-use journey, with expectations that the current target will remain in place until 2030"
+      - label: "14% women in senior leadership (job grade 13+)"
+        target: "14%"
+        year: "2026"
+        core: true
+        page: 220
+        quote: "Achieve 14% representation of women in senior leadership roles (job grades 13+) by 2026"
+      - label: "Inclusion score within 2 percentage points of top-25% companies"
+        target: "within 2 p.p. of top 25%"
+        year: "2027"
+        core: false
+        page: 220
+        quote: "to be within 2 percentage points of (or higher than) top-performing 25% of companies by 2027"
+      - label: "Community investment of EUR 2,500 per employee (EUR 2,000 CPP + EUR 500 employee giving)"
+        target: "EUR 2,500 per employee"
+        year: "2030"
+        core: false
+        page: 252
+        quote: "€2,000 per employee in CPP projects and €500 per employee to the Employee Giving program, forming an overall target of €2,500 per employee"
+      - label: "Support 25 ESG-focused scaleups"
+        target: "25 scaleups"
+        year: "2030"
+        core: false
+        page: 248
+        quote: "extend our target to reach 25 ESGfocused scaleups supported by 2030"
+      - label: "Recordable incident rate of 0.96 or below (target kept in place until 2030)"
+        target: "RIR <= 0.96"
+        year: "2030"
+        core: false
+        page: 223
+        quote: "we intend to continue progressing our OHS efforts, with the current target remaining in place until 2030"
+  - report: asml-2024
+    goals:
+      - label: "GHG neutral across the entire value chain"
+        target: "GHG neutral"
+        year: "2040"
+        core: true
+        page: 194
+        quote: "we are aiming for GHG neutrality across our entire value chain by 2040"
+      - label: "GHG neutral scope 1 and 2 emissions from manufacturing and buildings"
+        target: "GHG neutral"
+        year: "2025"
+        core: true
+        page: 206
+        quote: "Become GHG neutral for scope 1 and 2 emissions from our manufacturing and buildings by 2025"
+      - label: "Reduce absolute scope 1 and 2 emissions by 25.2% vs 2019 (SBTi)"
+        target: "-25.2%"
+        year: "2025"
+        core: false
+        page: 200
+        quote: "Reduce absolute scope 1 and 2 GHG emissions by 25.2% by 2025 from a 2019 base year"
+      - label: "Reduce absolute scope 1 and 2 emissions by 75% vs 2019 (below 15 kt)"
+        target: "-75% (below 15 kt CO2e)"
+        year: "2030"
+        core: true
+        page: 200
+        quote: "Reduce absolute scope 1 and 2 GHG emissions by 75% by 2030 from a 2019 base year: We aim for CO2e emissions below 15 kt by 2030"
+      - label: "Reduce absolute scope 1 and 2 emissions by 90% vs 2019 (below 6 kt)"
+        target: "-90% (below 6 kt CO2e)"
+        year: "2040"
+        core: false
+        page: 200
+        quote: "Reduce absolute scope 1 and 2 GHG emissions by 90.0% by 2040 from a 2019 base year: We aim to lower our emissions to below 6 kt CO2e by 2040"
+      - label: "Reduce scope 3 emissions 35.3% per EUR m gross profit vs 2019 (SBTi)"
+        target: "-35.3% intensity (below 15.7 Mt)"
+        year: "2025"
+        core: false
+        page: 202
+        quote: "Reduce scope 3 GHG emissions 35.3% per €m gross profit by 2025 from a 2019 base year"
+      - label: "Reduce scope 3 emissions 55% per EUR m gross profit vs 2019 (below 19.5 Mt)"
+        target: "-55% intensity"
+        year: "2030"
+        core: false
+        page: 202
+        quote: "Reduce scope 3 GHG emissions 55.0% per €m gross profit by 2030 from a 2019 base year: We aim for CO2e emissions below 19.5 Mt by 2030"
+      - label: "Reduce scope 3 emissions 97% per EUR m gross profit vs 2019 (below 2.3 Mt)"
+        target: "-97% intensity"
+        year: "2040"
+        core: false
+        page: 202
+        quote: "Reduce scope 3 GHG emissions 97.0% per €m gross profit by 2040 from a 2019 base year: We aim for CO2e emissions below 2.3 Mt by 2040"
+      - label: "GHG neutral scope 3 emissions from business travel and commuting"
+        target: "GHG neutral"
+        year: "2025"
+        core: false
+        page: 204
+        quote: "Become GHG neutral for scope 3 emissions from business travel and commuting by 2025"
+      - label: "GHG neutral scope 3 emissions from supply chain and logistics"
+        target: "GHG neutral"
+        year: "2030"
+        core: true
+        page: 204
+        quote: "Become GHG neutral for scope 3 emissions from supply chain and logistics by 2030"
+      - label: "GHG neutral scope 3 emissions from product use"
+        target: "GHG neutral"
+        year: "2040"
+        core: false
+        page: 204
+        quote: "Become GHG neutral for scope 3 emissions from product use by 2040"
+      - label: "Commitment from top-80% suppliers to reduce CO2e footprint by 2030"
+        target: "75% committed"
+        year: "2026"
+        core: false
+        page: 194
+        quote: "suppliers (based on CO2e emissions) to reduce their CO2e footprint by 2030 (2026 target: 75%)"
+      - label: "100% renewable electricity for own operations worldwide"
+        target: "100%"
+        year: "2025"
+        core: true
+        page: 206
+        quote: "Purchase 100% renewable electricity for our own operations worldwide by 2025"
+      - label: "At least 100 TJ annual energy savings from projects 2021-2025"
+        target: ">= 100 TJ"
+        year: "2025"
+        core: false
+        page: 207
+        quote: "direct annual savings of at least 100 TJ by 2025"
+      - label: "60% decrease in energy consumption per wafer of NXE (0.33 NA EUV) systems vs 2018"
+        target: "-60% kWh/wafer"
+        year: "2025"
+        core: true
+        page: 215
+        quote: "Achieve a 60% decrease in equivalent energy consumption (kWh/wafer) of our 0.33 NA EUV"
+      - label: "10% decrease in absolute equivalent power consumption of NXE systems vs 2018"
+        target: "-10% MW"
+        year: "2025"
+        core: false
+        page: 215
+        quote: "decrease in absolute equivalent power consumption (MW) of our 0.33 NA EUV (NXE) systems by 2025"
+      - label: "Zero waste from operations to landfill and incineration"
+        target: "zero waste to landfill/incineration"
+        year: "2030"
+        core: true
+        page: 234
+        quote: "We aim to have zero waste from our operations to landfill and incineration by 2030"
+      - label: "65% recycling rate of waste from operations (excl. construction)"
+        target: "65%"
+        year: "2025"
+        core: false
+        page: 242
+        quote: "Achieve a 65% recycling rate of waste from operations (excluding construction) by 2025"
+      - label: "90% reuse rate of parts returned from field and factory"
+        target: "90%"
+        year: "2025"
+        core: false
+        page: 248
+        quote: "Achieve a 90% reuse rate of parts returned from the field and factory by 2025"
+      - label: "Waste from operations of 295 kg per EUR m revenue"
+        target: "295 kg/EUR m revenue"
+        year: "2025"
+        core: false
+        page: 248
+        quote: "Achieve 295 kg of waste from operations (excluding construction waste) / €m revenue by 2025"
+      - label: "24% inflow of women (all job grades)"
+        target: "24%"
+        year: "2025"
+        core: true
+        page: 271
+        quote: "Achieve 24% inflow of women (all job grades) by 2025"
+      - label: "24% inflow of women to job grades 9+"
+        target: "24%"
+        year: "2025"
+        core: false
+        page: 271
+        quote: "24% inflow (external hires only) of women to middle management and above (job grades 9+) by 2025"
+      - label: "14% women in senior leadership (job grade 13+)"
+        target: "14%"
+        year: "2026"
+        core: false
+        page: 271
+        quote: "we have set a target of 14% representation of women in senior leadership roles (job grade 13+) by 2026"
+      - label: "Attrition rate below 7%"
+        target: "<7%"
+        year: "2025"
+        core: false
+        page: 267
+        quote: "Have an attrition rate of <7% by 2025 Progress on this target has been measured"
+      - label: "Employee engagement within 2% of top-25% benchmark"
+        target: "within 2% of top 25%"
+        year: "2025"
+        core: false
+        page: 266
+        quote: "By 2025, be within a 2% range of the benchmark employee engagement score achieved by the top 25%"
+      - label: "80% of employees with at least one development item"
+        target: "80%"
+        year: "2025"
+        core: false
+        page: 269
+        quote: "By 2025, 80% of all employees should have at least one development item (in progress)"
+      - label: "Recordable incident rate of 0.16 or below"
+        target: "RIR <= 0.16"
+        year: "2025"
+        core: false
+        page: 273
+        quote: "Achieve a recordable incident rate of 0.16 or below, by 2025"
+      - label: "Community investment of EUR 2,500 per employee incl. employee giving"
+        target: "EUR 2,500 per employee"
+        year: "2025"
+        core: false
+        page: 319
+        quote: "Achieve an investment of €2,500 per employee, including employee giving, by 2025"
+      - label: "90% of in-scope suppliers to complete the RBA self-assessment"
+        target: "90%"
+        year: "2025"
+        core: false
+        page: 295
+        quote: "Achieve 90% of all suppliers in scope of the RBA SAQ to have completed it by 2025"
+      - label: "Support 14 ESG-focused scaleup companies"
+        target: "14 scaleups"
+        year: "2025"
+        core: false
+        page: 300
+        quote: "Support 14 ESG-focused scaleup companies by 2025"
