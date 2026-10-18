@@ -1,8 +1,9 @@
 """Ingest the eval corpus into the eval database, timing each stage, and score ingestion.
 
 Runs the app's own pipeline stages in the app's order (parse, detect metadata, store pages,
-chunk, embed, extract) so the timings and the index are what the app would produce. Parsed
-documents are cached for the chunking experiments in `variants.py`.
+chunk, embed, extract), so the timings and the index are what the app would produce. A
+report is ingested once; its timings and LLM usage are kept from `results/ingestion.json`
+when the corpus is scored again.
 
     uv run python -m eval.ingest_eval            # ingest what is missing, then score
     uv run python -m eval.ingest_eval --score    # score only
@@ -11,39 +12,20 @@ documents are cached for the chunking experiments in `variants.py`.
 import argparse
 import hashlib
 import json
-import pickle
 import statistics
 from collections import Counter
-from pathlib import Path
+from typing import Any
 
 from app.db import SessionLocal
 from app.extraction.extractor import extract_report
 from app.ingestion import pipeline
-from app.ingestion.parser import ParsedDocument
 from app.llm import get_provider
 from app.models import Chunk, Datapoint, Report, ReportStatus
 from app.retrieval.embedder import get_embedder
-from app.textutil import word_count
-from eval.common import (
-    CACHE_DIR,
-    RESULTS_DIR,
-    USAGE,
-    CorpusDoc,
-    instrument,
-    load_corpus,
-    timer,
-    write_json,
-)
-
-EMPTY_PAGE_CHARS = 200  # a page with less text than this is a cover, divider or image-only page
-BOILERPLATE_PAGE_SHARE = 0.2  # a line repeated on this share of pages is a running header
+from eval.common import RESULTS_DIR, USAGE, CorpusDoc, instrument, load_corpus, timer, write_json
 
 
-def parsed_cache_path(key: str) -> Path:
-    return CACHE_DIR / "parsed" / f"{key}.pkl"
-
-
-def ingest(doc: CorpusDoc) -> dict:
+def ingest(doc: CorpusDoc) -> dict[str, Any]:
     timings: dict[str, float] = {}
     digest = hashlib.sha256(doc.path.read_bytes()).hexdigest()
     with SessionLocal() as db:
@@ -71,68 +53,28 @@ def ingest(doc: CorpusDoc) -> dict:
         pipeline._set_progress(db, report, ReportStatus.READY, fraction=1.0)
         timings["total"] = round(sum(timings.values()), 2)
         llm = USAGE.summary(mark)
-    path = parsed_cache_path(doc.key)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(pickle.dumps(parsed))
     print(f"{doc.key}: {parsed.page_count} pages, {len(chunks)} chunks, {timings}")
-    return {"timings": timings, "llm": llm}
+    return {"pages": parsed.page_count, "timings": timings, "llm": llm}
 
 
-def load_parsed(key: str) -> ParsedDocument:
-    return pickle.loads(parsed_cache_path(key).read_bytes())
-
-
-def parse_stats(parsed: ParsedDocument) -> dict:
-    """Parse quality signals that need no labels."""
-    chars = [len(page) for page in parsed.pages]
-    page_words = sum(word_count(page) for page in parsed.pages)
-    body_words = sum(word_count(body) for body in parsed.bodies)
-    table_words = sum(word_count(table.text) for table in parsed.tables)
-
-    line_pages: Counter[str] = Counter()
-    for page in parsed.pages:
-        lines = {line.strip() for line in page.splitlines() if len(line.strip()) > 3}
-        line_pages.update(lines)
-    threshold = BOILERPLATE_PAGE_SHARE * parsed.page_count
-    boilerplate = sorted((line for line, n in line_pages.items() if n >= threshold), key=len)
-    return {
-        "pages": parsed.page_count,
-        "empty_pages": sum(c < EMPTY_PAGE_CHARS for c in chars),
-        "median_chars_per_page": int(statistics.median(chars)),
-        "tables": len(parsed.tables),
-        "pages_with_tables": len({t.page for t in parsed.tables}),
-        # body + tables vs the full page: < 1 means text lost with table regions, > 1 means
-        # text indexed twice (overlapping tables)
-        "indexed_word_ratio": round((body_words + table_words) / max(page_words, 1), 3),
-        "boilerplate_lines": boilerplate[:15],
-        "boilerplate_line_count": len(boilerplate),
-    }
-
-
-def chunk_stats(chunks: list[Chunk]) -> dict:
-    words = sorted(c.word_count for c in chunks)
-    texts = Counter(c.content for c in chunks)
-    tables = [c.word_count for c in chunks if c.kind == "table"]
-
-    def pct(p: float) -> int:
-        return words[min(len(words) - 1, int(p * len(words)))]
-
+def chunk_stats(chunks: list[Chunk]) -> dict[str, Any]:
+    words = [c.word_count for c in chunks]
     return {
         "chunks": len(chunks),
-        "table_chunks": len(tables),
-        "words_p10_p50_p90_max": [pct(0.1), pct(0.5), pct(0.9), words[-1]],
-        "share_under_50_words": round(sum(w < 50 for w in words) / len(words), 3),
-        "table_words_p50_max": [int(statistics.median(tables)), max(tables)] if tables else None,
-        "duplicate_chunks": sum(n - 1 for n in texts.values() if n > 1),
+        "table_chunks": sum(c.kind == "table" for c in chunks),
+        "words_p50": int(statistics.median(words)) if words else 0,
+        "words_max": max(words, default=0),
+        "duplicate_chunks": sum(n - 1 for n in Counter(c.content for c in chunks).values()),
     }
 
 
-def score(ingest_runs: dict[str, dict]) -> dict:
-    corpus = load_corpus()
-    out: dict = {"reports": {}}
+def score(ingest_runs: dict[str, dict]) -> dict[str, Any]:
+    """Per report: metadata detection against the corpus, chunk statistics, datapoints
+    written, and the stage timings and LLM usage of its ingestion run."""
+    out: dict[str, Any] = {"reports": {}}
     with SessionLocal() as db:
         by_name = {r.filename: r for r in db.query(Report).all()}
-        for doc in corpus:
+        for doc in load_corpus():
             report = by_name.get(doc.path.name)
             if report is None:
                 continue
@@ -144,17 +86,32 @@ def score(ingest_runs: dict[str, dict]) -> dict:
                     "company_ok": report.company.lower() == doc.company.lower(),
                     "year_ok": report.fiscal_year == doc.fiscal_year,
                 },
-                "parse": parse_stats(load_parsed(doc.key)),
                 "chunks": chunk_stats(chunks),
                 "datapoints": dict(Counter(d.key for d in datapoints)),
                 **ingest_runs.get(doc.key, {}),
             }
-    reports = out["reports"].values()
-    out["metadata_accuracy"] = round(
-        sum(r["metadata"]["company_ok"] and r["metadata"]["year_ok"] for r in reports)
-        / max(len(out["reports"]), 1),
-        3,
-    )
+    reports = list(out["reports"].values())
+    out["summary"] = {
+        "reports": len(reports),
+        "metadata_accuracy": round(
+            sum(r["metadata"]["company_ok"] and r["metadata"]["year_ok"] for r in reports)
+            / max(len(reports), 1),
+            3,
+        ),
+        "chunks": sum(r["chunks"]["chunks"] for r in reports),
+    }
+    timed = [r for r in reports if "timings" in r]  # reports ingested by this script
+    if timed:
+        total = sum(r["timings"]["total"] for r in timed)
+        out["summary"] |= {
+            "timed_reports": len(timed),
+            "total_seconds": round(total, 1),
+            "stage_share": {
+                stage: round(sum(r["timings"][stage] for r in timed) / total, 3)
+                for stage in ("parse", "detect_metadata", "chunk_and_store", "embed", "extract")
+            },
+            "llm_cost_usd": round(sum(r["llm"]["cost_usd"] for r in timed), 4),
+        }
     return out
 
 
@@ -165,13 +122,13 @@ def _previous_runs() -> dict[str, dict]:
         return {}
     reports = json.loads(path.read_text())["reports"]
     return {
-        key: {field: run[field] for field in ("timings", "llm") if field in run}
+        key: {f: run[f] for f in ("pages", "timings", "llm") if f in run}
         for key, run in reports.items()
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--score", action="store_true", help="score only, do not ingest")
     args = parser.parse_args()
     instrument(get_provider())
@@ -183,6 +140,7 @@ def main() -> None:
             if run:
                 runs[doc.key] = run
     result = score({**_previous_runs(), **runs})
+    print(result["summary"])
     print(write_json("ingestion.json", result))
 
 

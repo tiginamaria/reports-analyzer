@@ -10,15 +10,18 @@ matched to the gold list by an LLM judge: recall over all gold goals and over th
 (`core`) ones, precision, and candidate-page recall. Reports run one after another, so the
 tokens and cost of each call are attributed to the entry that made it.
 
-    uv run python -m eval.extraction_eval              # run the registry as it is
-    uv run python -m eval.extraction_eval --stored     # score what ingestion wrote, no model calls
+The registry runs as it is; an experiment overrides its tunable fields for every entry.
 
-To measure a change to an entry, change it in registry.yaml and run again.
+    uv run python -m eval.extraction_eval                        # the registry as it is
+    uv run python -m eval.extraction_eval --stored               # what ingestion wrote, no calls
+    uv run python -m eval.extraction_eval --top-k 48 --batch-size 12
+    uv run python -m eval.extraction_eval --keys sustainability_goal --top-k 24
 
 Nothing is written to the database: each report's extraction is rolled back.
 """
 
 import argparse
+import dataclasses
 import re
 import statistics
 import time
@@ -28,7 +31,6 @@ from typing import Any
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.db import SessionLocal
 from app.extraction.extractor import (
     DatapointSpec,
@@ -37,12 +39,11 @@ from app.extraction.extractor import (
     load_registry,
 )
 from app.llm import LLMProvider, get_provider
-from app.llm.anthropic_provider import AnthropicProvider
 from app.models import Datapoint, Report
 from app.retrieval.embedder import get_embedder, get_reranker
-from eval.common import USAGE, instrument, load_corpus, load_yaml, write_json
-from eval.e2e_eval import JUDGE_MODEL
+from eval.common import USAGE, instrument, judge_provider, load_corpus, load_yaml, write_json
 
+GOALS_KEY = "sustainability_goal"
 # Two numbers are the same figure when they agree to 0.01% or to half a cent, after the unit's
 # scale word (thousand, million, billion) is applied to each. An absolute tolerance alone
 # would call 1.24 and 1.54 per share the same dividend.
@@ -58,6 +59,7 @@ SCALES = {
     "bn": 1e9,
 }
 ACCEPTABLE = {"exact", "alternative", "none"}  # outcomes that count as a correct extraction
+OVERRIDABLE = ("top_k", "candidates", "min_score", "per_query", "batch_size")
 
 # --- running one registry entry -------------------------------------------------------------
 
@@ -90,13 +92,12 @@ def run_entry(
     return items, {
         "chunks": len(hits),
         "candidate_pages": sorted({hit.chunk.page for hit in hits}),
-        "calls": usage["calls"],  # 2 means the repair retry ran
+        "calls": usage["calls"],
         "input_tokens": usage["input_tokens"],
         "output_tokens": usage["output_tokens"],
         "cost_usd": usage["cost_usd"],
         "seconds": seconds,
         "llm_seconds": usage["llm_seconds"],
-        "retrieval_seconds": round(seconds - usage["llm_seconds"], 1),
     }
 
 
@@ -130,18 +131,10 @@ def same_figure(value: float | None, target: float | None) -> bool:
     return abs(value - target) <= max(ABSOLUTE_TOLERANCE, RELATIVE_TOLERANCE * abs(target))
 
 
-def score_single(
-    key: str, gold: dict, items: list[dict], candidate_pages: list[int], fiscal_year: int
-) -> dict:
-    """One single-value datapoint against its gold label (see the module docstring). Besides
-    the outcome: was the gold page among the candidates, does the quote come from it, does
-    the period name the fiscal year, does the unit carry the gold's scale word."""
+def score_single(key: str, gold: dict, items: list[dict], candidate_pages: list[int]) -> dict:
+    """One single-value datapoint against its gold label (see the module docstring), and
+    whether the gold page was among the candidates."""
     item = next((d for d in items if d["key"] == key), None)
-    result = {
-        "gold": gold["value"],
-        "gold_page": gold["page"],
-        "gold_page_in_candidates": gold["page"] in candidate_pages,
-    }
     if gold["numeric"] is None:
         outcome = "none" if item is None else "spurious"
     elif item is None:
@@ -149,7 +142,6 @@ def score_single(
     else:
         value = scaled(item["numeric_value"], item["unit"])
         # the figure as written matches, or it matches once both units' scales are applied
-        # (a missing scale word is reported separately as `unit_has_scale`)
         if same_figure(item["numeric_value"], gold["numeric"]) or same_figure(
             value, scaled(gold["numeric"], gold.get("unit"))
         ):
@@ -162,15 +154,16 @@ def score_single(
             outcome = "alternative"
         else:
             outcome = "wrong"
+    result = {
+        "outcome": outcome,
+        "gold": gold["value"],
+        "gold_page": gold["page"],
+        "gold_page_in_candidates": gold["page"] in candidate_pages,
+    }
     if item is None:
-        return {**result, "outcome": outcome}
-    gold_scale = next((w for w in (gold.get("unit") or "").lower().split() if w in SCALES), None)
+        return result
     return {
         **result,
-        "outcome": outcome,
-        "cited_gold_page": item["page"] == gold["page"],  # the quote comes from the gold page
-        "period_has_year": str(fiscal_year) in (item["period"] or ""),
-        "unit_has_scale": gold_scale is None or gold_scale in (item["unit"] or "").lower(),
         "extracted": item["value"],
         "unit": item["unit"],
         "period": item["period"],
@@ -221,25 +214,28 @@ def score_goals(
 ) -> dict:
     """Goals against the gold list, judged by an LLM. Gold goals dated in or before the
     fiscal year are left out, as the registry asks the model to leave them out."""
-    excluded = [g for g in gold if dated_before(g["year"], fiscal_year)]
-    gold = [g for g in gold if g not in excluded]
-    goals = [d for d in items if d["key"] == "sustainability_goal"]
-    page_recall = round(sum(g["page"] in candidate_pages for g in gold) / max(len(gold), 1), 3)
-    extracted = [
-        {"label": d["label"], "value": d["value"], "period": d["period"], "page": d["page"]}
-        for d in goals
-    ]
+    gold = [g for g in gold if not dated_before(g["year"], fiscal_year)]
+    goals = [d for d in items if d["key"] == GOALS_KEY]
+    core = [i for i, g in enumerate(gold) if g.get("core")]
+    result = {
+        "gold": len(gold),
+        "gold_core": len(core),
+        "extracted": len(goals),
+        "candidate_page_recall": round(
+            sum(g["page"] in candidate_pages for g in gold) / max(len(gold), 1), 3
+        ),
+        "extracted_items": [
+            {"label": d["label"], "value": d["value"], "period": d["period"], "page": d["page"]}
+            for d in goals
+        ],
+    }
     if not goals:
         return {
-            "gold": len(gold),
-            "gold_excluded_dated": len(excluded),
-            "extracted": 0,
+            **result,
             "recall": 0.0,
-            "recall_core": 0.0,
+            "recall_core": 0.0 if core else None,
             "precision": None,
-            "candidate_page_recall": page_recall,
             "missed": [g["label"] for g in gold],
-            "extracted_items": extracted,
         }
     gold_text = "\n".join(
         f"{i}. {g['label']}: {g['target']} by {g['year']}" for i, g in enumerate(gold)
@@ -262,20 +258,14 @@ def score_goals(
         if match.extracted_index is not None and match.extracted_index not in used:
             matched.add(match.gold_index)
             used.add(match.extracted_index)
-    core = [i for i, g in enumerate(gold) if g.get("core")]
     real = {v.extracted_index for v in verdict.extracted if v.is_goal}
     trusted = {i for i, d in enumerate(goals) if d["verification"] in ("verified", "fuzzy")}
     return {
-        "gold": len(gold),
-        "gold_excluded_dated": len(excluded),
-        "gold_core": len(core),
-        "extracted": len(goals),
-        "extracted_items": extracted,
-        "recall": round(len(matched) / len(gold), 3),
+        **result,
+        "recall": round(len(matched) / len(gold), 3) if gold else None,
         "recall_core": round(len(matched & set(core)) / len(core), 3) if core else None,
+        # a real goal with a verified quote
         "precision": round(len(real & trusted) / len(goals), 3),
-        "verified_rate": round(len(trusted) / len(goals), 3),
-        "candidate_page_recall": page_recall,
         "missed": [gold[i]["label"] for i in range(len(gold)) if i not in matched],
         "not_goals": [goals[i]["label"] for i in range(len(goals)) if i not in real],
     }
@@ -284,15 +274,20 @@ def score_goals(
 # --- the run --------------------------------------------------------------------------------
 
 
-def evaluate(stored: bool) -> dict[str, Any]:
-    specs = load_registry()
+def evaluate(stored: bool, keys: list[str] | None, overrides: dict[str, Any]) -> dict[str, Any]:
+    specs = [
+        dataclasses.replace(spec, **overrides)
+        for spec in load_registry()
+        if not keys or spec.key in keys
+    ]
+    if not specs:
+        raise SystemExit(f"no registry entry among {keys}")
     single_keys = [spec.key for spec in specs if not spec.multi]
     gold = load_yaml("extraction.yaml")
     single_gold = {key: {g["report"]: g for g in gold[key]} for key in single_keys}
     goal_gold = {g["report"]: g["goals"] for g in gold["sustainability_goals"]}
-    keys = {doc.path.name: doc.key for doc in load_corpus()}
-    years = {doc.key: doc.fiscal_year for doc in load_corpus()}
-    judge = AnthropicProvider(get_settings().model_copy(update={"anthropic_model": JUDGE_MODEL}))
+    corpus = {doc.path.name: doc for doc in load_corpus()}
+    judge = judge_provider()
     provider = get_provider()
     instrument(provider)
     get_embedder()
@@ -303,10 +298,10 @@ def evaluate(stored: bool) -> dict[str, Any]:
         reports = [
             r
             for r in db.query(Report).order_by(Report.company, Report.fiscal_year)
-            if r.filename in keys
+            if r.filename in corpus
         ]
         for report in reports:
-            key = keys[report.filename]
+            doc = corpus[report.filename]
             runs: dict[str, dict[str, Any]] = {}
             for spec in specs:
                 items, run = (
@@ -327,30 +322,27 @@ def evaluate(stored: bool) -> dict[str, Any]:
             scored = {
                 k: {
                     **score_single(
-                        k,
-                        single_gold[k][key],
-                        runs[k]["items"],
-                        runs[k]["candidate_pages"],
-                        years[key],
+                        k, single_gold[k][doc.key], runs[k]["items"], runs[k]["candidate_pages"]
                     ),
                     **{f: v for f, v in runs[k].items() if f != "items"},
                 }
                 for k in single_keys
             }
-            goals_run = runs["sustainability_goal"]
-            scored["goals"] = {
-                **score_goals(
-                    judge,
-                    goal_gold[key],
-                    goals_run["items"],
-                    goals_run["candidate_pages"],
-                    years[key],
-                ),
-                **{f: v for f, v in goals_run.items() if f != "items"},
-            }
-            per_report[key] = scored
+            if GOALS_KEY in runs:
+                scored["goals"] = {
+                    **score_goals(
+                        judge,
+                        goal_gold[doc.key],
+                        runs[GOALS_KEY]["items"],
+                        runs[GOALS_KEY]["candidate_pages"],
+                        doc.fiscal_year,
+                    ),
+                    **{f: v for f, v in runs[GOALS_KEY].items() if f != "items"},
+                }
+            per_report[doc.key] = scored
     return {
-        "run": "stored" if stored else "current",
+        "run": "stored" if stored else "fresh",
+        "params": overrides,
         "summary": summarize(per_report, single_keys, stored),
         "reports": per_report,
     }
@@ -365,7 +357,7 @@ def summarize(per_report: dict[str, dict], single_keys: list[str], stored: bool)
 
     def mean(rows: list[dict], field: str) -> float | None:
         values = [r[field] for r in rows if r.get(field) is not None]
-        return round(statistics.mean(values), 1) if values else None
+        return round(statistics.mean(values), 3) if values else None
 
     def cost(rows: list[dict]) -> dict[str, Any]:
         if stored:
@@ -375,8 +367,6 @@ def summarize(per_report: dict[str, dict], single_keys: list[str], stored: bool)
             "input_tokens_mean": mean(rows, "input_tokens"),
             "output_tokens_mean": mean(rows, "output_tokens"),
             "seconds_mean": mean(rows, "seconds"),
-            "llm_seconds_mean": mean(rows, "llm_seconds"),
-            "repair_retries": sum(r["calls"] > 1 for r in rows),  # replies that failed once
             "cost_usd_total": round(sum(r["cost_usd"] for r in rows), 4),
         }
 
@@ -392,70 +382,61 @@ def summarize(per_report: dict[str, dict], single_keys: list[str], stored: bool)
                 for o in ("exact", "alternative", "none", "wrong", "missing", "spurious")
             },
             "gold_page_in_candidates": share(rows, lambda r: r["gold_page_in_candidates"]),
-            "cited_gold_page": share(rows, lambda r: r.get("cited_gold_page", False)),
-            "period_has_year": share(rows, lambda r: r.get("period_has_year", False)),
-            "unit_has_scale": share(rows, lambda r: r.get("unit_has_scale", False)),
             "verified": share(rows, lambda r: r.get("verification") == "verified"),
             **cost(rows),
         }
-    goal_rows = [r["goals"] for r in reports]
-
-    def mean_of(field: str) -> float:  # over the reports where the figure is defined
-        values = [r[field] for r in goal_rows if r.get(field) is not None]
-        return round(statistics.mean(values), 3) if values else 0.0
-
-    goals = {
-        "recall": mean_of("recall"),
-        "recall_core": mean_of("recall_core"),
-        "precision": mean_of("precision"),
-        "candidate_page_recall": round(
-            statistics.mean(r["candidate_page_recall"] for r in goal_rows), 3
-        ),
-        "extracted_total": sum(r["extracted"] for r in goal_rows),
-        "gold_total": sum(r["gold"] for r in goal_rows),
-        "gold_excluded_dated_total": sum(r["gold_excluded_dated"] for r in goal_rows),
-        **cost(goal_rows),
-    }
-    totals: dict[str, Any] = {"reports": n}
+    summary: dict[str, Any] = {"datapoints": datapoints}
+    goal_rows = [r["goals"] for r in reports if "goals" in r]
+    if goal_rows:
+        summary["goals"] = {
+            "recall": mean(goal_rows, "recall"),
+            "recall_core": mean(goal_rows, "recall_core"),
+            "precision": mean(goal_rows, "precision"),
+            "candidate_page_recall": mean(goal_rows, "candidate_page_recall"),
+            "extracted_total": sum(r["extracted"] for r in goal_rows),
+            "gold_total": sum(r["gold"] for r in goal_rows),
+            **cost(goal_rows),
+        }
+    all_rows = [v for r in reports for v in r.values()]
+    summary["totals"] = {"reports": n}
     if not stored:
-        all_rows = [r[k] for r in reports for k in [*single_keys, "goals"]]
-        totals |= {
+        summary["totals"] |= {
             "cost_usd_total": round(sum(r["cost_usd"] for r in all_rows), 4),
             "cost_usd_per_report": round(sum(r["cost_usd"] for r in all_rows) / n, 4),
             "input_tokens_per_report": round(sum(r["input_tokens"] for r in all_rows) / n),
             "output_tokens_per_report": round(sum(r["output_tokens"] for r in all_rows) / n),
             "seconds_per_report": round(sum(r["seconds"] for r in all_rows) / n, 1),
         }
-    return {"datapoints": datapoints, "goals": goals, "totals": totals}
+    return summary
 
 
 def print_summary(result: dict[str, Any]) -> None:
     summary = result["summary"]
-    print(f"\n== extraction / {result['run']}")
-    print(
-        f"{'datapoint':20} {'exact':>6} {'accept':>6} {'gold pg':>7} {'cited':>6} {'year':>5} "
-        f"{'scale':>5} {'chunks':>6} {'in tok':>7} {'out tok':>7} {'$ total':>8} {'s':>5}"
-    )
-    for key, m in summary["datapoints"].items():
+    print(f"\n== extraction / {result['run']} {result['params'] or ''}")
+    if summary["datapoints"]:
         print(
-            f"{key:20} {m['exact']:6.2f} {m['acceptable']:6.2f} {m['gold_page_in_candidates']:7.2f} "
-            f"{m['cited_gold_page']:6.2f} {m['period_has_year']:5.2f} {m['unit_has_scale']:5.2f} "
-            f"{m['chunks_mean'] or 0:6.1f} {m.get('input_tokens_mean') or 0:7.0f} "
-            f"{m.get('output_tokens_mean') or 0:7.0f} {m.get('cost_usd_total') or 0:8.3f} "
-            f"{m.get('seconds_mean') or 0:5.0f}"
+            f"{'datapoint':20} {'exact':>6} {'accept':>6} {'gold pg':>7} {'verif':>6} "
+            f"{'chunks':>6} {'in tok':>7} {'out tok':>7} {'$ total':>8} {'s':>5}"
         )
-    print(
-        "  gold pg: gold page among the candidates; cited: quote taken from it; year: period "
-        "names the fiscal year; scale: unit carries the scale word"
-    )
-    g = summary["goals"]
-    print(
-        f"{'goals':20} recall {g['recall']:.2f} (core {g['recall_core']:.2f}) precision "
-        f"{g['precision']:.2f} gold pages in candidates {g['candidate_page_recall']:.2f}; "
-        f"{g['extracted_total']} extracted for {g['gold_total']} gold; {g['chunks_mean']} chunks, "
-        f"{g.get('input_tokens_mean') or 0:.0f} in / {g.get('output_tokens_mean') or 0:.0f} out "
-        f"tokens, ${g.get('cost_usd_total') or 0:.3f}"
-    )
+        for key, m in summary["datapoints"].items():
+            print(
+                f"{key:20} {m['exact']:6.2f} {m['acceptable']:6.2f} "
+                f"{m['gold_page_in_candidates']:7.2f} {m['verified']:6.2f} "
+                f"{m['chunks_mean'] or 0:6.1f} {m.get('input_tokens_mean') or 0:7.0f} "
+                f"{m.get('output_tokens_mean') or 0:7.0f} {m.get('cost_usd_total') or 0:8.3f} "
+                f"{m.get('seconds_mean') or 0:5.0f}"
+            )
+        print("  gold pg: gold page among the candidate chunks; verif: quote verified exactly")
+    if "goals" in summary:
+        g = summary["goals"]
+        print(
+            f"{'goals':20} recall {g['recall'] or 0:.2f} (core {g['recall_core'] or 0:.2f}) "
+            f"precision {g['precision'] or 0:.2f} gold pages in candidates "
+            f"{g['candidate_page_recall'] or 0:.2f}; {g['extracted_total']} extracted for "
+            f"{g['gold_total']} gold; {g['chunks_mean']} chunks, "
+            f"{g.get('input_tokens_mean') or 0:.0f} in / {g.get('output_tokens_mean') or 0:.0f} "
+            f"out tokens, ${g.get('cost_usd_total') or 0:.3f}"
+        )
     t = summary["totals"]
     if "cost_usd_total" in t:
         print(
@@ -469,19 +450,33 @@ def print_summary(result: dict[str, Any]) -> None:
             for k, v in report.items()
             if k != "goals" and v["outcome"] not in ACCEPTABLE
         ]
-        if wrong or report["goals"]["missed"]:
-            print(
-                f"  {key}: {' '.join(wrong) or 'datapoints ok'}; goals missed: {len(report['goals']['missed'])}"
-            )
+        missed = len(report["goals"]["missed"]) if "goals" in report else None
+        if wrong or missed:
+            print(f"  {key}: {' '.join(wrong) or 'datapoints ok'}; goals missed: {missed}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--stored", action="store_true", help="score what ingestion wrote")
+    parser.add_argument("--keys", nargs="+", help="registry entries to run (default: all)")
+    group = parser.add_argument_group("registry overrides, applied to every entry")
+    group.add_argument("--top-k", type=int, help="candidate chunks passed to the model")
+    group.add_argument("--candidates", type=int, help="chunks each search fetches for reranking")
+    group.add_argument("--min-score", type=float, help="reranker floor for candidates")
+    group.add_argument("--per-query", type=int, help="chunks kept per retrieval query")
+    group.add_argument("--batch-size", type=int, help="chunks per model call (multi-value)")
+    parser.add_argument("--tag", help="result file suffix (default: the overridden fields)")
     args = parser.parse_args()
-    result = evaluate(args.stored)
+    overrides = {f: getattr(args, f) for f in OVERRIDABLE if getattr(args, f) is not None}
+    result = evaluate(args.stored, args.keys, overrides)
     print_summary(result)
-    print(write_json(f"extraction_{result['run']}.json", result))
+    # an experiment never overwrites the result of the registry as it is
+    tag = args.tag or "_".join(f"{f}{v}" for f, v in overrides.items())
+    if args.stored:
+        tag = "_".join(filter(None, ["stored", tag]))
+    if args.keys and not args.tag:
+        tag = "_".join(filter(None, [tag, *args.keys]))
+    print(write_json(f"extraction{'_' + tag if tag else ''}.json", result))
 
 
 if __name__ == "__main__":

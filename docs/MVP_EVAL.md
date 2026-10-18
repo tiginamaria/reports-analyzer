@@ -2,15 +2,19 @@
 
 How well the pipeline works, stage by stage, what limits it, and which parameters to use.
 The harness, the gold set and how to rerun everything: [backend/eval/README.md](../backend/eval/README.md).
-Raw results: `backend/eval/results/*.json`. Run on 2026-10-16, Apple M-series (MPS),
-`claude-sonnet-5-5` for answers and extraction, `claude-haiku-4-5` for query analysis,
-`claude-opus-5-5` as judge.
+Run on 2026-10-16, Apple M-series (MPS), `claude-sonnet-5-5` for answers and extraction,
+`claude-haiku-4-5` for query analysis, `claude-opus-5-5` as judge.
+
+The harness has since been reduced to the shipped pipeline with parameter overrides
+(`backend/eval/README.md`): the configuration sweeps, chunking variants, embedding benchmark
+and number check used below, and the raw result files of this run, are no longer in the
+repository. New runs write `backend/eval/results/<stage>.json`.
 
 ## Summary
 
 "Current" below means the MVP as evaluated. Recommendations 1 and 2 (60 candidates, top 12,
-abstain below 0.2) have since been applied in `retrieval/search.py`; `e2e_eval current`
-evaluates the code as it is.
+abstain below 0.2) have since been applied in `retrieval/search.py`; `e2e_eval` without
+arguments evaluates the code as it is.
 
 - **Answers are trustworthy; coverage is the gap.** On 52 questions the current pipeline is
   correct on 88% of answerable questions, partially correct on another 10%, never
