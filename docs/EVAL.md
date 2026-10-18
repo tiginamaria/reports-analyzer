@@ -6,26 +6,32 @@ The evaluation report of the annual reports analysis application described in [D
 * The harness and how to rerun or run an experiment: [backend/eval/README.md](../backend/eval/README.md).
 * Raw results by stage in `backend/eval/results/{ingestion,retrieval,extraction,e2e}.json`
 
-## Setup
+## TL;DR
 
 The evaluation was performed for `ingestion` pipeline (including separate for `extraction` phase) and `answering` pipeline (including separate `retrieval` phase). 
 
+| Stage | Result | Improvements |
+|---|---|---|
+| Extraction | FTE 5/6 exact, revenue 4/6, net profit 6/6, dividend 4/6 exact and 2/2 correctly none; no figure wrong, every quote verified. Goals: recall 0.56 (core 0.73), precision 0.97 | Send whole sustainability pages to the model instead of 32 chunks; read infographics with a vision model |
+| Ingestion | Company and year detected 6/6; a report of 345 pages on average becomes 770 chunks in 3.2 min for $0.17 | Run the six extraction calls per report in parallel; strip repeated page furniture before chunking |
+| Retrieval | A gold page retrieved for 95.7% of questions, MRR 0.61, all key facts for 93.5% | Filter each sub-query by its company and year; keep 12 chunks instead of 8 |
+| Answers | 91.3% correct, 95.7% correct or partial, 0 incorrect; 11/11 unanswerable handled, 0 hallucinations; 106/106 citations verified; 7.5 s and $0.018 per question | The two retrieval changes; warn when a figure in the answer is in no cited quote |
+
+## Setup 
+
 ### Corpus
 
-Six annual reports, all downloaded from the companies' investor relations sites or public
-archives (links in [data/reports/SOURCES.md](../data/reports/SOURCES.md) and
-[backend/eval/corpus.yaml](../backend/eval/corpus.yaml)). 
-
-Three companies of different kinds, so the pipeline meets different vocabularies and
-layouts: ABN AMRO (a bank), ASML (semiconductor equipment), CM.com (a small software
-company). Two fiscal years per company, 2024 and 2025, so questions can compare years and
-the system has to tell the years apart: every 2025 report restates the 2024 figures. The
-Shell and Heineken sample reports are left out on purpose, so two gold questions about them
-test a company that is not in the corpus.
-
-A chunk is a text window or a whole table: page text (tables removed) is cut into windows of
-**400** words with **60** words of overlap (15%); each table is one chunk, never cut. Every
-chunk is embedded behind a header with company, report year and page.
+- **Six annual reports**, downloaded from the companies' sites or public archives (links in
+  [data/reports/SOURCES.md](../data/reports/SOURCES.md) and
+  [backend/eval/corpus.yaml](../backend/eval/corpus.yaml)).
+- **Three different companies**: ABN AMRO (a bank), ASML (semiconductor equipment), CM.com
+  (a small software company), so the pipeline meets different vocabularies and layouts.
+- **Two fiscal years each**, 2024 and 2025: questions can compare years, and the system has
+  to tell the years apart, since every 2025 report restates the 2024 figures.
+- **Shell and Heineken left out** on purpose: two gold questions about them test a company
+  that is not in the corpus.
+- **A chunk** is a text window of **400 words with 60 words of overlap (15%)** or one whole
+  table, never cut; every chunk is embedded behind a header with company, year and page.
 
 | Report | Pages | Chunks | Table chunks | Median words per chunk | Longest chunk |
 |---|---|---|---|---|---|
@@ -39,11 +45,12 @@ chunk is embedded behind a header with company, report year and page.
 
 ### Gold extraction labels
 
-[backend/eval/gold/extraction.yaml](../backend/eval/gold/extraction.yaml): one label per
-report for each single-value datapoint (expected figure, page, quote, acceptable
-alternatives) and a list of sustainability goals per report. Values were extracted by hand,
-verified by Claude Fable 5.1 against the page text, then proofread by a human once more. A
-script (`gold_check`) checks every quote against the ingested page text.
+[backend/eval/gold/extraction.yaml](../backend/eval/gold/extraction.yaml):
+
+- **One label per report and datapoint**: expected figure, page, quote, and the acceptable
+  alternatives the report also states; plus **a list of sustainability goals per report**.
+- **Made by hand**, verified by Claude Fable 5.1 against the page text, proofread by a human
+  once more; `gold_check` verifies every quote against the ingested page text.
 
 | Datapoint | Labels | Expected figure | Acceptable alternatives (also in the report) | Example |
 |---|---|---|---|---|
@@ -65,14 +72,16 @@ script (`gold_check`) checks every quote against the ingested page text.
 
 ### Gold questions
 
-57 questions in [backend/eval/gold/qa.yaml](../backend/eval/gold/qa.yaml), 46 answerable and 11 unanswerable.
+[backend/eval/gold/qa.yaml](../backend/eval/gold/qa.yaml): **57 questions, 46 answerable
+and 11 unanswerable**.
 
-One question per case (type, text or table source, single or multi-report, with or without a
-trap) was written by hand with its gold answer; Claude Fable 5.1 then multiplied each case
-across the other companies and years from the page text. Each answerable question has a
-gold answer, key facts as the report writes them, and evidence quotes with pages, checked by
-`gold_check`. Questions are phrased away from the report's wording, so keyword overlap is
-not rewarded.
+- **One question per case** (type, text or table source, single or multi-report, with or
+  without a trap) written by hand with its gold answer; Claude Fable 5.1 multiplied each
+  case across the other companies and years from the page text.
+- Each answerable question has a **gold answer, key facts** as the report writes them, and
+  **evidence quotes with pages**, verified by `gold_check`.
+- Questions are **phrased away from the report's wording**, so keyword overlap is not
+  rewarded.
 
 | Type | n | What it tests | Example | Gold answer |
 |---|---|---|---|---|
@@ -84,11 +93,13 @@ not rewarded.
 
 ## Extraction
 
-**What is evaluated.** The pre-extraction stage of ingestion. For every registry entry
-([registry.yaml](../backend/app/extraction/registry.yaml)) and every report, the eval runs
-the same two functions ingestion runs: candidate retrieval (the entry's queries through
-hybrid search and reranker, cut to `top_k`) and the model call with quote verification. Each
-entry is scored and costed on its own.
+**What is evaluated**: the pre-extraction stage of ingestion.
+
+- For every registry entry ([registry.yaml](../backend/app/extraction/registry.yaml)) and
+  every report, the eval runs **the same two functions ingestion runs**: candidate retrieval
+  (the entry's queries through hybrid search and reranker, cut to `top_k`) and the model
+  call with quote verification.
+- Each entry is **scored and costed on its own**; nothing is written to the database.
 
 | Datapoint (registry key) | Kind | Retrieval queries | Chunks to the model | Model calls per report |
 |---|---|---|---|---|
@@ -98,17 +109,16 @@ entry is scored and costed on its own.
 | Dividend per share, `dividend_per_share` | single value | 3 | 10 | 1 |
 | Sustainability goals, `sustainability_goal` | multi value | 6 | 32 | 1 |
 
-**How outcomes are scored.** Two methods, by kind of datapoint:
+**How outcomes are scored**: two methods, by kind of datapoint.
 
-- **The four single values are scored in code, no model.** The extracted number and the gold
-  figure are scaled by their unit word (thousand, million, billion) and compared within
-  0.01%, so "28.3 EUR billion" equals "28,262.9 EUR million"; the same check runs against
-  each labelled alternative. Deterministic.
-- **Sustainability goals are scored by an LLM judge** (`claude-opus-5-5`), because a goal is
-  a sentence. It gets the gold goals and the extracted items as two numbered lists and
-  returns which extracted item states each gold goal (or none) and whether each extracted
-  item is a real forward-looking goal. Recall = gold goals matched; precision = extracted
-  items that are real goals with a verified quote. One item can satisfy one gold goal.
+- **Single values: in code, no model.** Extracted and gold numbers are scaled by their unit
+  word (thousand, million, billion) and compared within 0.01%, so "28.3 EUR billion" equals
+  "28,262.9 EUR million"; the same check runs against each labelled alternative.
+- **Sustainability goals: an LLM judge** (`claude-opus-5-5`), because a goal is a sentence.
+  It gets the gold goals and the extracted items as two numbered lists and returns which
+  item states each gold goal (or none) and whether each item is a real forward-looking
+  goal. **Recall** = gold goals matched; **precision** = items that are real goals with a
+  verified quote; one item can satisfy one gold goal.
 
 Each single-value extraction gets one of six outcomes:
 
@@ -128,30 +138,20 @@ Each single-value extraction gets one of six outcomes:
 | Net profit | 6 exact | 1/6 | 6/6 | 10 | $0.10 |
 | Dividend per share | 4 exact, 2 correctly none | 6/6 | 4/4 | 9 | $0.10 |
 
-Per report, the four single values:
-
-| Report | FTE | Revenue | Net profit | Dividend per share |
-|---|---|---|---|---|
-| ABN AMRO 2025 | 23,126 exact | 8,716 EUR m exact | 2,252 EUR m exact | 1.24 exact |
-| ABN AMRO 2024 | 21,976 exact | 8,861 EUR m exact | 2,403 EUR m exact | 1.35 exact |
-| ASML 2025 | 44,209 exact | 32,667.3 EUR m exact | 9,609.4 EUR m exact | 7.50 exact |
-| ASML 2024 | 44,027 exact | 28,263 EUR m exact | 7,571.6 EUR m exact | 6.40 exact |
-| CM.com 2025 | **646 headcount, alternative** (gold 616 year-end FTE) | **missing** (gold 259,394 EUR k) | (3,786) EUR k exact | none, correct |
-| CM.com 2024 | 666 exact | **274.2 EUR m, alternative** (gold 274,249 EUR k) | (19,813) EUR k exact | none, correct |
-
-No figure is wrong and every quote verified. Net profit is 6/6 exact although the gold page
-was a candidate only once: the figure is restated on many pages and the model found it
-elsewhere. The column measures agreement with the labeller's page, not success.
+- **No figure is wrong and every quote verified.**
+- Net profit is **6/6 exact** although the gold page was a candidate only once: the figure is
+  restated on many pages. The column measures agreement with the labeller's page, not
+  success.
 
 **Why the alternatives and the miss**
 
 - **CM.com 2025 FTE and revenue**: the exact figures are on the key-figures infographic
-  (p. 2) and in the income statement (p. 100), and neither page was retrieved. The
-  infographic comes out as numbers without labels, and the statement's table chunk is not
-  among the 10 candidates. The model fell back to the headcount (646) and said so; for
-  revenue it returned nothing rather than guess.
+  (p. 2) and the income statement (p. 100); **neither page was retrieved**. The infographic
+  comes out as numbers without labels, the statement's chunk is outside the 10 candidates.
+  The model fell back to the headcount (646) and said so; for revenue it **returned nothing
+  rather than guess**.
 - **CM.com 2024 revenue**: the income statement was not retrieved either, so the model took
-  the rounded "274.2 million" from the key-figures page.
+  the rounded **274.2 million** from the key-figures page.
 
 **Sustainability goals**
 
@@ -165,32 +165,34 @@ elsewhere. The column measures agreement with the labeller's page, not success.
 | CM.com 2024 | 14 (5) | 7 | 0.50 | 0.60 | 1.00 | 0.93 | $0.07 |
 | **All** | 121 (41) | 87 | **0.56** | **0.73** | **0.97** | 0.66 | $0.58 |
 
-Each report ran 6 queries and sent 32 chunks to the model in one call (about 27k input
-tokens, 35 to 62 s).
+Each report: **6 queries, 32 chunks, one model call** (about 27k input tokens, 35 to 62 s).
 
 - **Precision 0.97**: almost everything extracted is a real goal with a verified quote.
-- **Recall 0.56**, for two reasons. Most missed goals (37 of 54) are on pages that were not
-  among the 32 chunks, so retrieval caps recall at 0.69; all ASML misses are of this kind,
-  because its goals (energy per wafer, waste, safety, suppliers) are on pages the six
-  queries do not describe. The other 17 were in the chunks but skipped: one call over 32
-  chunks lists the main goals and skims the rest.
+- **Recall 0.56**, two causes:
+  - **37 of 54 missed goals were on pages not among the 32 chunks**, so retrieval caps recall
+    at 0.69. All ASML misses are of this kind: its goals (energy per wafer, waste, safety,
+    suppliers) sit on pages the six queries do not describe.
+  - **17 were in the chunks but skipped**: one call over 32 chunks lists the main goals and
+    skims the rest.
 
 **Improvements**
 
-1. **Full-page expansion for goals.** Use the retrieved chunks only to find the
-   sustainability pages, then send those whole pages to the model. The targets next to a
-   found chunk get read too.
-2. **Read infographics with a vision model.** CM.com's key figures are graphics that come
-   out as numbers without labels; a vision call on such pages would fix the two CM.com
-   extraction misses and one chat failure.
+1. **Full-page expansion for goals**: use the retrieved chunks only to find the
+   sustainability pages, then send those whole pages to the model, so the targets next to a
+   found chunk are read too.
+2. **Read infographics with a vision model**: CM.com's key figures come out as numbers
+   without labels; a vision call on such pages fixes the two CM.com extraction misses and
+   one chat failure.
 
 ## Ingestion
 
-**What is evaluated.** The six PDFs are ingested from scratch into an empty database by the
-app's own stages, with a timer around each stage and every LLM call's tokens and cost
-recorded. Measured: seconds per stage, LLM usage, metadata against the corpus, chunks,
-datapoints written, and whether the report reached `ready`. Apple M-series (MPS), models
-warm, one report at a time.
+**What is evaluated**: ingestion from scratch.
+
+- The six PDFs go into an **empty database through the app's own stages**, a timer around
+  each stage, every LLM call's tokens and cost recorded.
+- Measured: **seconds per stage, LLM usage, metadata against the corpus, chunks, datapoints
+  written, and whether the report reached `ready`**.
+- Apple M-series (MPS), models warm, one report at a time.
 
 | Report | Pages | Chunks (tables) | Total | Parse | Metadata | Chunk + store | Embed | Extract | LLM calls | Tokens in / out | LLM cost | Outcome |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -202,10 +204,9 @@ warm, one report at a time.
 | CM.com 2024 | 212 | 422 (69) | 128 s | 15 s | 1 s | 0.0 s | 22 s | 91 s | 6 | 58.2k / 4.6k | $0.15 | ready |
 | **Total** | 2,073 | 4,625 (951) | **19.0 min** | 199 s (17%) | 6 s (1%) | 0.4 s | 287 s (25%) | 649 s (57%) | 36 | 351k / 38k | **$1.01** | 6 of 6 ready |
 
-Company and fiscal year were detected for 6/6 reports (one Haiku call over the first three
-pages). Chunk statistics are in the corpus table above.
-
-Datapoints written by ingestion (what the Extracted data page shows):
+- **Company and fiscal year detected for 6/6 reports** (one Haiku call over the first three
+  pages).
+- Datapoints written (what the Extracted data page shows):
 
 | Report | FTE | Revenue | Net profit | Dividend per share | Sustainability goals |
 |---|---|---|---|---|---|
@@ -217,32 +218,35 @@ Datapoints written by ingestion (what the Extracted data page shows):
 | CM.com 2024 | 1 | 1 | 1 | 0 (pays none, correct) | 7 |
 | **Total** | 6 | 5 | 6 | 4 | 93 |
 
-**Why the time goes where it goes**
+**Where the time goes**
 
-- **Extraction, 57%** (87 to 131 s per report): six model calls run one after another, half
-  the time waiting for the model (30 to 53 s), half retrieving candidates for 18 queries.
-  It is also 95% of the cost (14 to 21 cents per report).
-- **Embedding, 25%** (17 to 81 s): about 14 chunks per second, encoded in slices of 512
-  chunks.
+- **Extraction, 57%** (87 to 131 s per report): 30 to 53 s waiting for the model (six calls,
+  the goals call the longest) and the rest retrieving candidates for 18 queries, each with
+  60 reranker pairs on the GPU. Also **95% of the cost** ($0.14 to $0.21 per report).
+- **Embedding, 25%** (17 to 81 s): about 14 chunks per second, in slices of 512.
 - **Parsing, 17%** (12 to 47 s): PyMuPDF text and table detection, slowest on ASML's
   table-dense pages.
 
 **Improvements**
 
-1. **Run the six extraction calls per report in parallel.** They are independent; four at
-   a time would cut extraction from about 110 s to 40 s per report and ingestion from 19 to
-   about 11 minutes, at the same cost.
-2. **Strip lines repeated on 20% or more of a report's pages before chunking.** Removes the
-   navigation bar; needs a re-ingest.
+1. **Fewer reranker pairs for extraction**: 18 queries times 60 candidates is about 1,080
+   pairs per report, around 60 s on the GPU; 20 candidates per query would cut most of it.
+   Running the six model calls concurrently (now done) saves only about 10 s, because the
+   goals call dominates the wait.
+2. **Strip lines repeated on 20% or more of a report's pages before chunking**: removes
+   CM.com's navigation bar from half its chunks; needs a re-ingest.
 3. **Read infographic pages with a vision model** when a page has little text and many
-   numbers. Fixes the two CM.com extraction misses and one chat failure.
+   numbers: fixes the two CM.com extraction misses and one chat failure.
 
 ## Retrieval
 
-**What is evaluated.** The chat's own retrieval, live: the small model rewrites each
-question into a standalone question and one sub-query per company, year and topic; each
-sub-query runs vector and full-text search over all six reports, fused with RRF, the best
-60 reranked, chunks under 0.2 dropped, top 8 kept; the sub-queries' chunks are merged.
+**What is evaluated**: the chat's own retrieval, live.
+
+- The small model rewrites each question into **a standalone question and one sub-query per
+  company, year and topic**.
+- Each sub-query runs **vector + full-text search over all six reports**, fused with RRF;
+  the best **60 are reranked**, chunks under **0.2** dropped, **top 8** kept; the
+  sub-queries' chunks are merged.
 
 Metrics, against the gold evidence pages:
 
@@ -265,8 +269,8 @@ Metrics, against the gold evidence pages:
 | Text questions | 26 | 0.962 | 0.652 | 0.962 | 0.815 | 1.000 |
 | Table questions | 15 | 0.933 | 0.541 | 0.867 | 0.783 | 0.967 |
 
-First gold chunk: rank 1 for 21 questions, rank 2 to 3 for 12, rank 4 to 8 for 8, rank 9 to
-12 for 3 (chunks from a second sub-query), 2 misses.
+- **First gold chunk at rank 1 for 21 questions**, rank 2 to 3 for 12, rank 4 to 8 for 8,
+  rank 9 to 12 for 3 (chunks from a second sub-query); **2 misses**.
 
 | Sub-queries per question | Questions | Chunks retrieved | Median seconds |
 |---|---|---|---|
@@ -274,8 +278,8 @@ First gold chunk: rank 1 for 21 questions, rank 2 to 3 for 12, rank 4 to 8 for 8
 | 2 | 11 | 10 to 16 | 9.1 |
 | 3 | 5 | 20 to 24 | 13.5 |
 
-Median 4.8 s, p90 9.7 s; time is linear in sub-queries (one embedding, two searches and 60
-reranker pairs each).
+- **Median 4.8 s, p90 9.7 s**; time is linear in sub-queries (one embedding, two searches
+  and 60 reranker pairs each).
 
 **The two misses**
 
@@ -284,29 +288,33 @@ reranker pairs each).
 | ASML EUV systems recognised in 2025 (gold: 48, a table on p. 66) | Eight chunks of EUV prose from both years, none from the sales-by-system table | The table row does not say "EUV"; vector search prefers prose and the table chunk never reaches the reranker |
 | ABN AMRO CET1 at year-end 2025 (gold: 15.4%) | 2025 capital pages, but three of eight chunks are from 2024 and the headline chunk fell out | Year leakage, see below; `facts` passes because 15.4% is on another retrieved page |
 
-**Year leakage is the main weakness.** 33 of 46 questions got chunks from the other year of
-the same company (report precision 0.79), because the year is only a word in the search
-text, not a filter, and a 2025 page quoting the 2024 figure reranks as high as the 2024
-page. No wrong answer resulted, but on four questions half the context was the wrong year.
+**Year leakage is the main weakness**
 
-**Comparisons work.** All 8 retrieved both sides, one sub-query per year or company.
+- **33 of 46 questions got chunks from the other year** of the same company (report
+  precision 0.79): the year is only a word in the search text, not a filter, and a 2025 page
+  quoting the 2024 figure reranks as high as the 2024 page.
+- **No wrong answer resulted**, but on four questions half the context was the wrong year.
+
+**Comparisons work**: all 8 retrieved both sides, one sub-query per year or company.
 
 **Improvements**
 
-1. **Filter each sub-query by its company and fiscal year.** The rewrite already outputs
-   both; passing them as a report filter should take report precision from 0.79 to about
-   1.0, recover the CET1 miss and free half the context on year-specific questions.
-2. **12 chunks per sub-query instead of 8.** Three gold chunks landed at rank 9 to 12.
+1. **Filter each sub-query by its company and fiscal year**: the rewrite already outputs
+   both; a report filter should take report precision from 0.79 to about 1.0, recover the
+   CET1 miss and free half the context on year-specific questions.
+2. **12 chunks per sub-query instead of 8**: three gold chunks landed at rank 9 to 12.
    Testable with `--top-k 12` on both evals.
-3. **Full-text search contributes little.** It was meant for exact terms (FTE, Scope 3) but
-   gets whole sentences; build it from the sub-query's key terms, or drop it.
+3. **Full-text search contributes little**: meant for exact terms (FTE, Scope 3) but given
+   whole sentences; build it from the sub-query's key terms, or drop it.
 
 ## End to end
 
-**What is evaluated.** The whole chat pipeline (`run_chat`): rewrite and decomposition,
-retrieval and reranking per sub-query, the structured answer with the conversation as
-earlier turns, quote verification. Each gold question is asked once, one at a time (honest
-latency), with its history for follow-ups and no report filter.
+**What is evaluated**: the whole chat pipeline (`run_chat`).
+
+- Rewrite and decomposition, retrieval and reranking per sub-query, the structured answer
+  with the conversation as earlier turns, quote verification.
+- Each gold question asked **once, one at a time** (honest latency), with its history for
+  follow-ups and no report filter.
 
 **How answers are scored.** Two layers:
 
@@ -315,16 +323,18 @@ latency), with its history for follow-ups and no report filter.
 | Deterministic | Status (answered, partial, not found); every citation's verification (exact, fuzzy, failed); whether a verified citation is on a gold page; whether any retrieved chunk is on a gold page (separates retrieval failures from generation failures); latency per stage; tokens and cost | Code only |
 | LLM judge | Correctness against the gold answer and groundedness of the figures in the cited quotes | One `claude-opus-5-5` call per question |
 
-**LLM as a judge for the answers.** `claude-opus-5-5`, a different and stronger model than
-the generator, one call per question, not counted in the cost. It gets the question (and
-the conversation for a follow-up), the gold answer and the labeller's notes naming the
-traps, the system's status and answer, and the cited quotes with their verification status;
-not the chunks or the report. It returns `correctness` (correct, partial, incorrect,
-abstained), `grounded` and an explanation. Correct allows rounding, unit rewrites and extra
-correct detail; incorrect means a wrong figure or fact; for an unanswerable question,
-correct means it said the figure is not disclosed. Grounded means every figure in the answer
-is in a cited quote. Every verdict other than correct, and every ungrounded one, was read by
-hand.
+**LLM as a judge**: `claude-opus-5-5`, a different and stronger model than the generator,
+one call per question, not counted in the cost.
+
+- **Sees**: the question (and the conversation for a follow-up), the gold answer and the
+  labeller's notes naming the traps, the system's status and answer, the cited quotes with
+  their verification status. **Not** the chunks or the report.
+- **Returns**: `correctness` (correct, partial, incorrect, abstained), `grounded`, an
+  explanation.
+- **Rubric**: correct allows rounding, unit rewrites and extra correct detail; incorrect is
+  a wrong figure or fact; for an unanswerable question, correct means it said the figure is
+  not disclosed. Grounded means every figure in the answer is in a cited quote.
+- Every verdict other than correct, and every ungrounded one, **was read by hand**.
 
 | Metric | Result |
 |---|---|
@@ -340,7 +350,7 @@ hand.
 | Citations verified verbatim / fuzzy / failed | **100%** / 0% / 0% |
 | Grounded (every figure in a cited quote) | 84.2% |
 | Latency p50 / p90 | 7.5 s / 15.4 s (rewrite 1.1 s, retrieval 3.8 s, generation 2.4 s at p50) |
-| Cost | $1.03 for 57 questions, 1.8 cents each (497k input tokens, 22k output; the judge not counted) |
+| Cost | $1.03 for 57 questions, $0.018 each (497k input tokens, 22k output; the judge not counted) |
 
 | Type | n | Correct | Correct or partial | Median latency |
 |---|---|---|---|---|
@@ -361,26 +371,25 @@ hand.
 | CM.com total market-based footprint 2024 (gold 4,676 tCO2e) | Abstained | Says the emission tables are not included | Generation: the table chunk with 4,676 was retrieved but not read |
 | ASML 2024 R&D, scope 1 and 2 emissions, year-end FTE | Partial | R&D and emissions right; FTE given as "more than 44,000" | Generation: 44,027 was retrieved (a table chunk); the model used the prose figure |
 
-Two retrieval failures, two generation failures; in all four the model said what it could
-not find rather than inventing it.
-
-**Groundedness** is 84%, and all 9 ungrounded answers are correct: each gives the right
-figure with a verified quote and adds a side figure (a baseline, a one-off) read in a chunk
-but not quoted. Quote verification checks quotes, not the prose, so the UI does not show it.
+- **Two retrieval failures, two generation failures**; in all four the model said what it
+  could not find rather than inventing it.
+- **Groundedness 84%, and all 9 ungrounded answers are correct**: each gives the right figure
+  with a verified quote and adds a side figure (a baseline, a one-off) read in a chunk but
+  not quoted. Quote verification checks quotes, not the prose, so the UI does not show it.
 
 **Improvements**
 
 1. **The two retrieval changes above** (year filter, top 12) address three of the four
-   failures, for about 1 s and 0.5 cents per question.
-2. **Warn on unsupported figures.** Check in code that every number in the answer is in a
+   failures, for about 1 s and $0.005 per question.
+2. **Warn on unsupported figures**: check in code that every number in the answer is in a
    verified quote (with scale normalisation) and flag the rest as "figure not quoted".
 
 ## Limits of this evaluation
 
-- 57 questions over three companies: enough to rank changes with large effects, not to
+- **57 questions over three companies**: enough to rank changes with large effects, not to
   separate ones within about 5 points; 8 comparisons and 5 multi-metric questions are thin.
-- What counts as "the" answer (internal vs total FTE, ordinary vs total dividend) is one
-  labeller's choice, mitigated by the acceptable alternatives.
-- One LLM judge, no human agreement study.
-- Latency on one machine, models warm, one question at a time.
+- **One labeller's choice** of "the" answer (internal vs total FTE, ordinary vs total
+  dividend), mitigated by the acceptable alternatives.
+- **One LLM judge**, no human agreement study.
+- **Latency on one machine**, models warm, one question at a time.
 - Only the Anthropic provider was evaluated.

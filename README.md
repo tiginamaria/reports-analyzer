@@ -214,7 +214,7 @@ fiscal years 2024 and 2025), 57 gold questions and labelled datapoints, with
 
 | Stage | Result |
 |---|---|
-| Answers | 91% of answerable questions correct, 96% correct or partial, 0 incorrect; all 11 unanswerable questions handled, 0 hallucinations; 106/106 citations verified verbatim; 7.5 s median, 1.8 cents per question |
+| Answers | 91% of answerable questions correct, 96% correct or partial, 0 incorrect; all 11 unanswerable questions handled, 0 hallucinations; 106/106 citations verified verbatim; 7.5 s median, $0.018 per question |
 | Retrieval | A gold page among the retrieved chunks for 96% of questions; 79% of chunks from the right company and year |
 | Extraction | FTE, revenue, net profit and dividend right or a defensible alternative for every report but one missing revenue, none wrong; sustainability goals recall 0.56, precision 0.97 |
 | Ingestion | Company and year detected 6/6; 2,073 pages in 19 minutes and $1.01 |
@@ -239,14 +239,3 @@ frontend/src
   components/   header, badges, table, PDF page panel
   lib/          report helpers, file picking, formatting
 ```
-
-## Limitations
-
-- Charts and infographics are not read; only text and tables that PyMuPDF recovers. CM.com's
-  key-figures page is one, which costs its year-end FTE and revenue in extraction.
-- A sub-query names its company and year in the search text but does not filter by them, so
-  about one retrieved chunk in five is from the other year of the same company.
-- Sustainability goals are extracted from 32 candidate chunks per report; goals on pages the
-  six queries do not reach are missed (recall 0.56).
-- Verification proves a quote exists; it does not prove the model read it correctly, and a
-  figure the answer adds without quoting it is not checked.

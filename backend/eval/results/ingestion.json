@@ -23,6 +23,7 @@
         "dividend_per_share": 1,
         "sustainability_goal": 18
       },
+      "pages": 434,
       "timings": {
         "parse": 36.72,
         "detect_metadata": 1.06,
@@ -37,8 +38,7 @@
         "output_tokens": 7009,
         "llm_seconds": 43.77,
         "cost_usd": 0.1808
-      },
-      "pages": 434
+      }
     },
     "abn-2024": {
       "metadata": {
@@ -63,6 +63,7 @@
         "net_income": 1,
         "dividend_per_share": 1
       },
+      "pages": 508,
       "timings": {
         "parse": 45.08,
         "detect_metadata": 0.92,
@@ -77,8 +78,7 @@
         "output_tokens": 9055,
         "llm_seconds": 52.59,
         "cost_usd": 0.206
-      },
-      "pages": 508
+      }
     },
     "asml-2025": {
       "metadata": {
@@ -104,19 +104,19 @@
         "sustainability_goal": 15
       },
       "timings": {
-        "parse": 43.18,
-        "detect_metadata": 1.23,
-        "chunk_and_store": 0.08,
-        "embed": 48.77,
-        "extract": 107.94,
-        "total": 201.2
+        "parse": 60.97,
+        "detect_metadata": 1.11,
+        "chunk_and_store": 0.07,
+        "embed": 73.92,
+        "extract": 142.69,
+        "total": 278.76
       },
       "llm": {
         "calls": 6,
-        "input_tokens": 55879,
-        "output_tokens": 6478,
-        "llm_seconds": 39.77,
-        "cost_usd": 0.1642
+        "input_tokens": 55872,
+        "output_tokens": 6340,
+        "llm_seconds": 39.55,
+        "cost_usd": 0.1769
       },
       "pages": 350
     },
@@ -143,6 +143,7 @@
         "net_income": 1,
         "dividend_per_share": 1
       },
+      "pages": 410,
       "timings": {
         "parse": 47.3,
         "detect_metadata": 0.92,
@@ -157,8 +158,7 @@
         "output_tokens": 6988,
         "llm_seconds": 43.32,
         "cost_usd": 0.1685
-      },
-      "pages": 410
+      }
     },
     "cm-2025": {
       "metadata": {
@@ -181,6 +181,7 @@
         "net_income": 1,
         "sustainability_goal": 7
       },
+      "pages": 159,
       "timings": {
         "parse": 12.37,
         "detect_metadata": 1.13,
@@ -195,8 +196,7 @@
         "output_tokens": 3888,
         "llm_seconds": 29.69,
         "cost_usd": 0.1393
-      },
-      "pages": 159
+      }
     },
     "cm-2024": {
       "metadata": {
@@ -220,6 +220,7 @@
         "net_income": 1,
         "sustainability_goal": 7
       },
+      "pages": 212,
       "timings": {
         "parse": 14.59,
         "detect_metadata": 0.97,
@@ -234,8 +235,7 @@
         "output_tokens": 4557,
         "llm_seconds": 31.28,
         "cost_usd": 0.1496
-      },
-      "pages": 212
+      }
     }
   },
   "summary": {
@@ -244,14 +244,14 @@
     "metadata_accuracy": 1.0,
     "chunks": 4625,
     "timed_reports": 6,
-    "total_seconds": 1141.2,
+    "total_seconds": 1218.8,
     "stage_share": {
-      "parse": 0.175,
+      "parse": 0.178,
       "detect_metadata": 0.005,
       "chunk_and_store": 0.0,
-      "embed": 0.251,
-      "extract": 0.568
+      "embed": 0.256,
+      "extract": 0.561
     },
-    "llm_cost_usd": 1.0084
+    "llm_cost_usd": 1.0211
   }
 }

@@ -2,6 +2,7 @@
 
 import logging
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -29,6 +30,7 @@ METADATA_CHARS_PER_PAGE = 2500
 EXTRACTION_TOP_K = 10  # candidate chunks passed to the model
 EXTRACTION_MIN_SCORE = 0.0  # reranker floor for candidates: keep every one, recall matters most
 EXTRACTION_MAX_TOKENS = 64000  # output budget of one call; far above any goal list
+EXTRACTION_WORKERS = 6  # registry entries whose model calls run at the same time
 PER_QUERY_MIN = 4  # at least this many chunks are kept from each retrieval query...
 PER_QUERY_EXTRA = 2  # ...and `top_k / queries + this` otherwise, so the union can fill top_k
 
@@ -58,11 +60,25 @@ def load_registry(path: Path = REGISTRY_PATH) -> list[DatapointSpec]:
 
 
 def extract_report(db: Session, report: Report, provider: LLMProvider) -> list[Datapoint]:
-    """Replace the report's datapoints with a fresh extraction of every registry entry."""
+    """Replace the report's datapoints with a fresh extraction of every registry entry.
+
+    Candidate retrieval runs entry by entry (the reranker runs on one GPU behind a lock and
+    the session is not thread-safe); the model calls, which are independent and spend their
+    time waiting on the provider, run concurrently; verification and storage run in this
+    thread again."""
     db.query(Datapoint).filter(Datapoint.report_id == report.id).delete()
+    specs = load_registry()
+    hits = {spec.key: _candidate_hits(db, report, spec) for spec in specs}
+    with ThreadPoolExecutor(EXTRACTION_WORKERS) as pool:
+        futures = {
+            spec.key: pool.submit(_ask_model, report, spec, provider, hits[spec.key])
+            for spec in specs
+        }
     created: list[Datapoint] = []
-    for spec in load_registry():
-        created.extend(_extract_datapoints(db, report, spec, provider))
+    for spec in specs:
+        created.extend(
+            _store(db, report, spec, futures[spec.key].result(), hits[spec.key], provider)
+        )
     db.commit()
     return created
 
@@ -74,11 +90,19 @@ def _extract_datapoints(
     provider: LLMProvider,
     hits: list[Hit] | None = None,
 ) -> list[Datapoint]:
-    """Retrieve candidate chunks for one registry entry, ask the model, verify every quote.
-    A failed LLM call is logged and yields nothing; the rest of the registry still runs.
-    `hits` lets a caller that already retrieved the candidates pass them in."""
+    """One registry entry end to end: retrieve candidate chunks (unless `hits` is given),
+    ask the model, verify every quote and add the datapoints to the session."""
     if hits is None:
         hits = _candidate_hits(db, report, spec)
+    return _store(db, report, spec, _ask_model(report, spec, provider, hits), hits, provider)
+
+
+def _ask_model(
+    report: Report, spec: DatapointSpec, provider: LLMProvider, hits: list[Hit]
+) -> list[ExtractedItem]:
+    """The model call for one entry over its candidate chunks. Needs no database, so it can
+    run in a worker thread. A failed call is logged and yields nothing; the rest of the
+    registry still runs."""
     if not hits:
         return []
     try:
@@ -94,7 +118,18 @@ def _extract_datapoints(
     items = [item for item in result.items if item.value] if result.found else []
     if not spec.multi:
         items = items[:1]
-    items = list(_unique(items))
+    return list(_unique(items))
+
+
+def _store(
+    db: Session,
+    report: Report,
+    spec: DatapointSpec,
+    items: list[ExtractedItem],
+    hits: list[Hit],
+    provider: LLMProvider,
+) -> list[Datapoint]:
+    """Verify every item's quote against its chunk and add the datapoints to the session."""
     chunks_by_id = {hit.chunk.id: hit.chunk for hit in hits}
     datapoints = [
         _build_datapoint(db, report, spec, item, chunks_by_id.get(item.chunk_id), provider)
