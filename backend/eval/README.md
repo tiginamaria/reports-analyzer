@@ -39,6 +39,8 @@ docker exec reports-analyzer-db-1 psql -U reports -c "create database reports_ev
 cd backend
 DATABASE_URL=postgresql+psycopg://reports:reports@localhost:5432/reports_eval uv run alembic upgrade head
 
+# The evals measure the shipped pipeline with the reranker: set RETRIEVAL_MODELS=local in .env
+# (or in the environment) for every run below; `--no-rerank` evaluates the openai profile.
 uv run python -m eval.ingest_eval          # ingest the corpus with stage timings (~25 min on M-series), then score
 uv run python -m eval.gold_check           # gold quotes are on their pages
 uv run python -m eval.retrieval_eval       # what the chat retrieves, scored against the gold pages
@@ -59,7 +61,7 @@ questions as a smoke test.
 |---|---|---|
 | `retrieval_eval`, `e2e_eval` | `--candidates`, `--top-k`, `--min-score`, `--rrf-k` | The constants of `retrieval/search.py` |
 | | `--search vector`, `--search fulltext` | One search method alone instead of hybrid |
-| | `--no-rerank` | Keep the fused order; no score floor |
+| | `--no-rerank` | Keep the fused order; no score floor (what the app does with `RERANKER_PROVIDER=none`, the default) |
 | | `--max-subqueries N` | `0` searches the standalone question only (no decomposition) |
 | `e2e_eval` | `--model`, `--workers` | Answer model; questions in parallel (1 for honest latency) |
 | `extraction_eval` | `--top-k`, `--candidates`, `--min-score`, `--per-query` | The tunable fields of a registry entry, applied to every entry |

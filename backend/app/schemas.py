@@ -28,6 +28,15 @@ class ReportOut(BaseModel):
     page_count: int
     status: str
     progress: int
+    # Progress detail of the current stage: units done of total (pages, chunks, entries),
+    # the worker's latest activity and when ingestion started. `updated_at` moves with them.
+    done: int
+    total: int
+    activity: str | None
+    started_at: datetime | None
+    # Which vectors the report holds; searchable only when it equals the status endpoint's
+    # `embedding_model`, otherwise it needs re-embedding (`python -m app.reembed`).
+    embedding_model: str | None
     error: str | None
     created_at: datetime
     updated_at: datetime
@@ -115,5 +124,10 @@ class UploadResult(BaseModel):
 class StatusOut(BaseModel):
     llm_provider: str
     llm_model: str
+    embedding_provider: str
+    # The configured embedding signature (`openai/text-embedding-3-large`); reports whose
+    # `embedding_model` differs are not searched until they are re-embedded.
     embedding_model: str
     reranker_model: str | None
+    # Indexed reports whose vectors come from another embedding model.
+    reports_to_reembed: int

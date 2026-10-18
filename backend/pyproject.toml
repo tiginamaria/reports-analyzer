@@ -14,8 +14,6 @@ dependencies = [
     "pgvector>=0.3",
     "python-multipart>=0.0.9",
     "pymupdf>=1.24",
-    "sentence-transformers>=3.0",
-    "torch>=2.3",
     "anthropic>=1.0",
     "openai>=1.50",
     "pyyaml>=6.0",
@@ -31,9 +29,16 @@ dev = [
     "mypy>=1.10",
     "types-PyYAML",
 ]
+# Only for EMBEDDING_PROVIDER=local / RERANKER_PROVIDER=local (and the evaluation of the
+# local reranker). Installed by default on the host; the Docker image leaves it out.
+local-models = [
+    "sentence-transformers>=3.0",
+    "torch>=2.3",
+]
 
 [tool.uv]
 index-strategy = "unsafe-best-match"
+default-groups = ["dev", "local-models"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

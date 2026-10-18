@@ -9,9 +9,11 @@ from fastapi import FastAPI
 from app.api import chat, datapoints, reports
 from app.config import get_settings
 from app.db import SessionLocal
+from app.ingestion.pipeline import RETRY_ACTION, STAGE_LABELS
 from app.llm import get_provider
 from app.models import (
     IN_PROGRESS_STATUSES,
+    INDEXED_STATUSES,
     Extraction,
     ExtractionStatus,
     Report,
@@ -25,8 +27,15 @@ log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    log.info("LLM provider: %s", get_settings().llm_provider)
+    settings = get_settings()
+    log.info("LLM provider: %s", settings.llm_provider)
+    log.info(
+        "Embeddings: %s; reranker: %s",
+        settings.embedding_signature,
+        settings.reranker_name or "none",
+    )
     _recover_interrupted_ingestions()
+    _warn_about_stale_embeddings()
     yield
 
 
@@ -42,8 +51,12 @@ def _recover_interrupted_ingestions() -> None:
                 report.status = ReportStatus.READY
                 report.progress = 100
             else:
+                stage = STAGE_LABELS.get(ReportStatus(report.status), "Ingestion").lower()
                 report.status = ReportStatus.FAILED
-                report.error = "Ingestion was interrupted by a restart. Delete and upload again."
+                report.activity = None
+                report.error = (
+                    f"Ingestion was interrupted by a restart during {stage}. {RETRY_ACTION}"
+                )
         pending = db.query(Extraction).filter(Extraction.status == ExtractionStatus.PENDING).all()
         for extraction in pending:
             extraction.status = ExtractionStatus.ERROR
@@ -55,6 +68,29 @@ def _recover_interrupted_ingestions() -> None:
                 len(interrupted),
                 len(pending),
             )
+
+
+def _reports_to_reembed(db) -> int:
+    """Indexed reports whose vectors come from another embedding model than the configured
+    one. They are not searched until `python -m app.reembed` rebuilds them."""
+    signature = get_settings().embedding_signature
+    return (
+        db.query(Report)
+        .filter(Report.status.in_(INDEXED_STATUSES), Report.embedding_model != signature)
+        .count()
+    )
+
+
+def _warn_about_stale_embeddings() -> None:
+    with SessionLocal() as db:
+        stale = _reports_to_reembed(db)
+    if stale:
+        log.warning(
+            "%d indexed report(s) were embedded with another model than %s and will not be "
+            "searched; run `python -m app.reembed` to rebuild their vectors",
+            stale,
+            get_settings().embedding_signature,
+        )
 
 
 app = FastAPI(title="Annual Report RAG Analyzer", version="0.1.0", lifespan=lifespan)
@@ -72,9 +108,13 @@ def health() -> dict[str, str]:
 def status() -> StatusOut:
     settings = get_settings()
     provider = get_provider()
+    with SessionLocal() as db:
+        stale = _reports_to_reembed(db)
     return StatusOut(
         llm_provider=provider.name,
         llm_model=provider.model_name(),
-        embedding_model=settings.embedding_model,
-        reranker_model=settings.reranker_model,
+        embedding_provider=settings.embedding_provider,
+        embedding_model=settings.embedding_signature,
+        reranker_model=settings.reranker_name,
+        reports_to_reembed=stale,
     )

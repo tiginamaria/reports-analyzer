@@ -1,20 +1,25 @@
 import { api } from "../../api";
 import { ReportStatusBadge } from "../../components/Badges";
 import { EmptyRow, Table, Td, Tr } from "../../components/Table";
-import { plural } from "../../lib/format";
-import { failedExtractions, isIngesting } from "../../lib/reports";
+import { duration, plural, sinceMs } from "../../lib/format";
+import { failedExtractions, isIngesting, needsReembedding, progressUnit } from "../../lib/reports";
 import type { ExtractionStatus, Report } from "../../types";
 
 const COLUMNS = ["Company", "Year", "File", "Pages", "Status", ""];
 
+/** Silence longer than this during ingestion is shown as a warning: the worker may be stuck. */
+const STALLED_AFTER_MS = 120_000;
+
 interface Props {
   reports: Report[];
+  /** The backend's configured embedding model; reports embedded with another one are flagged. */
+  embeddingModel?: string;
   onDelete: (report: Report) => void;
   /** Extract the report's failed datapoints again. */
   onRetry: (report: Report) => void;
 }
 
-export default function ReportsTable({ reports, onDelete, onRetry }: Props) {
+export default function ReportsTable({ reports, embeddingModel, onDelete, onRetry }: Props) {
   return (
     <Table columns={COLUMNS}>
       {reports.length === 0 && (
@@ -39,12 +44,17 @@ export default function ReportsTable({ reports, onDelete, onRetry }: Props) {
             <div className="flex items-center gap-2">
               <ReportStatusBadge status={report.status} />
               {isIngesting(report) && <ProgressBar percent={report.progress} />}
+              {needsReembedding(report, embeddingModel) && (
+                <span
+                  className="badge bg-amber-100 text-amber-800"
+                  title={`Indexed with ${report.embedding_model ?? "unknown"}; the backend now uses ${embeddingModel}. Run \`python -m app.reembed\` to make it searchable again.`}
+                >
+                  needs re-embedding
+                </span>
+              )}
             </div>
-            {report.error && (
-              <p className="mt-1 max-w-md truncate text-xs text-red-700" title={report.error}>
-                {report.error}
-              </p>
-            )}
+            {isIngesting(report) && <IngestionDetail report={report} />}
+            {report.error && <p className="mt-1 max-w-md text-xs text-red-700">{report.error}</p>}
             <ExtractionSummary report={report} onRetry={() => onRetry(report)} />
           </Td>
           <Td className="text-right whitespace-nowrap">
@@ -86,6 +96,36 @@ function ExtractionSummary({ report, onRetry }: { report: Report; onRetry: () =>
         </span>
       )}
     </p>
+  );
+}
+
+/**
+ * What a running ingestion is doing: units done of the stage's total, how long it has run,
+ * and the worker's latest activity with its age, so a long stage never looks frozen. A row
+ * is re-rendered by the page's polling, which keeps the times current.
+ */
+function IngestionDetail({ report }: { report: Report }) {
+  const unit = progressUnit(report.status);
+  const quiet = sinceMs(report.updated_at);
+  const stalled = quiet > STALLED_AFTER_MS;
+  return (
+    <div className="mt-1 max-w-md text-xs text-slate-500">
+      <p>
+        {unit && report.total > 0 && (
+          <span className="font-medium text-slate-700">
+            {report.done}/{report.total} {unit}
+          </span>
+        )}
+        {unit && report.total > 0 && report.started_at && " · "}
+        {report.started_at && <span>{duration(sinceMs(report.started_at))} elapsed</span>}
+      </p>
+      {report.activity && (
+        <p className={stalled ? "text-amber-700" : undefined} title={report.activity}>
+          {report.activity} · {quiet < 5_000 ? "just now" : `${duration(quiet)} ago`}
+          {stalled && " · no update for a while; the worker may be stuck"}
+        </p>
+      )}
+    </div>
   );
 }
 

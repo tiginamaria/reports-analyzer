@@ -1555,11 +1555,8 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
-    { name = "sentence-transformers" },
     { name = "sqlalchemy" },
     { name = "sse-starlette" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'linux'" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -1570,6 +1567,11 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-pyyaml" },
+]
+local-models = [
+    { name = "sentence-transformers" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
+    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'linux'" },
 ]
 
 [package.metadata]
@@ -1586,11 +1588,8 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rapidfuzz", specifier = ">=3.14.6" },
-    { name = "sentence-transformers", specifier = ">=3.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
     { name = "sse-starlette", specifier = ">=2.1" },
-    { name = "torch", marker = "sys_platform != 'linux'", specifier = ">=2.3" },
-    { name = "torch", marker = "sys_platform == 'linux'", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
 
@@ -1601,6 +1600,11 @@ dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "ruff", specifier = ">=0.5" },
     { name = "types-pyyaml" },
+]
+local-models = [
+    { name = "sentence-transformers", specifier = ">=3.0" },
+    { name = "torch", marker = "sys_platform != 'linux'", specifier = ">=2.3" },
+    { name = "torch", marker = "sys_platform == 'linux'", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
 [[package]]

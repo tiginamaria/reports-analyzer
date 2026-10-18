@@ -3,7 +3,7 @@ import { api } from "../../api";
 import { Notice } from "../../components/Notice";
 import { errorMessage } from "../../lib/format";
 import { isIngesting, reportLabel } from "../../lib/reports";
-import type { Report } from "../../types";
+import type { Report, Status } from "../../types";
 import ReportsTable from "./ReportsTable";
 import UploadForm from "./UploadForm";
 
@@ -11,6 +11,7 @@ const POLL_INTERVAL_MS = 2500;
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(
@@ -27,6 +28,10 @@ export default function ReportsPage() {
 
   useEffect(() => {
     void refresh();
+    api
+      .status()
+      .then(setStatus)
+      .catch(() => {});
   }, [refresh]);
 
   // Poll only while something is still ingesting; a settled list does not change on its own.
@@ -63,15 +68,16 @@ export default function ReportsPage() {
         <UploadForm onUploaded={refresh} />
         <p className="mt-3 text-xs text-slate-500">
           Ingestion parses the PDF, detects the company and fiscal year from its first pages, chunks and embeds it
-          locally, then extracts the registry datapoints (FTE, revenue, net profit, dividend per share, sustainability
-          goals) with the configured LLM. Large reports take several minutes on CPU.
+          {status ? ` with ${status.embedding_model}` : ""}, then extracts the registry datapoints (FTE, revenue, net
+          profit, dividend per share, sustainability goals) with the configured LLM. The table below shows each stage,
+          how far along it is and what the worker did last; deleting a report stops its ingestion.
         </p>
       </section>
 
       {error && <Notice tone="error">{error}</Notice>}
 
       <section className="card overflow-hidden">
-        <ReportsTable reports={reports} onDelete={remove} onRetry={retry} />
+        <ReportsTable reports={reports} embeddingModel={status?.embedding_model} onDelete={remove} onRetry={retry} />
       </section>
     </div>
   );

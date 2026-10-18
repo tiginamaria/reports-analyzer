@@ -10,8 +10,10 @@ import MessageView from "./MessageView";
 import { useChat } from "./useChat";
 
 /** The status line of the question in flight, with what the backend reports about the stage. */
-function stageLabel({ name, query, chunks }: ChatProgress): string {
+function stageLabel({ name, models, query, chunks }: ChatProgress): string {
   switch (name) {
+    case "loading_models":
+      return `Loading ${models?.length ? models.join(" and ") : "the local models"} (first question after a start)…`;
     case "analyzing":
       return "Understanding the question…";
     case "retrieving":

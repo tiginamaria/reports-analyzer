@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.config import get_settings
 from app.db import get_db
 from app.extraction.extractor import registry_entries
+from app.ingestion import cancellation
 from app.ingestion.pipeline import begin_reextraction, ingest_report, rerun_extraction
 from app.models import Chunk, Datapoint, ExtractionStatus, Report, ReportStatus
 from app.schemas import ExtractRequest, RejectedFile, ReportDetail, ReportOut, UploadResult
@@ -218,9 +219,11 @@ def extract_again(
 
 @router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_report(report_id: str, db: Session = Depends(get_db)) -> None:
-    """Delete the report, its pages, chunks and datapoints, and the PDF on disk."""
+    """Delete the report, its pages, chunks and datapoints, and the PDF on disk. An ingestion
+    still running for it is cancelled: it stops before its next inference batch or write."""
     report = _get_report_or_404(db, report_id)
     stored = _stored_report_path(report.file_hash)
+    cancellation.request_cancel(report_id)  # before the row goes, so no write slips in between
     db.delete(report)
     db.commit()
     stored.unlink(missing_ok=True)

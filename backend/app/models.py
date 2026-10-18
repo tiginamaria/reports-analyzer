@@ -76,6 +76,16 @@ class Report(Base):
     page_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(30), default=ReportStatus.PENDING)
     progress: Mapped[int] = mapped_column(Integer, default=0)
+    # Units of the current stage finished so far and in total (pages, chunks, entries), what
+    # the worker did last, and when ingestion started; together with `updated_at` the UI
+    # shows how far along a long stage is, how long it has run and whether it still moves.
+    done: Mapped[int] = mapped_column(Integer, default=0)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    activity: Mapped[str | None] = mapped_column(String(300))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # `Settings.embedding_signature` of the vectors; None until every chunk is embedded.
+    # Only reports embedded with the configured model are searched.
+    embedding_model: Mapped[str | None] = mapped_column(String(120))
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from sqlalchemy import text as sql
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.ingestion.chunker import contextual_header
 from app.models import INDEXED_STATUSES, Chunk, Report
 from app.retrieval.embedder import get_embedder, get_reranker
@@ -115,11 +116,19 @@ def rerank(query: str, hits: list[Hit]) -> bool:
 
 
 def _report_filter(report_ids: list[str] | None) -> tuple[str, dict]:
-    """SQL condition and bind params restricting a chunk query to indexed reports, and to
-    `report_ids` if given. Reports still embedding, or that failed, have chunks too, and a
+    """SQL condition and bind params restricting a chunk query to searchable reports, and to
+    `report_ids` if given. Searchable means indexed and embedded with the configured model
+    (vectors of different models do not compare, and the full-text half is kept consistent
+    with the vector half). Reports still embedding, or that failed, have chunks too, and a
     filter naming only such reports finds nothing rather than everything."""
-    where = "c.report_id IN (SELECT id FROM reports WHERE status = ANY(:indexed))"
-    params: dict = {"indexed": [str(status) for status in INDEXED_STATUSES]}
+    where = (
+        "c.report_id IN (SELECT id FROM reports "
+        "WHERE status = ANY(:indexed) AND embedding_model = :embedding)"
+    )
+    params: dict = {
+        "indexed": [str(status) for status in INDEXED_STATUSES],
+        "embedding": get_settings().embedding_signature,
+    }
     if report_ids:
         where += " AND c.report_id = ANY(:report_ids)"
         params["report_ids"] = report_ids

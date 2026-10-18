@@ -80,7 +80,7 @@ PROVIDER = ScriptedProvider()
 @pytest.fixture(scope="module")
 def client(tmp_path_factory):
     os.environ["REPORTS_DIR"] = str(tmp_path_factory.mktemp("reports"))
-    os.environ["RERANKER_MODEL"] = ""
+    os.environ["RERANKER_PROVIDER"] = "none"
     from app.config import get_settings
 
     get_settings.cache_clear()

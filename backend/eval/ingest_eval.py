@@ -44,7 +44,7 @@ def ingest(doc: CorpusDoc) -> dict[str, Any]:
             state["parsed"] = pipeline._parse(db, report, doc.path)
 
         def detect_metadata() -> None:
-            pipeline._detect_metadata(report, state["parsed"])
+            pipeline._detect_metadata(db, report, state["parsed"])
 
         def chunk_and_store() -> None:
             pipeline._set_progress(db, report, ReportStatus.CHUNKING)

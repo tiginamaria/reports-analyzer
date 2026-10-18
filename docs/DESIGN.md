@@ -71,8 +71,8 @@ flowchart LR
 | Backend | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 + Alembic, `sse-starlette`, `uv` | Typed end to end: the same Pydantic models define the LLM output schemas, the API responses and the validation. One process, async HTTP, server-sent events for the chat |
 | Database | Postgres 16 + pgvector | One store for relational data, vectors and full-text search, with real transactions and cascading deletes. No second system to keep in sync |
 | PDF parsing | PyMuPDF | Fast on CPU, gives text blocks in reading order and table boundaries, no external service. Scored 1.00 on a labelled set of 26 hard pages (see Tests) |
-| Embeddings | `BAAI/bge-m3`, run locally through sentence-transformers | No API key, no per-token cost, multilingual, 8k-token context. The index stays valid when the LLM provider changes |
-| Reranker | `BAAI/bge-reranker-v2-m3`, local cross-encoder | Reads query and chunk together, the largest quality gain in retrieval; its score is a probability, so it can also drive abstention |
+| Embeddings | Hosted `text-embedding-3-large` by default (`RETRIEVAL_MODELS=openai`, any OpenAI-compatible endpoint); local `BAAI/bge-m3` with `RETRIEVAL_MODELS=local` | Hosted inference removes the CPU and model-memory burden that made ingestion take 10 to 15 minutes in Docker and blocked chat behind it; batched requests with bounded concurrency, timeouts and retries. The embedding configuration is independent of the LLM provider; each report records which model embedded it, and `python -m app.reembed` rebuilds the index after a change |
+| Reranker | Off in the `openai` profile; the local `BAAI/bge-reranker-v2-m3` cross-encoder in the `local` profile | The cross-encoder was the largest quality gain in the evaluation and its probability drives abstention, but on CPU it is the slowest part of every query and of extraction. Without it the fused hybrid order is kept and no score floor applies |
 | LLM | Claude (default) or OpenAI, selected in `.env` | Strong structured output and prompt caching. Two providers behind one interface prove the design is not tied to a vendor |
 | Frontend | React 19 + Vite + TypeScript, Tailwind v4, react-router 7 | Three pages, a typed API client, a hand-written SSE parser; no component library |
 | PDF viewing | The backend renders a cited page to PNG | One request per citation instead of loading a 400-page PDF in the browser; the full PDF is one click away |
@@ -162,11 +162,14 @@ verbatim quoting matter go to the main one.
   id more reliably than a UUID.
 - **Contextual header** before embedding: `[Shell | Annual Report 2025 | p. 87]`, put in
   front of the chunk wherever it is used (embedding, reranking, the answer model's context).
-- **Embedding** runs locally with `bge-m3`, normalised vectors, in slices of 512 chunks per
-  `encode` call, progress updated per slice. Vectors go into a pgvector column; a generated
-  `tsvector` column with a GIN index gives full-text search over the same rows. On a Mac the
-  models run on Metal; loading one model while another encodes crashes Metal, so loading and
-  inference share one lock.
+- **Embedding** runs through the configured embedder in slices (one window of concurrent
+  hosted requests, or one model batch locally); after every slice the vectors are persisted,
+  the progress row updated and the cancellation check run, so a deleted report stops within
+  one batch and a long report never looks frozen. Vectors go into a pgvector column; a
+  generated `tsvector` column with a GIN index gives full-text search over the same rows.
+  With local models, loading one model while another encodes crashes Metal on a Mac, so
+  loading and inference share one lock; it is held per model batch, and an interactive
+  caller (a chat query, a rerank) gets it before the next background batch.
 
 **Improvements**
 
@@ -535,6 +538,6 @@ RAG". Details in [EVAL.md](EVAL.md).
 | Goal recall at 0.56 | Precision 0.97, so what is shown is right | Page-level extraction (4.5) |
 | A restart kills an in-process ingestion | Marked failed with a clear message | Resume from the last completed stage, or a job queue |
 | First run downloads 4.5 GB of models | Cached on a volume, stated in the README | Smaller models as an option |
-| Embedding on CPU is slow | Background with progress; Metal on a Mac | A GPU, or a hosted embedding option behind the same interface |
+| Embedding on CPU is slow | Hosted embeddings by default; progress after every batch; deleting a report cancels its ingestion; local models, when used, are held one batch at a time with chat queries going first | A GPU for the local option |
 | Cloud APIs see report content | The reports are public | Local model adapter (5.5) |
 | Two providers double the test surface | Shared prompts, Pydantic validation | A fake provider in CI (8) |

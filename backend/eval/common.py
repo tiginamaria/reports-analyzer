@@ -178,7 +178,7 @@ def require_reranker() -> Reranker:
     """The evals measure the shipped pipeline, which reranks; refuse to run without one."""
     reranker = get_reranker()
     if reranker is None:
-        raise SystemExit("The evaluation needs the reranker: set RERANKER_MODEL")
+        raise SystemExit("The evaluation needs the reranker: set RERANKER_PROVIDER=local")
     return reranker
 
 

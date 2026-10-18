@@ -18,7 +18,8 @@ Evaluation of every stage, with results and improvements: [docs/EVAL.md](docs/EV
    [parser.py](backend/app/ingestion/parser.py)
 2. Cut each page's text (tables removed) into fixed-size overlapping word windows; each table is its own chunk, indexed once:
    [chunker.py](backend/app/ingestion/chunker.py)
-3. Embed locally with `bge-m3`, index vectors and full text in Postgres + pgvector:
+3. Embed with a hosted embedding model (`text-embedding-3-large` by default; local `bge-m3`
+   is an option), index vectors and full text in Postgres + pgvector:
    [embedder.py](backend/app/retrieval/embedder.py), [models.py](backend/app/models.py)
 4. Pre-extract datapoints from the config registry and verify every quote:
    [extractor.py](backend/app/extraction/extractor.py), [registry.yaml](backend/app/extraction/registry.yaml)
@@ -31,8 +32,9 @@ Evaluation of every stage, with results and improvements: [docs/EVAL.md](docs/EV
    [pipeline.py](backend/app/chat/pipeline.py), [schemas.py](backend/app/chat/schemas.py)
 2. Hybrid retrieval per sub-query: vector + full-text search fused with Reciprocal Rank
    Fusion: [search.py](backend/app/retrieval/search.py)
-3. Cross-encoder reranking, abstain below a score threshold; the sub-queries' chunks are
-   merged: [embedder.py](backend/app/retrieval/embedder.py)
+3. Optional cross-encoder reranking (`RERANKER_PROVIDER=local`) with abstention below a
+   score threshold; the sub-queries' chunks are merged:
+   [embedder.py](backend/app/retrieval/embedder.py)
 4. Structured answer generation with a quote and chunk id per claim. The whole conversation
    is sent as real turns, with this question's chunks in the last message only; the system
    prompt and earlier turns are served from the provider's prompt cache:
@@ -50,24 +52,38 @@ verification badge: [datapoints.py](backend/app/api/datapoints.py),
 `<sha256>.pdf` with the original name kept in the database, restart safe:
 [docker-compose.yml](docker-compose.yml), [reports.py](backend/app/api/reports.py).
 
-**LLM providers**: Anthropic (default) or OpenAI behind one interface with JSON-schema
+**LLM providers**: OpenAI (default) or Anthropic behind one interface with JSON-schema
 structured output and a Pydantic repair retry: [base.py](backend/app/llm/base.py),
 [anthropic_provider.py](backend/app/llm/anthropic_provider.py),
 [openai_provider.py](backend/app/llm/openai_provider.py).
+
+**Background work that stays responsive**: ingestion reports progress after every page,
+every embedding batch and every extraction step (units done, elapsed time, latest
+activity), deleting a report cancels its ingestion before the next batch or write, and
+local models, when used, are held for one batch at a time with chat queries going first:
+[pipeline.py](backend/app/ingestion/pipeline.py),
+[cancellation.py](backend/app/ingestion/cancellation.py),
+[embedder.py](backend/app/retrieval/embedder.py).
 
 ## Run it
 
 ### Option A: everything in Docker (recommended for a first run)
 
-Prerequisites: Docker Desktop with at least 8 GB of memory for containers, and an Anthropic
-or OpenAI API key.
+Prerequisites: Docker Desktop with at least 4 GB of memory for containers and an OpenAI API
+key (used for the LLM and for embeddings). An Anthropic key can take over the LLM part.
 
 ```bash
 git clone <this repo> && cd reports-analyzer
 cp .env.example .env
 ```
 
-Edit `.env` and set the provider and key:
+Edit `.env` and set the key:
+
+```
+OPENAI_API_KEY=sk-...
+```
+
+To answer with Claude instead, keep the OpenAI key for embeddings and add:
 
 ```
 LLM_PROVIDER=anthropic
@@ -86,13 +102,13 @@ docker compose logs -f backend      # wait for "Application startup complete"
 
 Open http://localhost:8080.
 
-The first backend start downloads about 4.5 GB of local models (`bge-m3` embeddings and
-`bge-reranker-v2-m3`) into the `models` volume, which takes a few minutes. The database lives
+No model is downloaded: embeddings come from a hosted endpoint and reranking is off by
+default, so the backend image stays small and idles at a few hundred MB. The database lives
 on the `pgdata` volume and uploaded PDFs in `data/store/` (named by content hash), so
 `docker compose down` and `up` keep everything. The sample reports themselves live in
 `data/reports/` under the names listed in `data/reports/SOURCES.md`.
 
-### Option B: backend and frontend on the host (faster ingestion on Apple silicon)
+### Option B: backend and frontend on the host
 
 Prerequisites: Docker (for Postgres), Python 3.12+ with [uv](https://docs.astral.sh/uv/),
 Node 20+.
@@ -102,7 +118,7 @@ docker compose up -d db
 
 cp .env.example .env            # set LLM_PROVIDER and the API key as above
 cd backend
-uv sync --group dev
+uv sync                         # dev tools and the optional local models (dependency groups)
 uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8000
 
@@ -112,8 +128,10 @@ npm install
 npm run dev                     # http://localhost:5173, proxies /api to :8000
 ```
 
-On a Mac the embedder and reranker run on the GPU through Metal, which makes ingestion
-several times faster than in Docker.
+To run the retrieval models in-process instead (no embedding key, the cross-encoder
+reranker on, GPU through Metal on a Mac), set `RETRIEVAL_MODELS=local`; the `local-models`
+dependency group (torch and sentence-transformers) is installed by `uv sync` on the host. In
+Docker add `--build-arg LOCAL_MODELS=1` to the backend build.
 
 ### Load the annual reports
 
@@ -126,22 +144,41 @@ command line, the same endpoint takes one or many files:
 curl -F "files=@data/reports/shell-annual-report-2025.pdf" localhost:8000/api/reports
 ```
 
-Ingestion runs in the background with a progress bar: parse, chunk, embed, then extract the
-registry datapoints (FTE, revenue, net profit, dividend per share, sustainability goals) with
-the LLM. A report takes 2 to 4.5 minutes on an M-series Mac (half of it the extraction
-calls) and 10 to 15 minutes on CPU in Docker. `data/reports/` holds eight sample reports
-(ABN AMRO, ASML and CM.com for 2024 and 2025, Shell and Heineken for 2025);
-`data/reports/SOURCES.md` lists where they came from.
+Ingestion runs in the background: parse, chunk, embed, then extract the registry datapoints
+(FTE, revenue, net profit, dividend per share, sustainability goals) with the LLM. The
+Reports page shows the stage, units done of the total (pages, chunks, datapoints), the
+elapsed time and the worker's latest activity, updated after every page and every embedding
+batch. With hosted embeddings a report takes about 1.5 to 3 minutes, most of it the
+extraction calls. Deleting a report while it is ingesting cancels the ingestion.
+`data/reports/` holds eight sample reports (ABN AMRO, ASML and CM.com for 2024 and 2025,
+Shell and Heineken for 2025); `data/reports/SOURCES.md` lists where they came from.
 
 ### Provider options
 
 | `LLM_PROVIDER` | Needs | Models |
 |---|---|---|
+| `openai` (default) | `OPENAI_API_KEY` | `gpt-5` for answers and extraction, `gpt-5-mini` for query analysis; `OPENAI_REASONING_EFFORT=low` by default (their reasoning tokens count against the output limit, so the adapter adds headroom) |
 | `anthropic` | `ANTHROPIC_API_KEY` (plus `ANTHROPIC_WORKSPACE_ID` for user-scoped keys) | `claude-sonnet-5-5` for answers and extraction, `claude-haiku-4-5` for query analysis |
-| `openai` | `OPENAI_API_KEY` | `gpt-5` / `gpt-5-mini` |
 
-Model names, chunk sizes, retrieval depth and the verification threshold are all settings in
-`backend/app/config.py` and can be overridden in the repo-root `.env` (a `backend/.env`, if
+The retrieval stack is one switch, independent of the LLM:
+
+| `RETRIEVAL_MODELS` | Embeddings | Reranker | Needs |
+|---|---|---|---|
+| `openai` (default) | hosted `text-embedding-3-large` (batched, bounded concurrency, timeouts, retries) | none: the fused hybrid order is kept, no score floor | `OPENAI_API_KEY` (or `EMBEDDING_API_KEY`) |
+| `local` | `BAAI/bge-m3` in-process | `BAAI/bge-reranker-v2-m3` cross-encoder in-process, with the abstention floor | the `local-models` dependency group (installed by `uv sync` on the host; `--build-arg LOCAL_MODELS=1` in Docker); GPU through Metal on a Mac |
+
+Each setting the switch fills can still be overridden on its own: `EMBEDDING_PROVIDER`,
+`EMBEDDING_MODEL` (`EMBEDDING_DIMENSIONS` shortens OpenAI vectors, `EMBEDDING_BASE_URL`
+points at any OpenAI-compatible server), `RERANKER_PROVIDER` and `RERANKER_MODEL`; the
+hosted request shape is `EMBEDDING_BATCH_SIZE`, `EMBEDDING_CONCURRENCY`,
+`EMBEDDING_TIMEOUT_SECONDS` and `EMBEDDING_MAX_RETRIES`.
+
+Each report records which embedding model produced its vectors, and only reports matching
+the configured model are searched. After changing the embedding settings, rebuild the
+existing reports with `cd backend && uv run python -m app.reembed` (`--dry-run` lists them);
+the header and the Reports page flag reports that need it. The remaining knobs (chunk sizes,
+retrieval depth, verification threshold) are constants in the backend modules; settings in
+`backend/app/config.py` can be overridden in the repo-root `.env` (a `backend/.env`, if
 present, takes precedence).
 
 ### Check that it works
@@ -153,7 +190,8 @@ curl localhost:8000/api/status            # provider and models in use
 
 ## Using it
 
-- **Reports**: upload one PDF or a folder, watch ingestion progress, delete.
+- **Reports**: upload one PDF or a folder, watch ingestion progress (stage, units done,
+  elapsed time, latest activity), delete; deleting a report stops its ingestion.
 - **Extracted data**: cross-company tables of FTE, revenue, net profit, dividend per share
   and sustainability goals. Click a page
   number to open that page in a side panel. Badges: `verified` (exact substring of the page
@@ -162,7 +200,10 @@ curl localhost:8000/api/status            # provider and models in use
 - **Chat**: ask in natural language. Optional report filter in the sidebar; otherwise the
   company and year in the question narrow the search. Citation chips open the cited page;
   failed quotes are shown struck through. If every quote fails verification the answer is
-  downgraded to "not stated in the report".
+  downgraded to "not stated in the report". Before anything runs, the chat answers
+  greetings directly and tells apart "upload a report", "reports are still processing"
+  and "no relevant evidence found" without calling the model; local models that still have
+  to load are shown as their own stage.
 
 Example questions:
 
@@ -189,7 +230,7 @@ Example questions:
 ## Tests
 
 ```bash
-make test     # unit tests (offline) + integration test (Postgres, real embedder, needs an LLM API key)
+make test     # unit tests (offline) + integration tests (Postgres, hosted embeddings, needs the API keys)
 make lint     # ruff, mypy, tsc
 ```
 
@@ -228,8 +269,8 @@ The harness and how to rerun it or run a parameter experiment:
 ```
 backend/app
   api/          FastAPI routers: reports, datapoints, chat + conversations
-  ingestion/    parser (PyMuPDF), chunker, pipeline
-  retrieval/    embedder + reranker, hybrid search with RRF
+  ingestion/    parser (PyMuPDF), chunker, pipeline, cancellation
+  retrieval/    hosted/local embedders + optional reranker, hybrid search with RRF
   extraction/   registry.yaml, extractor, metadata detection
   chat/         analyse -> retrieve -> rerank -> generate -> verify
   llm/          provider interface, Anthropic, OpenAI

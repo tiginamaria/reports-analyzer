@@ -88,23 +88,20 @@ def test_without_sub_queries_the_standalone_question_is_searched(monkeypatch):
     assert calls == ["whole?"]
 
 
-@pytest.mark.parametrize(
-    ("searchable", "reason"),
-    [
-        (True, "The ingested reports do not appear to cover this."),
-        (False, "No ingested report could be searched."),
-    ],
-)
-def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch, searchable, reason):
+def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch):
     monkeypatch.setattr(pipeline, "_rewrite_query", lambda provider, q, history: analysis("q?"))
     monkeypatch.setattr(pipeline, "retrieve", lambda db, question, report_ids: [])
-    monkeypatch.setattr(pipeline, "_searchable_reports", lambda db, report_ids: searchable)
+    monkeypatch.setattr(pipeline, "models_to_load", lambda: [])
+    monkeypatch.setattr(
+        pipeline, "_library", lambda db, report_ids: pipeline.Library(searchable=["ASML 2025"])
+    )
     events = list(pipeline.run_chat(None, None, "q?", [], None))
     answer = events[-1]
     assert answer.type == "answer"
     assert answer.data["status"] == "not_found"
-    assert answer.data["answer"].startswith(reason)
+    assert answer.data["answer"].startswith("The ingested reports do not appear to cover this.")
     assert answer.data["meta"]["skipped_llm"] is True
+    assert answer.data["meta"]["reason"] == "no_evidence"
 
 
 def test_sub_queries_are_searched_by_their_search_text(monkeypatch):

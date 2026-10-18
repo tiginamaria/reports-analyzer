@@ -9,6 +9,7 @@ verified against this turn's evidence alone.
 """
 
 import logging
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any, Literal, cast
@@ -17,8 +18,10 @@ from sqlalchemy.orm import Session
 
 from app.chat import prompts
 from app.chat.schemas import ChatAnswer, Citation, Query
+from app.config import get_settings
 from app.llm import ChatTurn, LLMError, LLMProvider, Role
-from app.models import INDEXED_STATUSES, Message, Report
+from app.models import IN_PROGRESS_STATUSES, INDEXED_STATUSES, Message, Report, ReportStatus
+from app.retrieval.embedder import get_embedder, get_reranker, models_to_load
 from app.retrieval.search import Hit, format_context, retrieve
 from app.verify import verify_against_chunk
 
@@ -36,6 +39,28 @@ UNVERIFIED_ANSWER = (
     "Not stated in the report: the answer's quotes could not be found in the report text."
 )
 
+# Greetings, thanks and acknowledgements: answered at once, without the model or retrieval.
+SMALL_TALK = re.compile(
+    r"^(?:"
+    r"(?:hi|hello|hey|hiya|howdy|yo|hallo|hoi|greetings|good\s*(?:morning|afternoon|evening|day))"
+    r"(?:\s+(?:there|all|again|everyone))?"
+    r"|(?:thanks|thank\s+you|thx|ty|cheers|bedankt|dank\s*je(?:\s*wel)?)"
+    r"(?:\s+(?:a\s+lot|so\s+much|very\s+much))?"
+    r"|ok|okay|great|cool|nice|perfect|bye|goodbye|see\s+you|good\s*night"
+    r")[\s!.,?]*$",
+    re.IGNORECASE,
+)
+
+# Why a question was answered without searching; stored in the answer's `meta.reason`.
+Reason = Literal[
+    "greeting",  # small talk
+    "no_reports",  # nothing uploaded (or the selected reports no longer exist)
+    "reports_processing",  # reports exist but none is indexed yet
+    "reports_failed",  # every report failed to ingest
+    "reports_need_reembedding",  # indexed with another embedding model than the configured one
+    "no_evidence",  # searched; every chunk scored below the floor
+]
+
 
 @dataclass
 class ChatEvent:
@@ -50,19 +75,39 @@ def run_chat(
     history: list[Message],
     report_ids: list[str] | None,
 ) -> Iterator[ChatEvent]:
-    """Yield `stage` events as the pipeline progresses, then exactly one `answer` or `error`."""
-    yield ChatEvent("stage", {"name": "analyzing"})
+    """Yield `stage` events as the pipeline progresses, then exactly one `answer` or `error`.
 
+    Before anything costly runs, small talk gets a canned reply and the library is checked:
+    with nothing to search the answer says what is missing (no report, reports still
+    processing, failed, or embedded with another model) without calling the model or
+    loading any local model. Local models that still have to load are reported as their
+    own stage, so a first question after a start does not look stuck."""
+    library = _library(db, report_ids)
+    if SMALL_TALK.match(question):
+        yield ChatEvent(
+            "answer", _quick_answer(question, "greeting", _greeting(library), "answered")
+        )
+        return
+    if (unavailable := library.unavailable()) is not None:
+        reason, text = unavailable
+        yield ChatEvent("answer", _quick_answer(question, reason, text))
+        return
+
+    if pending := models_to_load():
+        yield ChatEvent("stage", {"name": "loading_models", "models": pending})
+        get_embedder()
+        get_reranker()
+
+    yield ChatEvent("stage", {"name": "analyzing"})
     query = _rewrite_query(provider, question, history)
     yield ChatEvent("stage", {"name": "retrieving", "query": query.standalone_question})
 
     hits = _retrieve_all(db, query, report_ids)
-    if not hits:
-        if _searchable_reports(db, report_ids):  # every chunk scored below the floor
-            reason = "The ingested reports do not appear to cover this. Not stated in the report."
-        else:  # no report is ready yet, or none of the selected ones
-            reason = "No ingested report could be searched. Not stated in the report."
-        yield ChatEvent("answer", _abstain(db, reason, query))
+    if not hits:  # every chunk scored below the floor
+        text = "The ingested reports do not appear to cover this. Not stated in the report."
+        if library.processing:
+            text += f" {library.describe_processing()}"
+        yield ChatEvent("answer", _abstain(db, text, query, "no_evidence"))
         return
 
     yield ChatEvent("stage", {"name": "generating", "chunks": len(hits)})
@@ -72,6 +117,92 @@ def run_chat(
         yield ChatEvent("error", {"message": str(exc)})
         return
     yield ChatEvent("answer", _finalize(db, answer, hits, query))
+
+
+@dataclass
+class Library:
+    """What the user's question can be searched against: the reports within the filter
+    (all reports without one), by what state they are in."""
+
+    searchable: list[str] = field(default_factory=list)  # labels; indexed with the right vectors
+    processing: list[str] = field(default_factory=list)  # "ABN AMRO 2025 (embedding, 59%)"
+    failed: list[str] = field(default_factory=list)
+    stale: list[str] = field(default_factory=list)  # indexed with another embedding model
+    filtered: bool = False
+
+    def unavailable(self) -> tuple[Reason, str] | None:
+        """The reason nothing can be searched and what to tell the user, or None when at
+        least one report is searchable."""
+        if self.searchable:
+            return None
+        if self.processing:
+            return "reports_processing", (
+                f"{self.describe_processing()} Ask again once a report is ready."
+            )
+        if self.stale:
+            verb = "was" if len(self.stale) == 1 else "were"
+            return "reports_need_reembedding", (
+                f"{_count(len(self.stale), 'report')} ({_names(self.stale)}) {verb} indexed with "
+                "a different embedding model than the one configured now. Re-embed "
+                "(python -m app.reembed) before asking again."
+            )
+        if self.failed:
+            return "reports_failed", (
+                f"Ingestion failed for {_names(self.failed)}. Delete the report and upload it again."
+            )
+        if self.filtered:
+            return "no_reports", (
+                "The selected reports no longer exist. Choose another report or upload one."
+            )
+        return "no_reports", (
+            "No report has been uploaded yet. Upload an annual report on the Reports page, "
+            "then ask again."
+        )
+
+    def describe_processing(self) -> str:
+        return f"{_count(len(self.processing), 'report')} still being processed: {_names(self.processing)}."
+
+
+def _library(db: Session, report_ids: list[str] | None) -> Library:
+    """One query over the reports (within the user's filter) sorted into the `Library`."""
+    signature = get_settings().embedding_signature
+    rows = db.query(
+        Report.company, Report.fiscal_year, Report.status, Report.progress, Report.embedding_model
+    )
+    if report_ids:
+        rows = rows.filter(Report.id.in_(report_ids))
+    library = Library(filtered=bool(report_ids))
+    for company, year, status, progress, embedding in rows.all():
+        label = " ".join(part for part in (company, str(year or "")) if part) or "a report"
+        if status in INDEXED_STATUSES and embedding == signature:
+            library.searchable.append(label)
+        elif status in INDEXED_STATUSES:
+            library.stale.append(label)
+        elif status in IN_PROGRESS_STATUSES:
+            library.processing.append(f"{label} ({status}, {progress}%)")
+        elif status == ReportStatus.FAILED:
+            library.failed.append(label)
+    return library
+
+
+def _greeting(library: Library) -> str:
+    if library.searchable:
+        return (
+            "Hello! Ask me about the ingested annual reports, for example a figure, a target or "
+            f"a comparison. Reports ready to search: {_names(library.searchable)}."
+        )
+    if library.processing:
+        return f"Hello! {library.describe_processing()} Ask me about them once they are ready."
+    return "Hello! Upload an annual report on the Reports page, then ask me about it."
+
+
+def _names(labels: list[str], limit: int = 5) -> str:
+    shown = ", ".join(labels[:limit])
+    return shown if len(labels) <= limit else f"{shown} and {len(labels) - limit} more"
+
+
+def _count(n: int, noun: str) -> str:
+    return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
 
 
 def _conversation_turns(history: list[Message]) -> list[ChatTurn]:
@@ -152,16 +283,6 @@ def _retrieve_all(
     return sorted(best.values(), key=lambda hit: hit.score, reverse=True)
 
 
-def _searchable_reports(db: Session, report_ids: list[str] | None) -> bool:
-    """Whether retrieval had any indexed report to search, within the user's filter if
-    given. Tells an empty result that means "nothing relevant" from one that means "nothing
-    to search"."""
-    reports = db.query(Report.id).filter(Report.status.in_(INDEXED_STATUSES))
-    if report_ids:
-        reports = reports.filter(Report.id.in_(report_ids))
-    return reports.first() is not None
-
-
 def _answer_prompt(question: str, hits: list[Hit]) -> str:
     """The final user turn: this question's chunks, then the standalone question."""
     return f"Chunks:\n\n{format_context(hits)}\n\nQuestion: {question}"
@@ -182,10 +303,30 @@ def _generate_answer(
     )
 
 
-def _abstain(db: Session, reason: str, query: Query) -> dict[str, Any]:
-    """A `not_found` answer produced without calling the main model."""
-    answer = ChatAnswer(status="not_found", answer=reason, citations=[])
-    return _finalize(db, answer, [], query)
+def _abstain(db: Session, text: str, query: Query, reason: Reason) -> dict[str, Any]:
+    """A `not_found` answer produced after retrieval but without calling the main model."""
+    answer = ChatAnswer(status="not_found", answer=text, citations=[])
+    return _finalize(db, answer, [], query, reason)
+
+
+def _quick_answer(
+    question: str, reason: Reason, text: str, status: str = "not_found"
+) -> dict[str, Any]:
+    """An answer produced before any model call or retrieval (small talk, nothing to search)."""
+    return {
+        "status": status,
+        "answer": text,
+        "citations": [],
+        "meta": {
+            "reason": reason,
+            "skipped_llm": True,
+            "skipped_retrieval": True,
+            "standalone_question": question,
+            "queries": [],
+            "retrieved_chunks": [],
+            "dropped_citations": 0,
+        },
+    }
 
 
 def _finalize(
@@ -193,6 +334,7 @@ def _finalize(
     answer: ChatAnswer,
     hits: list[Hit],
     query: Query,
+    reason: Reason | None = None,
 ) -> dict[str, Any]:
     """Verify every citation against the retrieved chunks and build the answer payload.
     An answer whose quotes all failed verification is downgraded to `not_found`, and its text
@@ -203,6 +345,8 @@ def _finalize(
     trusted = [c for c in citations if c["verification"] in ("verified", "fuzzy")]
 
     meta: dict[str, Any] = {}
+    if reason:
+        meta["reason"] = reason
     if hits:  # reranker probability; the RRF score when no reranker is configured (CI)
         meta["best_score"] = hits[0].score
     else:

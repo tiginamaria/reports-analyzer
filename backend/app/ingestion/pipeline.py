@@ -1,16 +1,23 @@
 """Ingestion pipeline: parse -> detect metadata -> store pages -> chunk -> embed -> extract.
 
-Runs as a background task with its own database session. Status and progress are written
-to the report row after every stage so the UI can poll.
+Runs as a background task with its own database session. Status, progress and the latest
+activity are written to the report row after every page, every embedding batch and every
+extraction step, so the UI can show what is happening and how far along it is.
 
 The report's status tracks its index: `ready` means the pages, chunks and embeddings are
 complete and the report can be searched. How each registry entry's extraction went is
 recorded separately, per entry, in `extractions` (see `extractor.extract_report`); a failed
 entry never fails the report and can be extracted again with `rerun_extraction`.
+
+Deleting the report cancels its ingestion: the worker checks `cancellation.check` between
+inference batches and before every write and stops without touching the database.
 """
 
 import logging
 import re
+import time
+from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -22,16 +29,19 @@ from app.extraction.extractor import (
     record_failure,
     start_extraction,
 )
+from app.ingestion import cancellation
+from app.ingestion.cancellation import IngestionCancelled
 from app.ingestion.chunker import chunk_document, contextual_header
 from app.ingestion.parser import ParsedDocument, parse_pdf
-from app.llm import get_provider
+from app.llm import LLMError, get_provider
 from app.models import Chunk, Page, Report, ReportStatus
-from app.retrieval.embedder import get_embedder
+from app.retrieval.embedder import EmbeddingError, get_embedder, models_to_load
 
 log = logging.getLogger(__name__)
 
 # Progress range (start, end) of each stage, in percent of the whole ingestion.
 PROGRESS_RANGES = {
+    ReportStatus.PENDING: (0, 0),
     ReportStatus.PARSING: (0, 30),
     ReportStatus.CHUNKING: (30, 35),
     ReportStatus.EMBEDDING: (35, 80),
@@ -39,35 +49,58 @@ PROGRESS_RANGES = {
     ReportStatus.READY: (100, 100),
 }
 
+# How a stage is named in an error message.
+STAGE_LABELS = {
+    ReportStatus.PENDING: "Starting",
+    ReportStatus.PARSING: "Parsing",
+    ReportStatus.CHUNKING: "Chunking",
+    ReportStatus.EMBEDDING: "Embedding",
+    ReportStatus.EXTRACTING: "Extraction",
+}
+RETRY_ACTION = "Delete the report and upload it again."
+
 MAX_ERROR_LENGTH = 2000
-EMBED_SLICE = 512  # chunks per embedding call; see `_embed`
 
 
 def ingest_report(report_id: str, path: Path) -> None:
-    """Background-task entry point. Any failure is recorded on the report, never raised."""
+    """Background-task entry point. Any failure is recorded on the report, never raised;
+    a report deleted meanwhile stops its ingestion quietly."""
     with SessionLocal() as db:
         report = db.get(Report, report_id)
         if report is None:
             return
+        cancellation.begin(report_id)
         try:
             _run_stages(db, report, path)
-        except Exception as exc:  # any failure is shown in the UI
+        except IngestionCancelled:
             db.rollback()
-            _mark_failed(db, report_id, exc)
+            log.info("Report %s was deleted during ingestion; stopping", report_id)
+        except Exception as exc:  # any failure is shown in the UI
+            stage = ReportStatus(report.status) if report.status in STAGE_LABELS else None
+            db.rollback()
+            _mark_failed(db, report_id, exc, stage)
+        finally:
+            cancellation.clear(report_id)
 
 
 def _run_stages(db: Session, report: Report, path: Path) -> None:
-    doc = _parse(db, report, path)
-    _detect_metadata(report, doc)
+    check = partial(cancellation.check, db, report.id)
+    report.started_at = datetime.now(UTC)
 
-    _set_progress(db, report, ReportStatus.CHUNKING)
+    doc = _parse(db, report, path)
+    check()
+    _detect_metadata(db, report, doc)
+    check()
+
+    _set_progress(db, report, ReportStatus.CHUNKING, activity="Storing pages")
     _store_pages(db, report, doc)
     chunks = _chunk(db, report, doc)
+    check()
 
-    _set_progress(db, report, ReportStatus.EMBEDDING)
+    _set_progress(db, report, ReportStatus.EMBEDDING, total=len(chunks))
     _embed(db, report, chunks)
 
-    _set_progress(db, report, ReportStatus.EXTRACTING)
+    _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
     _extract(db, report)
 
     _set_progress(db, report, ReportStatus.READY, fraction=1.0)
@@ -78,8 +111,17 @@ def _extract(db: Session, report: Report, keys: list[str] | None = None) -> None
     """The extraction stage. The index is complete by now, so a failure here (no provider
     configured, the reranker, the database) does not fail the report: every entry without
     an outcome is recorded as failed, which the UI shows next to a retry."""
+    check = partial(cancellation.check, db, report.id)
+
+    def on_progress(done: int, total: int, activity: str) -> None:
+        _set_progress(
+            db, report, ReportStatus.EXTRACTING, done=done, total=total, activity=activity
+        )
+
     try:
-        extract_report(db, report, get_provider(), keys=keys)
+        extract_report(db, report, get_provider(), keys=keys, check=check, on_progress=on_progress)
+    except IngestionCancelled:
+        raise
     except Exception as exc:
         db.rollback()
         log.error("Extraction failed for %s", report.filename, exc_info=exc)
@@ -90,7 +132,7 @@ def begin_reextraction(db: Session, report: Report, keys: list[str]) -> None:
     """What the retry endpoint does before scheduling `rerun_extraction`: the entries become
     `pending` and the report `extracting`, so the response already shows the retry running."""
     start_extraction(db, report, keys)
-    _set_progress(db, report, ReportStatus.EXTRACTING)
+    _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
     db.expire(report, ["extractions"])  # the response reloads the rows just set to pending
 
 
@@ -102,15 +144,23 @@ def rerun_extraction(report_id: str, keys: list[str]) -> None:
         report = db.get(Report, report_id)
         if report is None:
             return
+        cancellation.begin(report_id)
         try:
             _extract(db, report, keys)
             _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+        except IngestionCancelled:
+            db.rollback()
+            log.info("Report %s was deleted during re-extraction; stopping", report_id)
         except Exception as exc:  # the database itself; the entries stay pending
             db.rollback()
             log.error("Re-extraction of %s failed for %s", keys, report_id, exc_info=exc)
+        finally:
+            cancellation.clear(report_id)
 
 
-def _mark_failed(db: Session, report_id: str, exc: Exception) -> None:
+def _mark_failed(
+    db: Session, report_id: str, exc: Exception, stage: ReportStatus | None = None
+) -> None:
     report = db.get(Report, report_id)
     if report is None:
         log.info("Report %s was deleted during ingestion; stopping", report_id)
@@ -118,30 +168,69 @@ def _mark_failed(db: Session, report_id: str, exc: Exception) -> None:
     log.error("Ingestion failed for %s", report_id, exc_info=exc)
     report.status = ReportStatus.FAILED
     report.progress = 0
-    report.error = f"{type(exc).__name__}: {exc}"[:MAX_ERROR_LENGTH]
+    report.activity = None
+    report.error = failure_message(exc, stage)
     db.commit()
 
 
-def _set_progress(db: Session, report: Report, stage: ReportStatus, fraction: float = 0.0) -> None:
-    """Record the current stage and how far into it (0..1) ingestion is."""
+def failure_message(exc: Exception, stage: ReportStatus | None) -> str:
+    """`Embedding failed: <cause>. Delete the report and upload it again.`: the stage, a cause
+    a user can act on (provider errors carry their own message; anything else its type) and
+    what to do next."""
+    cause = (
+        str(exc) if isinstance(exc, EmbeddingError | LLMError) else f"{type(exc).__name__}: {exc}"
+    )
+    label = STAGE_LABELS.get(stage, "Ingestion") if stage else "Ingestion"
+    return f"{label} failed: {cause.rstrip('.')}. {RETRY_ACTION}"[:MAX_ERROR_LENGTH]
+
+
+def _set_progress(
+    db: Session,
+    report: Report,
+    stage: ReportStatus,
+    fraction: float = 0.0,
+    *,
+    done: int = 0,
+    total: int = 0,
+    activity: str | None = None,
+) -> None:
+    """Record the current stage, how far into it ingestion is (`done` of `total` units, or
+    `fraction` 0..1 when the stage has no units) and what it is doing right now."""
+    if total:
+        fraction = done / total
     start, end = PROGRESS_RANGES[stage]
     report.status = stage
     report.progress = int(start + (end - start) * fraction)
+    report.done = done
+    report.total = total
+    report.activity = activity
     db.commit()
 
 
 def _parse(db: Session, report: Report, path: Path) -> ParsedDocument:
-    _set_progress(db, report, ReportStatus.PARSING)
+    _set_progress(db, report, ReportStatus.PARSING, activity="Opening the PDF")
+    started = time.perf_counter()
 
     def on_progress(pages_done: int, total_pages: int) -> None:
-        _set_progress(db, report, ReportStatus.PARSING, pages_done / total_pages)
+        cancellation.check(db, report.id)
+        _set_progress(
+            db,
+            report,
+            ReportStatus.PARSING,
+            done=pages_done,
+            total=total_pages,
+            activity=f"Parsed page {pages_done} of {total_pages} ({_elapsed(started)})",
+        )
 
     return parse_pdf(path, on_progress)
 
 
-def _detect_metadata(report: Report, doc: ParsedDocument) -> None:
+def _detect_metadata(db: Session, report: Report, doc: ParsedDocument) -> None:
     """Ask the LLM for company, fiscal year and title from the first pages. If that fails
     the report keeps year 0 and gets the file name as its company, so it stays visible."""
+    _set_progress(
+        db, report, ReportStatus.PARSING, fraction=1.0, activity="Detecting company and year"
+    )
     try:
         meta = detect_metadata(get_provider(), doc.pages, report.filename)
     except Exception as exc:  # detection is best effort
@@ -187,18 +276,52 @@ def _chunk_id_prefix(report: Report) -> str:
     return f"{slug}-{report.fiscal_year}-{report.id[:6]}"
 
 
-def _embed(db: Session, report: Report, chunks: list[Chunk], slice_size: int = EMBED_SLICE) -> None:
-    """Embed in slices of `slice_size` chunks."""
+def _embed(db: Session, report: Report, chunks: list[Chunk], slice_size: int | None = None) -> None:
+    """Embed the chunks in slices of `slice_size` (the embedder's own by default: one model
+    batch locally, one window of concurrent requests hosted). After every slice the vectors
+    are persisted and the progress updated; before every slice, and before every batch
+    inside it, the cancellation check runs, so a deleted report stops within one batch."""
+    check = partial(cancellation.check, db, report.id)
+    total = len(chunks)
+    pending = models_to_load()
+    if pending:
+        _set_progress(
+            db, report, ReportStatus.EMBEDDING, total=total, activity=f"Loading {pending[0]}"
+        )
     embedder = get_embedder()
-    for start in range(0, len(chunks), slice_size):
+    slice_size = slice_size or embedder.slice_size
+    started = time.perf_counter()
+    report.embedding_model = None  # not searchable until every vector is written
+    for start in range(0, total, slice_size):
+        check()
         batch = chunks[start : start + slice_size]
         texts = [_embedding_input(report, chunk) for chunk in batch]
-        for chunk, vector in zip(batch, embedder.embed_documents(texts), strict=True):
+        batch_started = time.perf_counter()
+        vectors = embedder.embed_documents(texts, check=check)
+        for chunk, vector in zip(batch, vectors, strict=True):
             chunk.embedding = vector
-        _set_progress(db, report, ReportStatus.EMBEDDING, (start + len(batch)) / len(chunks))
+        check()  # before persisting: the report may have gone while the batch ran
+        done = start + len(batch)
+        _set_progress(
+            db,
+            report,
+            ReportStatus.EMBEDDING,
+            done=done,
+            total=total,
+            activity=(
+                f"Embedded chunks {start + 1}-{done} of {total} in "
+                f"{time.perf_counter() - batch_started:.1f} s ({_elapsed(started)} so far)"
+            ),
+        )
+    report.embedding_model = embedder.signature
 
 
 def _embedding_input(report: Report, chunk: Chunk) -> str:
     """What gets embedded: the chunk text behind a header naming the report and page, so the
     vector carries its context."""
     return f"{contextual_header(report.company, report.fiscal_year, chunk.page)}\n{chunk.content}"
+
+
+def _elapsed(started: float) -> str:
+    seconds = int(time.perf_counter() - started)
+    return f"{seconds // 60} min {seconds % 60} s" if seconds >= 60 else f"{seconds} s"

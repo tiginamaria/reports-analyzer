@@ -1,6 +1,7 @@
 """API tests against a real Postgres (skipped when DATABASE_URL is unreachable).
 
-Uses a tiny generated PDF and the configured LLM provider; skipped when no API key is set.
+Uses a tiny generated PDF, the configured LLM provider and the configured embedding
+provider; skipped when no API key is set.
 """
 
 import os
@@ -20,7 +21,6 @@ pytestmark = pytest.mark.integration
 def client(tmp_path_factory):
     reports_dir = tmp_path_factory.mktemp("reports")
     os.environ["REPORTS_DIR"] = str(reports_dir)
-    os.environ["RERANKER_MODEL"] = ""
     from app.config import get_settings
 
     get_settings.cache_clear()

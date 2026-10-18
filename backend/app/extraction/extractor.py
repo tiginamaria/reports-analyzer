@@ -1,7 +1,7 @@
 """Run the datapoint registry against an ingested report."""
 
 import logging
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.extraction import prompts
 from app.extraction.numbers import parse_number
 from app.extraction.schemas import ExtractedItem, ExtractionResult, ReportMetadata
+from app.ingestion.cancellation import IngestionCancelled
 from app.llm import LLMProvider
 from app.models import Chunk, Datapoint, Extraction, ExtractionStatus, Report
 from app.retrieval.search import RETRIEVAL_CANDIDATES, Hit, format_context, retrieve
@@ -73,11 +74,21 @@ def registry_entries(keys: Iterable[str] | None = None) -> list[DatapointSpec]:
 
 
 def extract_report(
-    db: Session, report: Report, provider: LLMProvider, keys: Iterable[str] | None = None
+    db: Session,
+    report: Report,
+    provider: LLMProvider,
+    keys: Iterable[str] | None = None,
+    check: Callable[[], None] | None = None,
+    on_progress: Callable[[int, int, str], None] | None = None,
 ) -> list[Datapoint]:
     """Extract every registry entry (or only `keys`) of the report, replacing the entries'
     datapoints, and record an outcome per entry in `extractions`: `extracted`, `not_found`
     or `error` with the message.
+
+    `check` runs before every retrieval and every write and may raise to stop the work
+    (ingestion passes its cancellation check: a deleted report stops here without an
+    outcome being recorded; a model call already in flight is left to finish).
+    `on_progress(done, total, activity)` is called as entries advance.
 
     Candidate retrieval runs entry by entry (the reranker runs on one GPU behind a lock and
     the session is not thread-safe); the model calls, which are independent and spend their
@@ -86,19 +97,37 @@ def extract_report(
     still runs. A failure outside one entry's call (the database, the reranker) marks every
     entry still pending as failed and propagates."""
     specs = registry_entries(keys)
+    total = len(specs)
+
+    def stop_check() -> None:
+        if check is not None:
+            check()
+
+    def progress(done: int, activity: str) -> None:
+        if on_progress is not None:
+            on_progress(done, total, activity)
+
+    stop_check()
     outcomes = start_extraction(db, report, [spec.key for spec in specs])
     try:
         db.query(Datapoint).filter(
             Datapoint.report_id == report.id, Datapoint.key.in_(outcomes)
         ).delete(synchronize_session=False)
-        hits = {spec.key: _candidate_hits(db, report, spec) for spec in specs}
+        hits: dict[str, list[Hit]] = {}
+        for number, spec in enumerate(specs):
+            stop_check()
+            progress(0, f"Finding passages for {spec.label} ({number + 1} of {total})")
+            hits[spec.key] = _candidate_hits(db, report, spec)
+        stop_check()
+        progress(0, f"Asking the model for {total} datapoint(s)")
         with ThreadPoolExecutor(EXTRACTION_WORKERS) as pool:
             futures = {
                 spec.key: pool.submit(_ask_model, report, spec, provider, hits[spec.key])
                 for spec in specs
             }
         created: list[Datapoint] = []
-        for spec in specs:
+        for number, spec in enumerate(specs):
+            stop_check()
             created.extend(
                 _finish_entry(
                     db,
@@ -110,8 +139,13 @@ def extract_report(
                     provider,
                 )
             )
+            progress(number + 1, f"Stored {spec.label} ({number + 1} of {total})")
+        stop_check()
         db.commit()
         return created
+    except IngestionCancelled:
+        db.rollback()  # the report is gone; nothing to record
+        raise
     except Exception as exc:
         db.rollback()
         record_failure(db, report, exc, keys=list(outcomes))

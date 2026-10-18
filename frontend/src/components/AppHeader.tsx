@@ -51,7 +51,7 @@ function BackendStatus() {
   if (state.kind === "loading") return null;
   if (state.kind === "unreachable") return <span className="text-xs text-red-600">backend unreachable</span>;
 
-  const { llm_provider, llm_model, embedding_model, reranker_model } = state.status;
+  const { llm_provider, llm_model, embedding_model, reranker_model, reports_to_reembed } = state.status;
   return (
     <div className="text-xs text-slate-500">
       LLM{" "}
@@ -64,6 +64,14 @@ function BackendStatus() {
           {" "}
           · reranker <span className="font-mono">{reranker_model}</span>
         </>
+      )}
+      {reports_to_reembed > 0 && (
+        <span
+          className="ml-2 text-amber-700"
+          title="Indexed with another embedding model, so not searched; run python -m app.reembed"
+        >
+          · {reports_to_reembed} report{reports_to_reembed === 1 ? "" : "s"} need re-embedding
+        </span>
       )}
     </div>
   );

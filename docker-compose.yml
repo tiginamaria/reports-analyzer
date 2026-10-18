@@ -21,7 +21,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://reports:reports@db:5432/reports
       REPORTS_DIR: /data/store
-      HF_HOME: /models
+      HF_HOME: /models  # only used with EMBEDDING_PROVIDER=local / RERANKER_PROVIDER=local
     volumes:
       - ./data/store:/data/store
       - models:/models
