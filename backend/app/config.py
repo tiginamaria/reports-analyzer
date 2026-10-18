@@ -32,11 +32,6 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 32
     model_device: str | None = None  # "cpu", "mps", "cuda" or None for auto
 
-    # Chat history sent to the model: the most recent whole turns that fit this budget
-    # (estimated tokens). Older turns are dropped; the retrieved chunks of earlier turns are
-    # never replayed, only the question and the answer text.
-    history_max_tokens: int = 3000
-
 
 @lru_cache
 def get_settings() -> Settings:

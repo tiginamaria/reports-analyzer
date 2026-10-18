@@ -30,10 +30,9 @@ Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/M
    [search.py](backend/app/retrieval/search.py)
 3. Cross-encoder reranking, abstain below a score threshold:
    [embedder.py](backend/app/retrieval/embedder.py)
-4. Structured answer generation with a quote and chunk id per claim. The conversation is sent
-   as real turns, trimmed to a token budget (`HISTORY_MAX_TOKENS`), with this question's chunks
-   in the last message only; the system prompt and earlier turns are served from the
-   provider's prompt cache:
+4. Structured answer generation with a quote and chunk id per claim. The whole conversation
+   is sent as real turns, with this question's chunks in the last message only; the system
+   prompt and earlier turns are served from the provider's prompt cache:
    [pipeline.py](backend/app/chat/pipeline.py), [schemas.py](backend/app/chat/schemas.py)
 5. Quote verification against the stored page text; answers with no verified quote become "not stated in the report":
    [verify.py](backend/app/verify.py)

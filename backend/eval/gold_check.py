@@ -17,7 +17,7 @@ from app.models import Page
 from app.textutil import normalize
 from eval.common import load_corpus, load_yaml, report_keys
 
-QA_TYPES = {"factoid", "comparison", "followup", "unanswerable"}
+QA_TYPES = {"factoid", "comparison", "multimetric", "followup", "unanswerable"}
 
 
 def main() -> int:

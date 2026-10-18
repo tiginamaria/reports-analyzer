@@ -68,5 +68,6 @@ def _windows(words: list[str], size: int, overlap: int) -> Iterator[list[str]]:
 
 
 def contextual_header(company: str, year: int, page: int) -> str:
-    """Prepended to a chunk before embedding so the vector carries its context."""
+    """The header naming a chunk's report and page, put before its text wherever the text is
+    used: embedding, reranking and the answer model's context."""
     return f"[{company} | Annual Report {year} | p. {page}]"

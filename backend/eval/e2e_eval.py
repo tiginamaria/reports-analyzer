@@ -1,6 +1,6 @@
 """End-to-end evaluation of the chat pipeline on the gold questions.
 
-Runs the real `run_chat` (analysis, scope, retrieval, rerank, generation, verification) per
+Runs the real `run_chat` (analysis, retrieval, rerank, generation, verification) per
 question, with configuration overrides applied by patching the module constants that the
 pipeline reads at call time. Answers are graded twice: deterministically (key facts in the
 answer, citation verification, cited page among the gold pages) and by an LLM judge
@@ -26,13 +26,12 @@ from unittest import mock
 from pydantic import BaseModel
 from sqlalchemy import text as sql
 
-import app.chat.pipeline as chat_pipeline
 import app.retrieval.search as search
 from app.chat.pipeline import run_chat
 from app.config import get_settings
 from app.llm import LLMProvider
 from app.llm.anthropic_provider import AnthropicProvider
-from app.models import Message
+from app.models import Chunk, Message
 from app.retrieval.embedder import get_embedder, get_reranker
 from app.textutil import normalize
 from eval.common import USAGE, instrument, report_keys, write_json
@@ -50,21 +49,20 @@ class E2EConfig:
     variant: str = "base"
     candidates: int = 40
     top_k: int = 8
-    min_score: float = 0.003
-    fts: str = "fts"
+    fts: str | None = "fts"  # tsquery from FTS_SQL replacing the app's; None keeps the app's
     model: str | None = None  # main model override
 
 
 # "tuned" is the best retrieval setting from retrieval_eval plus the abstention threshold
 # that separates out-of-corpus questions from every answerable one.
-TUNED = E2EConfig(candidates=60, top_k=12, min_score=0.2)
+TUNED = E2EConfig(candidates=60, top_k=12)
 CONFIGS = {
     "baseline": E2EConfig(),
     "tuned": TUNED,
     "current": E2EConfig(
         candidates=search.RETRIEVAL_CANDIDATES,
         top_k=search.RERANK_TOP_K,
-        min_score=search.RERANK_MIN_SCORE,
+        fts=None,
     ),
     "tuned_fts_or": dataclasses.replace(TUNED, fts="fts_or"),
     "tuned_haiku": dataclasses.replace(TUNED, model="claude-haiku-4-5-20251001"),
@@ -116,8 +114,40 @@ def run_question(q: Question, provider: LLMProvider, cfg: E2EConfig) -> dict[str
             elif event.type == "error":
                 answer = {"status": "error", "answer": event.data["message"], "citations": []}
         ids = report_keys(db)
+        retrieved = [
+            {"report_id": c.report_id, "page": c.page, "content": c.content}
+            for c in _chunks(db, answer.get("meta", {}).get("retrieved_chunks", []))
+        ]
     stages["total"] = round(time.perf_counter() - start, 2)
-    return {"id": q.id, "answer": answer, "stages": stages, "ids": ids, "mark": mark}
+    return {
+        "id": q.id,
+        "answer": answer,
+        "stages": stages,
+        "ids": ids,
+        "mark": mark,
+        "retrieved": retrieved,
+    }
+
+
+def _chunks(db, chunk_ids: list[str]) -> list[Chunk]:  # noqa: ANN001
+    by_id = {c.id: c for c in db.query(Chunk).filter(Chunk.id.in_(chunk_ids)).all()}
+    return [by_id[cid] for cid in chunk_ids if cid in by_id]
+
+
+def retrieval_metrics(q: Question, run: dict[str, Any]) -> dict[str, Any]:
+    """What the real pipeline retrieved for this question: did a chunk land on a gold page,
+    are all key facts in the retrieved text of the gold reports."""
+    if not q.answerable:
+        return {"retrieved_gold_page": None, "retrieved_facts": None}
+    ids = run["ids"]
+    gold_reports = {ids[key] for key in q.reports}
+    gold_pages = {(ids[e["report"]], e["page"]) for e in q.evidence}
+    retrieved = run["retrieved"]
+    text = " ".join(normalize(c["content"]) for c in retrieved if c["report_id"] in gold_reports)
+    return {
+        "retrieved_gold_page": any((c["report_id"], c["page"]) in gold_pages for c in retrieved),
+        "retrieved_facts": all(normalize(f) in text for f in q.key_facts) if q.key_facts else None,
+    }
 
 
 class Judgement(BaseModel):
@@ -193,9 +223,9 @@ def evaluate(name: str, limit: int | None, workers: int) -> dict[str, Any]:
     patches = [
         mock.patch.object(search, "RETRIEVAL_CANDIDATES", cfg.candidates),
         mock.patch.object(search, "RERANK_TOP_K", cfg.top_k),
-        mock.patch.object(chat_pipeline, "RERANK_MIN_SCORE", cfg.min_score),
-        mock.patch.object(search, "fulltext_search", _fulltext(cfg.fts)),
     ]
+    if cfg.fts:
+        patches.append(mock.patch.object(search, "fulltext_search", _fulltext(cfg.fts)))
     with ExitStack() as stack:
         for patch in patches:
             stack.enter_context(patch)
@@ -222,8 +252,10 @@ def evaluate(name: str, limit: int | None, workers: int) -> dict[str, Any]:
                 "gold": q.answer,
                 "answer": run["answer"].get("answer"),
                 "query": run["answer"].get("meta", {}).get("standalone_question"),
-                "best_rerank_score": run["answer"].get("meta", {}).get("best_rerank_score"),
+                "best_score": run["answer"].get("meta", {}).get("best_score"),
                 **deterministic(q, run["answer"], run["ids"]),
+                **retrieval_metrics(q, run),
+                "retrieved_chunks": len(run["retrieved"]),
                 "judge": verdict.model_dump(),
                 "cited": [
                     {
@@ -261,6 +293,10 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "correct_or_partial": share(
                 group, lambda r: r["judge"]["correctness"] in ("correct", "partial")
             ),
+            "retrieved_facts": share(
+                [r for r in group if r.get("retrieved_facts") is not None],
+                lambda r: r["retrieved_facts"],
+            ),
         }
     return {
         "summary": {
@@ -278,6 +314,11 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 lambda r: r["facts_in_answer"],
             ),
             "cited_gold_page": share(answerable, lambda r: r["cited_gold_page"]),
+            "retrieved_gold_page": share(answerable, lambda r: r["retrieved_gold_page"]),
+            "retrieved_facts": share(
+                [r for r in answerable if r["retrieved_facts"] is not None],
+                lambda r: r["retrieved_facts"],
+            ),
             "unanswerable_abstained": share(unanswerable, lambda r: r["abstained"]),
             "unanswerable_correct": share(
                 unanswerable, lambda r: r["judge"]["correctness"] == "correct"

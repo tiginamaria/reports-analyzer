@@ -1,0 +1,165 @@
+# Query rewrite cases: the conversation and latest question the small model gets, and the
+# subqueries it should produce. Mirrors tests/test_query_rewrite.py, which runs them against
+# the configured small model (integration). `history` is a list of [question, answer] pairs;
+# `expected` lists [company, fiscal_year] per subquery, in any order, with null for
+# "not stated". Company keys: abnamro, asml, cmcom, heineken, shell.
+
+# --- company and year named only in an old question ------------------------------------------
+# The rewrite sees every earlier question and only the answers within the last
+# REWRITE_ANSWER_MESSAGES (6) messages, so a company and year named once, many turns back,
+# survive.
+
+- name: context_named_only_in_an_old_question_is_resolved
+  # Only the first question names ASML and 2024; the terse answers never repeat them.
+  history:
+    - ["How many FTEs did ASML have at the end of 2024?", "44,027 FTEs at year-end 2024."]
+    - ["And the net sales?", "EUR 28.3 billion."]
+    - ["Net income?", "EUR 7.6 billion."]
+    - ["And the dividend?", "EUR 6.40 per share."]
+  question: What about their CO2 emissions?
+  expected:
+    - [asml, 2024]
+  standalone_mentions: [asml]
+
+- name: context_repeated_in_answers_is_resolved
+  history:
+    - ["How many FTEs did ASML have at the end of 2024?", "ASML had 44,027 FTEs at year-end 2024."]
+    - ["And the net sales?", "ASML's net sales were EUR 28.3 billion in 2024."]
+    - ["Net income?", "ASML's net income was EUR 7.6 billion in 2024."]
+    - ["And the dividend?", "ASML paid a dividend of EUR 6.40 per share for 2024."]
+  question: What about their CO2 emissions?
+  expected:
+    - [asml, 2024]
+  standalone_mentions: [asml]
+
+- name: follow_up_resolves_company_and_year_from_the_last_turns
+  history:
+    - ["What is ABN AMRO's CET1 ratio in 2025?", "ABN AMRO's CET1 ratio was 14.5% in 2025."]
+  question: And how many employees did they have?
+  expected:
+    - [abnamro, 2025]
+
+# --- companies and years are not mixed ------------------------------------------------------
+
+- name: each_company_keeps_its_own_year
+  history: []
+  question: Compare ASML's net sales in 2025 with ABN AMRO's net profit in 2024.
+  expected:
+    - [abnamro, 2024]
+    - [asml, 2025]
+
+- name: follow_up_switching_company_and_year_drops_the_old_ones
+  history:
+    - ["How many FTEs did ASML have in 2025?", "ASML had 44,209 FTEs at the end of 2025."]
+  question: And ABN AMRO in 2024?
+  expected:
+    - [abnamro, 2024]
+
+- name: comparison_follow_up_carries_the_year_to_the_new_company
+  history:
+    - ["How many FTEs did ASML have in 2025?", "ASML had 44,209 FTEs at the end of 2025."]
+  question: How does that compare to CM.com?
+  expected:
+    - [asml, 2025]
+    - [cmcom, 2025]
+
+# --- one report, one subquery per topic -----------------------------------------------------
+
+- name: each_metric_of_one_report_gets_its_own_subquery
+  history: []
+  question: >-
+    What were ASML's net sales, net income, number of employees, Scope 1 and 2 emissions
+    and dividend per share in 2025?
+  expected:
+    - [asml, 2025]
+    - [asml, 2025]
+    - [asml, 2025]
+    - [asml, 2025]
+    - [asml, 2025]
+
+# The same three asks (FTEs, climate goals, CET1 ratio) joined in different ways: one
+# subquery per ask, every one keeping ABN AMRO and 2025. The model tends to write
+# "What are ABN AMRO's climate goals?" without the year; SubQuery.search_text adds it back.
+- name: several_asks_about_one_report_give_one_subquery_each
+  history: []
+  questions:
+    - How many FTEs did ABN AMRO have in 2025 and what are its climate goals and what was its CET1 ratio?
+    - How many FTEs did ABN AMRO have in 2025, what are its climate goals, and what was its CET1 ratio?
+    - "Tell me about ABN AMRO in 2025: how many FTEs did it have, what are its climate goals and what was its CET1 ratio?"
+    - What were ABN AMRO's FTEs and CET1 ratio in 2025, and what are its climate goals?
+    - Tell me about ABN AMRO in 2025. How many FTEs did it have? What are its climate goals? And what was its CET1 ratio?
+  expected:
+    - [abnamro, 2025]
+    - [abnamro, 2025]
+    - [abnamro, 2025]
+
+- name: follow_ups_about_the_same_report_inherit_its_company_and_year
+  history:
+    - ["What were ASML's net sales in 2025?", "ASML's net sales were EUR 32.7 billion in 2025."]
+  question: And its net income, R&D costs and headcount?
+  expected:
+    - [asml, 2025]
+    - [asml, 2025]
+    - [asml, 2025]
+
+# --- all companies, all years ---------------------------------------------------------------
+
+- name: question_about_all_companies_names_none
+  history: []
+  question: Which companies have a net zero target?
+  expected:
+    - [null, null]
+
+- name: every_named_company_gets_one_subquery
+  history: []
+  question: Compare the 2025 headcount of ABN AMRO, ASML, CM.com, Heineken and Shell.
+  expected:
+    - [abnamro, 2025]
+    - [asml, 2025]
+    - [cmcom, 2025]
+    - [heineken, 2025]
+    - [shell, 2025]
+
+- name: question_about_all_years_names_none
+  history: []
+  question: How has ASML's workforce developed over the years?
+  expected:
+    - [asml, null]
+
+- name: target_year_is_not_a_fiscal_year
+  # One topic (emission targets), or at most one subquery per target; never 2030 as the year.
+  history: []
+  question: What are Shell's emission targets for 2030 and 2050?
+  expected:
+    - [shell, null]
+  max_subqueries: 2
+
+- name: two_years_give_two_subqueries
+  history: []
+  question: How did ASML's net sales change from 2024 to 2025?
+  expected:
+    - [asml, 2024]
+    - [asml, 2025]
+
+# --- how many subqueries one question can give ----------------------------------------------
+
+- name: companies_times_years_give_the_full_grid
+  history: []
+  question: Compare the FTEs of ABN AMRO, ASML and CM.com in 2024 and 2025.
+  expected:
+    - [abnamro, 2024]
+    - [abnamro, 2025]
+    - [asml, 2024]
+    - [asml, 2025]
+    - [cmcom, 2024]
+    - [cmcom, 2025]
+
+- name: a_very_wide_question_still_gives_a_query
+  # 5 companies x 11 years. The prompt asks for at most 10 subqueries and _retrieve_all cuts
+  # to MAX_SUBQUERIES anyway; whatever comes back, the chat needs a usable query. On
+  # 2026-10-17 the model gave one subquery per company with the year left open.
+  history: []
+  question: >-
+    List the FTEs of ABN AMRO, ASML, CM.com, Heineken and Shell for every year
+    from 2015 to 2025.
+  expected: any

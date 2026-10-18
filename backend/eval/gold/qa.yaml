@@ -958,3 +958,124 @@ qa:
   evidence: []
   history: []
   notes: Out of corpus.
+# Multi-metric questions: several figures of one report in one sentence, each from a different
+# section. They exercise the rewrite's split into one search per topic; the facts and quotes are
+# those of the single-metric questions above.
+- id: abn-2025-multi-cet1-ci-women
+  question: For 2025, what were ABN AMRO's CET1 ratio, its cost/income ratio and the share of women in senior management?
+  type: multimetric
+  modality: mixed
+  reports:
+  - abn-2025
+  answer: CET1 ratio 15.4% at year-end 2025; cost/income ratio 64.4%; 31% women at senior management level (Hay 14 or higher), below the 35% target.
+  key_facts:
+  - '15.4'
+  - '64.4'
+  - '31%'
+  evidence:
+  - report: abn-2025
+    page: 36
+    quote: This resulted in a CET1 ratio of 15.4% at year-end, compared with our 2026 target of 13.5%.
+  - report: abn-2025
+    page: 47
+    quote: Net interest margin (NIM) (in bps) 152 164 Cost/income ratio 64.4 % 61.7 %
+  - report: abn-2025
+    page: 32
+    quote: Women at senior management level (Hay 14 or higher) 31% 31% 35%
+  history: []
+  notes: Capital, key figures and people sections. Same traps as the single questions; solo CET1 14.6%, Extended Leadership Team 34%.
+- id: abn-2024-multi-fte-eps-sustainable
+  question: How many internal FTEs did ABN AMRO have at the end of 2024, what were its earnings per share, and what share of its assets counted as sustainability asset volume?
+  type: multimetric
+  modality: mixed
+  reports:
+  - abn-2024
+  answer: '21,976 internal FTEs at end-2024; EUR 2.72 earnings per share; 37% sustainability (acceleration) asset volume (target 36%).'
+  key_facts:
+  - '21,976'
+  - '2.72'
+  - '37%'
+  evidence:
+  - report: abn-2024
+    page: 46
+    quote: Number of internal employees (end of period, in FTEs) 21,976 20,872
+  - report: abn-2024
+    page: 43
+    quote: Key indicators per share (EUR) Earnings per share¹ 2.72 2.99
+  - report: abn-2024
+    page: 29
+    quote: Total sustainability (acceleration) asset volume 36% 32% 37% 34%
+  history: []
+  notes: 'Traps as in the single questions: company-only FTE 18,725; 36% is the target, not the result.'
+- id: asml-2025-multi-income-euv-backlog
+  question: What were ASML's net income, the number of EUV systems it recognized in sales, and its order backlog at the end of 2025?
+  type: multimetric
+  modality: mixed
+  reports:
+  - asml-2025
+  answer: Net income EUR 9,609.4 million; 48 EUV systems recognized (4 EXE and 44 NXE); backlog of EUR 38.8 billion.
+  key_facts:
+  - '9,609.4'
+  - '48'
+  - '38.8'
+  evidence:
+  - report: asml-2025
+    page: 56
+    quote: Net income for 2025 amounted to €9,609.4 million, representing 29.4% of total net sales and €24.73 basic net income per ordinary share
+  - report: asml-2025
+    page: 53
+    quote: 'EUV systems recognized (in units) 48 2024: 44'
+  - report: asml-2025
+    page: 8
+    quote: Our backlog currently stands at a healthy level of €38.8 billion
+  history: []
+  notes: Financial statements, systems table and CEO letter. '48' is a short key fact and can match unrelated text in the facts check.
+- id: asml-2024-multi-rd-emissions-fte
+  question: In 2024, how much did ASML spend on R&D, what were its scope 1 and 2 emissions, and how many FTEs did it employ at year-end?
+  type: multimetric
+  modality: mixed
+  reports:
+  - asml-2024
+  answer: R&D costs EUR 4,303.7 million (about EUR 4.3 billion); 32.8 kt CO2e scope 1 and 2 emissions; 44,027 FTEs at December 31, 2024.
+  key_facts:
+  - '4,303.7'
+  - '32.8'
+  - '44,027'
+  evidence:
+  - report: asml-2024
+    page: 57
+    quote: R&D costs were €4,303.7 million in 2024 compared with €3,980.6 million in 2023
+  - report: asml-2024
+    page: 194
+    quote: 32.8 kt 12.0 Mt Scope 1 and 2 CO2e emissions Scope 3 CO2e emissions
+  - report: asml-2024
+    page: 358
+    quote: Research and Development 14,181 15,604 15,992 Total 39,086 42,416 44,027
+  - report: asml-2024
+    page: 6
+    quote: 12.0 Mt 44,027 Total employees (FTEs) 86% Customer satisfaction
+  history: []
+  notes: The key-figures page (p6) states all three in rounded form, so one chunk can answer it; the other pages are the detailed sources. Rounded 4.3bn and 33 kt acceptable.
+- id: cm-2025-multi-ebitda-arr-ghg
+  question: What were CM.com's adjusted EBITDA, its annual recurring revenue and its market-based greenhouse gas emissions in 2025?
+  type: multimetric
+  modality: mixed
+  reports:
+  - cm-2025
+  answer: Adjusted EBITDA EUR 19.8 million; ARR EUR 35.9 million at year-end; 271 tCO2e market-based emissions (scope 1 and 2).
+  key_facts:
+  - '19.8'
+  - '35.9'
+  - '271'
+  evidence:
+  - report: cm-2025
+    page: 16
+    quote: Operating result, Adjusted EBITDA 19.8 18.1 (0.9) (22.3) (3.7)
+  - report: cm-2025
+    page: 2
+    quote: Annual recurring revenue (ARR)* 2025 € 35.9m
+  - report: cm-2025
+    page: 73
+    quote: Total GHG emissions (market-based) 271 288 370 (27%)
+  history: []
+  notes: 'Traps as in the single questions: reported EBITDA 18.4; location-based emissions 666 tCO2e.'

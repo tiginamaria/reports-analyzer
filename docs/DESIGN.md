@@ -129,26 +129,51 @@ blocking (database, local models, LLM calls), so it runs in a worker thread and 
 to the event loop through a queue.
 
 1. **Query analysis**. The small model rewrites the latest question so it stands alone
-   (pronouns and "that year" resolved from the conversation) and names the companies and the
-   fiscal year it refers to. If the call fails the raw question is used.
-2. **Scope**. Only indexed reports (`ready` or still `extracting`) are searched. An explicit
-   report filter from the sidebar wins and is never widened: if it matches no indexed report
-   the answer abstains. Without a filter, the company and year from the analysis narrow the
-   set when they match something (loose match, so "shell" finds "Shell plc").
-3. **Hybrid retrieval** (`retrieval/search.py`). pgvector cosine search and Postgres full-text
-   search (`websearch_to_tsquery`) each return 60 candidates, merged with Reciprocal Rank
-   Fusion (k = 60). Full-text search is meant for exact terms such as "FTE" or "Scope 3", but
-   as an all-terms query it matches nothing for about half of real questions (see
-   [MVP_EVAL.md](MVP_EVAL.md)).
-4. **Rerank** with the cross-encoder to the top 12. If the best score is below 0.2 the
-   reports probably do not cover the topic; the pipeline answers "not stated in the report"
-   without calling the main model. Both values were chosen on the eval set: 60 candidates and
-   12 chunks raised correct answers from 88% to 93%, and 0.2 lies between every answerable
-   question (0.95 or higher) and questions about companies outside the corpus.
-5. **Generate**. The main model gets the conversation as real turns, the most recent whole
-   exchanges that fit a 3,000-token budget, with this question's chunks in the final user
-   message only. Earlier turns carry question and answer text, never their chunks, so each
-   answer is grounded in and verified against this turn's evidence. The reply is structured:
+   (pronouns and "that year" resolved from the conversation) and splits it into sub-queries.
+   It sees every earlier question (the last 30) but answers only from the last six messages:
+   questions are short and carry the company and year a follow-up refers to, often many
+   turns back, while answers are long and only matter for what was just said. The raw
+   questions are used rather than their earlier rewrites, so a wrong rewrite never feeds
+   later ones. The split is
+   one per company, fiscal year and topic it asks about: one for a simple question, two for
+   "ASML vs ABN AMRO headcount", "ASML net sales 2024 vs 2025" or "ASML's net sales and
+   headcount in 2025". A sub-query is a company, a fiscal year (of the annual report to
+   search, never a target year such as "by 2030") and a standalone English question about one
+   topic. The model picks company and year before it writes the question, and retrieval
+   searches the question with a missing company or year appended, so every search names the
+   report it is about without relying on the model's phrasing. At most 10 sub-queries are
+   searched, each keeping its own top chunks, so no topic is crowded out by another's
+   scores; the merged context is bounded by that cap. If the call fails the raw question is
+   searched as one query.
+2. **Scope**. Every sub-query searches every indexed report (`ready` or still `extracting`;
+   the searches themselves skip chunks of other reports) and relies on the chunk headers,
+   which name company and year, to find the right one. An explicit report filter from the
+   sidebar narrows this and is never widened: if it matches no indexed report, the searches
+   find nothing and the answer is "not stated". Filtering by the sub-query's
+   company and year was measured as better (gold page in the context 0.98 vs 0.90, chunks from
+   the right report 100% vs 83%) but fails silently on an unknown company or a wrong year; it
+   is left out for now (see [PLAN.md](PLAN.md)).
+3. **Hybrid retrieval** (`retrieval/search.py`), per sub-query. pgvector cosine search and
+   Postgres full-text search on the sub-query's search text (its question, with the company
+   or year appended if the question lacks them) each return 60 candidates, merged with
+   Reciprocal Rank Fusion (k = 60). Full-text search matches any word of the question
+   (`plainto_tsquery` with its ANDs turned into ORs, so text is never parsed as search
+   syntax). An all-words query, as in the MVP, matched nothing for about half of real
+   questions ([MVP_EVAL.md](MVP_EVAL.md)).
+4. **Rerank** each sub-query's candidates with the cross-encoder, drop chunks scoring below
+   0.2 and keep the top 8 of the rest; the sub-queries' chunks are merged, a chunk found
+   twice kept once. The floor removes what a sub-query about a company outside the corpus
+   would otherwise contribute: in the eval such questions scored 0.10 to 0.18 while every
+   answerable question's best chunk scored 0.95 or more. If nothing is left, or nothing
+   could be searched (no report ready, or none of the selected ones), the pipeline answers
+   "not stated in the report" without calling the main model, saying which of the two it
+   was. Plausible questions the reports do not answer score high anyway, so the model
+   decides those: in the eval it said so for every one.
+5. **Generate**. The main model gets the whole conversation as real turns, with this
+   question's chunks in the final user message only. Earlier turns carry question and answer
+   text, never their chunks, so each answer is grounded in and verified against this turn's
+   evidence; sending them all keeps the prefix append-only, so the provider's prompt cache
+   serves it. The reply is structured:
    status (`answered`, `partial`, `not_found`), answer text, citations with chunk id and quote.
 6. **Verify** every citation. A citation of a chunk the model was never given fails. If an
    `answered` reply has no citation left that is verified or fuzzy, it is downgraded to
@@ -177,7 +202,7 @@ What the status does:
 | Where | `verified` | `fuzzy` | `failed` |
 |---|---|---|---|
 | Chat citation | Green badge | Amber badge, counts as support | Struck through, counted in `dropped_citations` |
-| Chat answer | | | An `answered` reply with no verified or fuzzy citation becomes `not_found` |
+| Chat answer | | | An `answered` reply with no verified or fuzzy citation becomes `not_found`, and its text is replaced by "not stated in the report" (the original is kept in `meta.unverified_answer`) |
 | Datapoint | Stored and shown with a badge | Same, with a warning badge | Still stored and shown, with a red badge |
 
 What it guarantees and what it does not:

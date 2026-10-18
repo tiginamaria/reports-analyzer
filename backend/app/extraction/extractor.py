@@ -142,7 +142,9 @@ def _candidate_hits(db: Session, report: Report, spec: DatapointSpec) -> list[Hi
     per_query = max(4, spec.top_k // len(spec.queries) + 2)
     best_by_chunk: dict[str, Hit] = {}
     for query in spec.queries:
-        for hit in retrieve(db, query, report_ids=[report.id], top_k=per_query):
+        # no score floor: the report is known to be the right one, and goal recall needs
+        # every candidate it can get
+        for hit in retrieve(db, query, report_ids=[report.id], top_k=per_query, min_score=0.0):
             current = best_by_chunk.get(hit.chunk.id)
             if current is None or current.score < hit.score:
                 best_by_chunk[hit.chunk.id] = hit
