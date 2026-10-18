@@ -14,7 +14,7 @@ The registry runs as it is; an experiment overrides its tunable fields for every
 
     uv run python -m eval.extraction_eval                        # the registry as it is
     uv run python -m eval.extraction_eval --stored               # what ingestion wrote, no calls
-    uv run python -m eval.extraction_eval --top-k 48 --batch-size 12
+    uv run python -m eval.extraction_eval --top-k 48
     uv run python -m eval.extraction_eval --keys sustainability_goal --top-k 24
 
 Nothing is written to the database: each report's extraction is rolled back.
@@ -59,7 +59,7 @@ SCALES = {
     "bn": 1e9,
 }
 ACCEPTABLE = {"exact", "alternative", "none"}  # outcomes that count as a correct extraction
-OVERRIDABLE = ("top_k", "candidates", "min_score", "per_query", "batch_size")
+OVERRIDABLE = ("top_k", "candidates", "min_score", "per_query")
 
 # --- running one registry entry -------------------------------------------------------------
 
@@ -464,7 +464,6 @@ def main() -> None:
     group.add_argument("--candidates", type=int, help="chunks each search fetches for reranking")
     group.add_argument("--min-score", type=float, help="reranker floor for candidates")
     group.add_argument("--per-query", type=int, help="chunks kept per retrieval query")
-    group.add_argument("--batch-size", type=int, help="chunks per model call (multi-value)")
     parser.add_argument("--tag", help="result file suffix (default: the overridden fields)")
     args = parser.parse_args()
     overrides = {f: getattr(args, f) for f in OVERRIDABLE if getattr(args, f) is not None}

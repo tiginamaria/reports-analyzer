@@ -6,9 +6,9 @@ that were pre-extracted at ingestion (FTE, revenue, net profit, dividend per sha
 sustainability goals). Every answer and every
 datapoint carries a verbatim quote that is checked, in code, against the PDF text.
 
-Design, pipeline details, alternatives and risks: [docs/MVP_DESIGN.md](docs/MVP_DESIGN.md).
+Design, pipeline details, alternatives and risks: [docs/DESIGN.md](docs/DESIGN.md).
 Done and todo, by area: [docs/PLAN.md](docs/PLAN.md).
-Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/MVP_EVAL.md).
+Evaluation of every stage, with results and improvements: [docs/EVAL.md](docs/EVAL.md).
 
 ## What it does
 
@@ -25,12 +25,14 @@ Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/M
 
 **Chat** ([pipeline.py](backend/app/chat/pipeline.py), SSE endpoint in [chat.py](backend/app/api/chat.py))
 
-1. Query analysis: company, fiscal year, follow-up rewriting:
-   [pipeline.py](backend/app/chat/pipeline.py)
-2. Hybrid retrieval: vector + full-text search fused with Reciprocal Rank Fusion:
-   [search.py](backend/app/retrieval/search.py)
-3. Cross-encoder reranking, abstain below a score threshold:
-   [embedder.py](backend/app/retrieval/embedder.py)
+1. Query rewriting: the small model turns the question and the conversation into a
+   standalone question and one sub-query per company, fiscal year and topic, so a
+   comparison searches each side separately:
+   [pipeline.py](backend/app/chat/pipeline.py), [schemas.py](backend/app/chat/schemas.py)
+2. Hybrid retrieval per sub-query: vector + full-text search fused with Reciprocal Rank
+   Fusion: [search.py](backend/app/retrieval/search.py)
+3. Cross-encoder reranking, abstain below a score threshold; the sub-queries' chunks are
+   merged: [embedder.py](backend/app/retrieval/embedder.py)
 4. Structured answer generation with a quote and chunk id per claim. The whole conversation
    is sent as real turns, with this question's chunks in the last message only; the system
    prompt and earlier turns are served from the provider's prompt cache:
@@ -126,9 +128,10 @@ curl -F "files=@data/reports/shell-annual-report-2025.pdf" localhost:8000/api/re
 
 Ingestion runs in the background with a progress bar: parse, chunk, embed, then extract the
 registry datapoints (FTE, revenue, net profit, dividend per share, sustainability goals) with
-the LLM. A 400-page report takes about 2 minutes on an M-series Mac and 10 to 15 minutes on
-CPU in Docker. The sample set in `data/reports/SOURCES.md` lists
-where the five example reports came from.
+the LLM. A report takes 2 to 4.5 minutes on an M-series Mac (half of it the extraction
+calls) and 10 to 15 minutes on CPU in Docker. `data/reports/` holds eight sample reports
+(ABN AMRO, ASML and CM.com for 2024 and 2025, Shell and Heineken for 2025);
+`data/reports/SOURCES.md` lists where they came from.
 
 ### Provider options
 
@@ -190,7 +193,7 @@ make lint     # ruff, mypy, tsc
 ```
 
 **Parser quality** has its own dataset: `backend/tests/fixtures/pdf/` holds 26 pages cut from
-the five real reports (financial tables, five-year tables, infographics, two-column text,
+the real reports (financial tables, five-year tables, infographics, two-column text,
 pages with navigation bars), labelled in `backend/tests/fixtures/parsing.yaml` with text that
 must be recovered, table cells that must land in a table, pages without tables, and
 reading-order pairs. `test_parser_quality.py` holds
@@ -202,6 +205,22 @@ cd backend && uv run python -m tests.parsing_quality
 
 prints the full scorecard with every failing label. Current scores: text, table cells,
 false tables and reading order all at 1.00.
+
+## Evaluation
+
+[docs/EVAL.md](docs/EVAL.md) evaluates every stage on six reports (ABN AMRO, ASML, CM.com,
+fiscal years 2024 and 2025), 57 gold questions and labelled datapoints, with
+`claude-opus-5-5` as judge. Headline results:
+
+| Stage | Result |
+|---|---|
+| Answers | 91% of answerable questions correct, 96% correct or partial, 0 incorrect; all 11 unanswerable questions handled, 0 hallucinations; 106/106 citations verified verbatim; 7.5 s median, 1.8 cents per question |
+| Retrieval | A gold page among the retrieved chunks for 96% of questions; 79% of chunks from the right company and year |
+| Extraction | FTE, revenue, net profit and dividend right or a defensible alternative for every report but one missing revenue, none wrong; sustainability goals recall 0.56, precision 0.97 |
+| Ingestion | Company and year detected 6/6; 2,073 pages in 19 minutes and $1.01 |
+
+The harness and how to rerun it or run a parameter experiment:
+[backend/eval/README.md](backend/eval/README.md).
 
 ## Project layout
 
@@ -223,10 +242,11 @@ frontend/src
 
 ## Limitations
 
-- Charts and infographics are not read; only text and tables that PyMuPDF recovers.
-  Chunking is deliberately simple: fixed windows with overlap and no section structure.
-  A golden question set with retrieval and answer metrics is the missing piece that would
-  tell whether heading-based sections or a layout-aware parser earn their complexity.
-- Verification proves a quote exists; it does not prove the model read it correctly.
-- Comparison questions across many companies rely on a single retrieval pass with the
-  company filter removed; an agentic multi-search loop is the natural next step.
+- Charts and infographics are not read; only text and tables that PyMuPDF recovers. CM.com's
+  key-figures page is one, which costs its year-end FTE and revenue in extraction.
+- A sub-query names its company and year in the search text but does not filter by them, so
+  about one retrieved chunk in five is from the other year of the same company.
+- Sustainability goals are extracted from 32 candidate chunks per report; goals on pages the
+  six queries do not reach are missed (recall 0.56).
+- Verification proves a quote exists; it does not prove the model read it correctly, and a
+  figure the answer adds without quoting it is not checked.

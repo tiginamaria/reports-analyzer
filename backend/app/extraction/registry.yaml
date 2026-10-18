@@ -16,7 +16,6 @@
 # max_tokens:   output budget of the model call
 # per_query:    chunks kept from each retrieval query before the union is cut to top_k
 # candidates:   chunks each search fetches for reranking
-# batch_size:   multi-value entries only: chunks per model call (default: all in one call)
 
 - key: fte
   label: Employees (FTE)
@@ -95,7 +94,6 @@
   label: Sustainability goals
   multi: true
   top_k: 32
-  batch_size: 8
   queries:
     - "sustainability targets and goals net zero emissions reduction target year"
     - "climate ambition scope 1 2 3 emissions reduction target by 2030 baseline"

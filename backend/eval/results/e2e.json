@@ -1,0 +1,2689 @@
+{
+  "params": {
+    "candidates": 60,
+    "top_k": 8,
+    "min_score": 0.2,
+    "rrf_k": 60,
+    "search": "hybrid",
+    "rerank": true,
+    "max_subqueries": 10,
+    "model": "claude-sonnet-5-5"
+  },
+  "usage": {
+    "calls": 113,
+    "input_tokens": 497359,
+    "output_tokens": 22506,
+    "llm_seconds": 226.01,
+    "cost_usd": 1.0346
+  },
+  "summary": {
+    "n": 57,
+    "answer_correct": 0.913,
+    "answer_correct_or_partial": 0.957,
+    "answer_incorrect": 0.0,
+    "false_abstention": 0.043,
+    "cited_gold_page": 0.87,
+    "retrieved_gold_page": 0.957,
+    "unanswerable_correct": 1.0,
+    "hallucinated_on_unanswerable": 0.0,
+    "grounded": 0.842,
+    "citations_per_answer": 1.86,
+    "citation_verified": 1.0,
+    "citation_fuzzy": 0.0,
+    "citation_failed": 0.0,
+    "latency_p50_s": 7.47,
+    "latency_p90_s": 15.38,
+    "stage_p50_s": {
+      "analyzing": 1.08,
+      "retrieving": 3.77,
+      "generating": 2.37
+    }
+  },
+  "by_type": {
+    "comparison": {
+      "n": 8,
+      "correct": 1.0,
+      "correct_or_partial": 1.0,
+      "retrieved_gold_page": 1.0
+    },
+    "factoid": {
+      "n": 30,
+      "correct": 0.9,
+      "correct_or_partial": 0.933,
+      "retrieved_gold_page": 0.933
+    },
+    "followup": {
+      "n": 3,
+      "correct": 1.0,
+      "correct_or_partial": 1.0,
+      "retrieved_gold_page": 1.0
+    },
+    "multimetric": {
+      "n": 5,
+      "correct": 0.8,
+      "correct_or_partial": 1.0,
+      "retrieved_gold_page": 1.0
+    },
+    "unanswerable": {
+      "n": 11,
+      "correct": 1.0,
+      "correct_or_partial": 1.0,
+      "retrieved_gold_page": null
+    }
+  },
+  "rows": [
+    {
+      "id": "abn-2025-cet1",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How strong was ABN AMRO's core capital position (CET1) at year-end 2025?",
+      "gold": "CET1 ratio of 15.4% at year-end 2025 (Basel IV)",
+      "answer": "ABN AMRO's CET1 ratio was 15.4% at 31 December 2025, up from 14.5% at 31 December 2024. It sits well above the maximum distributable amount (MDA) trigger level of 11.2%. The improvement came from a EUR 5.5 billion decrease in risk-weighted assets, mainly lower credit risk RWA, and from higher CET1 capital. The year-end ratio already reflects the additional distributions: a EUR 250 million cash dividend and a EUR 250 million share buyback, the latter pending regulatory approval. The bank's CET1 target under its updated capital framework is a ratio above 13.75%.",
+      "query": "How strong was ABN AMRO's core capital position (CET1) at year-end 2025?",
+      "best_score": 0.9994788765907288,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 5,
+      "verified": 5,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The answer gives the expected group CET1 ratio of 15.4% at year-end 2025. Most supporting figures appear in the cited quotes: 14.5% prior year, the 11.2% MDA trigger, the EUR 5.5bn RWA decrease and the 13.75% target. However, the EUR 250 million cash dividend and EUR 250 million share buyback figures appear in none of the cited quotes, so the answer is not fully grounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 57,
+          "quote": "As at 31 December 2025, the Common Equity Tier 1 (CET1), Tier 1 and total capital ratios were 15.4%, 17.8% and 20.9% respectively (31 December 2024: 14.5%, 16.9% and 20.2% respectively)."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 120,
+          "quote": "The reported CET1 ratio of 15.4% is well above the MDA trigger level of 11.2%."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 119,
+          "quote": "The EUR 5.5 billion decrease in RWA was mainly reflected by a significant decrease of EUR 6.6 billion in credit risk RWA."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 41,
+          "quote": "Our year-end CET1 capital ratio already takes into account the additional distributions."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 121,
+          "quote": "Our target is a CET1 ratio above 13.75%, reflecting our regulatory requirements."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.95,
+        "retrieving": 4.01,
+        "generating": 4.36,
+        "total": 10.34
+      }
+    },
+    {
+      "id": "abn-2025-cost-income",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What cost/income ratio did ABN AMRO report for 2025?",
+      "gold": "64.4% in 2025 (2024: 61.7%)",
+      "answer": "ABN AMRO reported a cost/income ratio of 64.4% for 2025, up from 61.7% in 2024.",
+      "query": "What cost/income ratio did ABN AMRO report for 2025?",
+      "best_score": 0.9997363686561584,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer states 64.4% for 2025 and 61.7% for 2024, which matches the gold answer. Both figures appear in the cited p47 key figures quote."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 47,
+          "quote": "Cost/income ratio\n 64.4 %\n 61.7 %"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 36,
+          "quote": "The cost/ income ratio amounted to 64.4%, compared with our 2026 target of around 60%."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.03,
+        "retrieving": 3.58,
+        "generating": 1.98,
+        "total": 6.6
+      }
+    },
+    {
+      "id": "abn-2025-new-ceo",
+      "type": "factoid",
+      "modality": "text",
+      "question": "Who became the new CEO of ABN AMRO in 2025, and whom did she replace?",
+      "gold": "Marguerite Bérard, who succeeded Robert Swaak as CEO at the AGM on 23 April 2025",
+      "answer": "Marguerite Bérard became CEO and Chair of the Executive Board of ABN AMRO, effective 23 April 2025. She replaced Robert Swaak, who stepped down as an Executive Board member on 23 April 2025.",
+      "query": "Who became the new CEO of ABN AMRO in 2025, and whom did she replace?",
+      "best_score": 0.9995099306106567,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": false,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer names Marguerite Bérard as the new CEO effective 23 April 2025, replacing Robert Swaak, which matches the gold answer. The quotes support Bérard's appointment and the date. They also show R.A.J. Swaak stepping down on 23 April 2025. The full name 'Robert' and the label 'Executive Board member' are reasonable inferences rather than verbatim quote content, but the answer adds no unsupported figures."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 146,
+          "quote": "Marguerite Bérard was appointed as CEO and Chair of the Executive Board of ABN AMRO, effective 23 April 2025."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 379,
+          "quote": "R.A.J. Swaak (stepped down on 23 April 2025 and left with effect from 1 November 2025)"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 165,
+          "quote": "On 10 January 2025, ABN AMRO announced that it intends to propose Marguerite Bérard as the new CEO from 23 April 2025, subject to regulatory approval."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.31,
+        "retrieving": 7.23,
+        "generating": 2.61,
+        "total": 11.17
+      }
+    },
+    {
+      "id": "abn-2025-renewable-financing",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How much renewable energy financing had ABN AMRO provided by the end of 2025?",
+      "gold": "EUR 5.8 billion by end-2025 (up from EUR 5.4 billion in 2024), towards a target of EUR 8 billion by 2028 / EUR 10 billion by 2030",
+      "answer": "By the end of 2025, ABN AMRO had financed EUR 5.8 billion in renewable energy, up from EUR 5.4 billion in 2024.",
+      "query": "How much renewable energy financing had ABN AMRO provided by the end of 2025?",
+      "best_score": 0.9981673955917358,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer states the key figure of EUR 5.8 billion by end-2025 and the EUR 5.4 billion comparison for 2024, both supported by the cited quote. It omits the 2028 and 2030 targets, but those are context rather than the core figure asked for."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 30,
+          "quote": "By the end of 2025, we had financed EUR 5.8 billion in renewable energy, up from EUR 5.4 billion in 2024."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.13,
+        "retrieving": 3.77,
+        "generating": 1.74,
+        "total": 6.64
+      }
+    },
+    {
+      "id": "abn-2025-women-senior-mgmt",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What share of ABN AMRO's senior management positions were held by women in 2025?",
+      "gold": "31% of senior management (Hay 14 or higher) in 2025, below the 35% target",
+      "answer": "Women held 31% of ABN AMRO's senior management positions (Hay 14 or higher) in 2025, the same as in 2024 and below the 35% target for 2025.",
+      "query": "What share of ABN AMRO's senior management positions were held by women in 2025?",
+      "best_score": 0.9973610043525696,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives 31% for 2025 and notes that this is below the 35% target, which matches the gold answer. The quote supports 31% for 2025, 31% for 2024 and the 35% target."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 32,
+          "quote": "• Women at senior management level (Hay 14 or higher) 31% 31% 35%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.08,
+        "retrieving": 3.74,
+        "generating": 1.61,
+        "total": 6.44
+      }
+    },
+    {
+      "id": "abn-2024-cfo",
+      "type": "factoid",
+      "modality": "text",
+      "question": "Who was ABN AMRO's Chief Financial Officer during 2024?",
+      "gold": "Ferdinand Vaandrager (CFO since 16 November 2023, interim CFO from 1 May 2023)",
+      "answer": "Ferdinand Vaandrager was ABN AMRO's Chief Financial Officer during 2024. He was appointed CFO on 16 November 2023, and his current term ends at the close of the Annual General Meeting in 2027. The Executive Board still listed him as CFO when the 2024 financial statements were authorised on 11 March 2025.",
+      "query": "Who was ABN AMRO's Chief Financial Officer during 2024?",
+      "best_score": 0.9991132616996765,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The answer correctly names Ferdinand Vaandrager as CFO, appointed 16 November 2023, which matches the gold answer. The appointment date and the 2027 term end are supported by the cited quotes. However, the 11 March 2025 authorisation date appears in none of them."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 167,
+          "quote": "He was\nappointed to the Executive Board of ABN AMRO\nBank N.V. as Chief Financial Officer, effective\n16 November 2023."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 167,
+          "quote": "His current term ends at the close of ABN\nAMRO’s Annual General Meeting in 2027."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 214,
+          "quote": "Ferdinand Vaandrager, Chief Financial Officer"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.29,
+        "retrieving": 3.59,
+        "generating": 2.8,
+        "total": 7.7
+      }
+    },
+    {
+      "id": "abn-2024-internal-fte",
+      "type": "factoid",
+      "modality": "table",
+      "question": "How many internal employees (in FTEs) did ABN AMRO have at the end of 2024?",
+      "gold": "21,976 internal FTEs at end-2024 (plus 3,670 external FTEs)",
+      "answer": "ABN AMRO had 21,976 internal employees (FTEs) at the end of 2024, up from 20,872 FTEs at the end of 2023.",
+      "query": "How many internal employees (in FTEs) did ABN AMRO have at the end of 2024?",
+      "best_score": 0.9996033310890198,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives 21,976 internal FTEs at end-2024, which matches the gold answer. Both that figure and the prior-year 20,872 appear in the cited quote."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 46,
+          "quote": "Number of internal employees (end of period, in FTEs)\n21,976\n20,872"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.07,
+        "retrieving": 3.52,
+        "generating": 1.59,
+        "total": 6.19
+      }
+    },
+    {
+      "id": "abn-2024-roe-target",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What return on equity target for 2026 did ABN AMRO set out in its 2024 annual report?",
+      "gold": "A 2026 target of 9-10% return on average equity (actual 2024: 10.1%)",
+      "answer": "In its 2024 annual report, ABN AMRO set a 2026 return on average equity target of 9-10%. The actual return on average equity in 2024 was 10.1%.",
+      "query": "What return on equity target for 2026 did ABN AMRO set out in its 2024 annual report?",
+      "best_score": 0.9998623132705688,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the 2026 target of 9-10% return on average equity and the 2024 actual of 10.1%, both matching the gold answer. Both figures appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 36,
+          "quote": "Our return on average equity was 10.1% in 2024, compared with a 2026 target of 9-10%."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 18,
+          "quote": "Return on average equity 10.1% 12.2% 9-10%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.07,
+        "retrieving": 3.62,
+        "generating": 1.83,
+        "total": 6.54
+      }
+    },
+    {
+      "id": "abn-2024-sustainable-asset-volume",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?",
+      "gold": "37% in 2024 (target 36%; 2023: 34%)",
+      "answer": "ABN AMRO's total sustainability (acceleration) asset volume was 37% in 2024, up from 34% in 2023. This is measured against relevant client assets (mortgages, corporate loans and ESG + impact investments), not total balance-sheet assets. The 2024 target was 36%.",
+      "query": "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?",
+      "best_score": 0.9997121691703796,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the 2024 result of 37%, matching the gold. It also correctly reports the 2024 target of 36% and the 2023 figure of 34%, all of which appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 29,
+          "quote": "Total sustainability (acceleration) asset volume\n 36%\n 32%\n 37%\n 34%"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 29,
+          "quote": "rose from 34% to 37% in 2024"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 361,
+          "quote": "Total client assets relevant for SAS\n349,410\n35,619\n 10%\n92,400\n 26%\n128,019\n 37%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.09,
+        "retrieving": 3.79,
+        "generating": 2.55,
+        "total": 7.45
+      }
+    },
+    {
+      "id": "abn-2024-eps",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What were ABN AMRO's earnings per share for 2024?",
+      "gold": "EUR 2.72 per share in 2024 (2023: EUR 2.99)",
+      "answer": "ABN AMRO's basic earnings per share for 2024 were EUR 2.72 (2023: EUR 2.99), based on a profit of EUR 2,283 million and a weighted average of 841 million shares.",
+      "query": "What were ABN AMRO's earnings per share for 2024?",
+      "best_score": 0.9990986585617065,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives EUR 2.72 for 2024 and EUR 2.99 for 2023, matching the gold answer. The extra figures (profit of 2,283 million and 841 million weighted average shares) appear in the cited p392 quote."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 392,
+          "quote": "Basic earnings 2,283 841 2.72 2,605 872 2.99"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 46,
+          "quote": "Earnings per share (in EUR)4\n2.72\n2.99"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 0.99,
+        "retrieving": 3.8,
+        "generating": 2.33,
+        "total": 7.13
+      }
+    },
+    {
+      "id": "abn-cmp-net-profit",
+      "type": "comparison",
+      "modality": "table",
+      "question": "How did ABN AMRO's net profit develop between 2024 and 2025?",
+      "gold": "Net profit fell about 6%, from EUR 2,403 million (2024) to EUR 2,252 million (2025) (roughly EUR 2.4bn to EUR 2.3bn)",
+      "answer": "ABN AMRO's net profit fell about 6%, from EUR 2,403 million in 2024 to EUR 2,252 million in 2025. Return on average equity declined from 10.1% to 8.7% over the same period.",
+      "query": "How did ABN AMRO's net profit develop between 2024 and 2025?",
+      "best_score": 0.9999212026596069,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold answer: net profit fell 6%, from EUR 2,403 million in 2024 to EUR 2,252 million in 2025. The cited quotes support both these figures and the -6% change. The extra return-on-equity figures (10.1% to 8.7%) are also supported by the quote from p4."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 40,
+          "quote": "Profit/(loss) for the period\n2,252\n2,403\n -6%"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 4,
+          "quote": "ABN AMRO in 2025 2,252 8.7% 2024: 2,403 2024: 10.1% Net profit (in EUR millions) Return on equity"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.31,
+        "retrieving": 7.57,
+        "generating": 2.37,
+        "total": 11.27
+      }
+    },
+    {
+      "id": "abn-cmp-dividend",
+      "type": "comparison",
+      "modality": "text",
+      "question": "Did ABN AMRO pay a higher or lower dividend per share for 2025 than for 2024?",
+      "gold": "Lower: total ordinary dividend of EUR 1.24 per share for 2025 vs EUR 1.35 for 2024 (both 50% payout)",
+      "answer": "Lower, on the ordinary dividend. The total dividend proposed for 2025 is EUR 1.24 per share, against EUR 1.35 per share for 2024. The 2025 figure is made up of an interim dividend of EUR 0.54 per share paid in 2025 and a proposed final dividend of EUR 0.70 per share. Two things complicate this. The 2025 key-figures table shows EUR 1.54 per share for 2025 versus EUR 1.35 for 2024, which would be higher, and the chunks do not explain the gap. Separately, the report announced a planned additional cash dividend of around EUR 0.30 per share, subject to regulatory approval.",
+      "query": "Did ABN AMRO pay a higher or lower dividend per share for 2025 than for 2024?",
+      "best_score": 0.9997846484184265,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 4,
+      "verified": 4,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer says the dividend is lower, giving EUR 1.24 per share for 2025 against EUR 1.35 for 2024, which matches the gold answer. It flags the 1.54 key-figures number but says it cannot explain the gap, then separately cites the additional distribution of about EUR 0.30 per share without linking the two. Its primary answer is still correct. Every figure (1.24, 1.35, 0.54, 0.70, 1.54, 0.30) appears in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 121,
+          "quote": "brings the total dividend for 2025 to EUR 1.24 per share (2024: EUR 1.35), for a total of EUR 1,025 million."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 44,
+          "quote": "The total dividend consists of an interim dividend of EUR 0.54 per share, paid in 2025, and a proposed final cash dividend of EUR 0.70 per share"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 47,
+          "quote": "Dividend per share (in EUR)³\n1.54\n1.35"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 44,
+          "quote": "an additional cash dividend of EUR 250 million (around EUR 0.30 per share based on the number of shares outstanding at the end of 2025)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.34,
+        "retrieving": 7.7,
+        "generating": 9.27,
+        "total": 18.32
+      }
+    },
+    {
+      "id": "abn-followup-roe",
+      "type": "followup",
+      "modality": "text",
+      "question": "And what was it the year before?",
+      "gold": "10.1% return on equity in 2024",
+      "answer": "ABN AMRO's return on equity was 10.1% in 2024, compared with 12.2% in 2023.",
+      "query": "What was ABN AMRO's return on equity in 2024?",
+      "best_score": 0.9998032450675964,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the 2024 return on equity as 10.1%, which matches the gold answer. The extra 2023 figure of 12.2% is supported by the cited p46 quote, and so is the 10.1%."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 46,
+          "quote": "Return on equity for 2024 was above target at 10.1%, compared with 12.2% in 2023."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 477,
+          "quote": "Return on equity\n 10.1%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.0,
+        "retrieving": 3.61,
+        "generating": 1.86,
+        "total": 6.48
+      }
+    },
+    {
+      "id": "abn-unans-atms",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?",
+      "gold": "",
+      "answer": "The report excerpts provided do not state how many ATMs ABN AMRO operated in the Netherlands at the end of 2025.",
+      "query": "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?",
+      "best_score": 0.933915376663208,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The gold answer says the figure is not stated in the reports. The system abstained and said the report does not give an ATM count, which is the correct outcome. It makes no factual claims, so the absence of cited quotes still leaves it grounded."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.32,
+        "retrieving": 3.69,
+        "generating": 1.32,
+        "total": 6.35
+      }
+    },
+    {
+      "id": "abn-unans-app-users",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How many monthly active users did ABN AMRO's mobile banking app have in 2025?",
+      "gold": "",
+      "answer": "The 2025 report chunks do not state the number of monthly active users of the mobile banking app. The only related figure is from the 2024 report, which says the mobile banking app reached a record of 3.5 million frequent users in 2024. That is a different metric (frequent users, not monthly active users) and a different year.",
+      "query": "How many monthly active users did ABN AMRO's mobile banking app have in 2025?",
+      "best_score": 0.9657533764839172,
+      "status": "partial",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The system clearly states that the 2025 MAU figure is not disclosed. That is the gold answer. The 2024 frequent-users figure it adds is supported by the cited quote, and the system flags it as a different metric and a different year, so it is not offered as the answer."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 27,
+          "quote": "Our mobile banking app reached a record of 3.5 million frequent users."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.04,
+        "retrieving": 3.49,
+        "generating": 2.06,
+        "total": 6.59
+      }
+    },
+    {
+      "id": "abn-unans-savings-share",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "What was ABN AMRO's market share in Dutch savings deposits in 2024?",
+      "gold": "",
+      "answer": "The report excerpts do not state ABN AMRO's market share in Dutch savings deposits in 2024. They give only other figures, such as a 19% market share of new mortgage production in 2024.",
+      "query": "What was ABN AMRO's market share in Dutch savings deposits in 2024?",
+      "best_score": 0.9859002232551575,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The gold answer says the figure is not stated, and the system correctly said the report does not disclose ABN AMRO's Dutch savings deposit market share. It also mentioned a 19% market share in new mortgage production, which matches the report but appears in no cited quote, since none were provided."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.22,
+        "retrieving": 3.77,
+        "generating": 2.46,
+        "total": 7.47
+      }
+    },
+    {
+      "id": "asml-2025-net-income",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What was ASML's net profit for 2025?",
+      "gold": "Net income of EUR 9,609.4 million in 2025 (29.4% of total net sales; EUR 24.73 basic EPS)",
+      "answer": "ASML's net income for 2025 was EUR 9,609.4 million (US GAAP basis), equal to 29.4% of total net sales and EUR 24.73 basic net income per ordinary share. On an EU-IFRS basis, net income for 2025 was EUR 10,212,993 thousand (about EUR 10.2 billion).",
+      "query": "What was ASML's net profit for 2025?",
+      "best_score": 0.9991536140441895,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold figures exactly: EUR 9,609.4 million, 29.4% of net sales and EUR 24.73 basic EPS. The extra EU-IFRS figure of EUR 10,212,993 thousand appears in the cited p131 quote, though the quote alone does not clearly tie that value to 2025. All figures in the answer appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 56,
+          "quote": "Net income for 2025 amounted to €9,609.4 million, representing 29.4% of total net sales and €24.73 basic net income per ordinary share."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 131,
+          "quote": "Net income based on EU-IFRS\n6,134,595\n6,395,775\n4.3\n8,115,168\n26.9\n8,348,971\n2.9\n10,212,993\n22.3"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.02,
+        "retrieving": 3.34,
+        "generating": 2.43,
+        "total": 6.81
+      }
+    },
+    {
+      "id": "asml-2025-euv-units",
+      "type": "factoid",
+      "modality": "table",
+      "question": "How many EUV machines did ASML recognize as sold in 2025?",
+      "gold": "48 EUV systems recognized in 2025 (2024: 44)",
+      "answer": "The 2025 chunks do not state the total number of EUV systems ASML recognized in 2025. They only say that revenue was recognized for four EUV 0.55 NA (High NA) systems shipped to customers' R&D facilities in 2025. For comparison, the 2024 report gives 44 EUV systems recognized in 2024, against 53 in 2023.",
+      "query": "How many EUV machines did ASML recognize as sold in 2025?",
+      "best_score": 0.9694459438323975,
+      "status": "partial",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": false,
+      "judge": {
+        "correctness": "partial",
+        "grounded": true,
+        "explanation": "The gold total is 48 EUV systems in 2025. The system says the total is not stated and gives only the 4 High NA systems, which is one component of the gold figure. Its 2024 figure of 44 is correct context but is not the asked year. All figures it states are backed by the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 21,
+          "quote": "For EUV 0.55 NA, we recognized revenue for four systems that were shipped to customers’ R&D facilities."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 55,
+          "quote": "EUV systems recognized (in units)\n44\n2023: 53"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.04,
+        "retrieving": 3.6,
+        "generating": 5.5,
+        "total": 10.16
+      }
+    },
+    {
+      "id": "asml-2025-backlog",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How big was ASML's order backlog going into 2026?",
+      "gold": "Backlog of around EUR 38.8 billion (as reported for the end of 2025)",
+      "answer": "ASML's backlog stood at €38.8 billion at the end of 2025, as stated in the CEO's Q&A (described as 'currently' a healthy level). Separately, remaining performance obligations were €46.5 billion as of December 31, 2025, a different measure from backlog.",
+      "query": "How big was ASML's order backlog going into 2026?",
+      "best_score": 0.9887233972549438,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives a backlog of €38.8 billion at year-end 2025, which matches the gold answer. The quote on p8 supports this figure. The €46.5 billion remaining performance obligations figure is extra detail, is correctly distinguished from backlog, and is supported by the quote on p287."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 8,
+          "quote": "Our backlog currently stands at a healthy level of €38.8 billion."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 287,
+          "quote": "As of December 31, 2025, the remaining performance obligations amount to €46.5 billion (December 31, 2024: €43.3 billion)."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.06,
+        "retrieving": 3.44,
+        "generating": 2.23,
+        "total": 6.75
+      }
+    },
+    {
+      "id": "asml-2025-china-share",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What percentage of ASML's 2025 sales came from customers in China?",
+      "gold": "29.1% of 2025 total net sales (down from 36.1% in 2024)",
+      "answer": "The provided chunks do not state what percentage of ASML's 2025 total net sales came from customers in China. They only give related figures: customers in South Korea represented 25.0% of 2025 total net sales, and four customers each exceeded 10% of total net sales in 2025, together 61.2%.",
+      "query": "What percentage of ASML's 2025 sales came from customers in China?",
+      "best_score": 0.9610722064971924,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "abstained",
+        "grounded": true,
+        "explanation": "The system said the China percentage is not stated, while the gold answer is 29.1%. That makes this an abstention. The related figures it did give (South Korea 25.0%, four customers totaling 61.2%) are both supported by the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 67,
+          "quote": "Customers in South Korea represented 25.0% of our 2025 total net sales and 22.7% of our 2024 total net sales."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 287,
+          "quote": "In 2025, four customers each individually exceeded 10% of total net sales, totaling €20.0 billion, or 61.2%, of total net sales."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.05,
+        "retrieving": 3.87,
+        "generating": 2.46,
+        "total": 7.39
+      }
+    },
+    {
+      "id": "asml-2025-share-buyback",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How much did ASML spend buying back its own shares in 2025?",
+      "gold": "EUR 5,950.0 million (about EUR 5.9 billion) for 8,323,320 shares repurchased in 2025",
+      "answer": "ASML repurchased 8,323,320 shares in 2025 for a total consideration of €5,950.0 million (compared with €500.0 million in 2024), under the 2022-2025 share buyback program.",
+      "query": "How much did ASML spend buying back its own shares in 2025?",
+      "best_score": 0.9895026683807373,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives €5,950.0 million for 8,323,320 shares repurchased in 2025, which matches the gold answer. The share count, amount and 2024 comparative are all in the cited quote. The '2022-2025 share buyback program' label is not in the quote. It is a contextual label rather than a reported figure, so I did not treat it as making the answer ungrounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 315,
+          "quote": "In 2025, we repurchased 8,323,320 shares (2024: 574,925 shares) for a total consideration of €5,950.0 million (2024: €500.0 million)."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.05,
+        "retrieving": 3.37,
+        "generating": 1.9,
+        "total": 6.33
+      }
+    },
+    {
+      "id": "asml-2024-rd-costs",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How much did ASML invest in R&D during 2024?",
+      "gold": "R&D costs of EUR 4,303.7 million (about EUR 4.3 billion) in 2024",
+      "answer": "ASML's R&D costs were EUR 4,303.7 million (about EUR 4.3 billion) in 2024, up from EUR 3,980.6 million in 2023.",
+      "query": "How much did ASML invest in R&D during 2024?",
+      "best_score": 0.9996021389961243,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives EUR 4,303.7 million (about EUR 4.3 billion) for 2024, which matches the gold answer. Both figures, and the 2023 comparison of EUR 3,980.6 million, appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 57,
+          "quote": "R&D costs were €4,303.7 million in 2024 compared with €3,980.6 million in 2023."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 42,
+          "quote": "In 2024, we spent a total of €4.3 billion in R&D."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.0,
+        "retrieving": 4.28,
+        "generating": 2.39,
+        "total": 7.69
+      }
+    },
+    {
+      "id": "asml-2024-new-ceo",
+      "type": "factoid",
+      "modality": "text",
+      "question": "Who became ASML's chief executive in 2024, and whom did they replace?",
+      "gold": "Christophe Fouquet was appointed President and CEO at the 2024 AGM (April 24, 2024), succeeding Peter Wennink (and co-President Martin van den Brink)",
+      "answer": "Christophe Fouquet became ASML's President, Chief Executive Officer and Chair of the Board of Management at the 2024 AGM. He succeeded Peter Wennink (former President and CEO) and Martin van den Brink (former President and CTO), who retired at that AGM.",
+      "query": "Who became ASML's chief executive in 2024, and whom did they replace?",
+      "best_score": 0.9995734095573425,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer names Christophe Fouquet as CEO appointed at the 2024 AGM, succeeding Peter Wennink and Martin van den Brink, which matches the gold answer. Every claim, including the titles and the retirements, is supported by the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 7,
+          "quote": "At the 2024 AGM, Christophe Fouquet was appointed President, Chief Executive Officer and Chair of the Board of Management of ASML, succeeding Peter Wennink and Martin van den Brink."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 98,
+          "quote": "Effective per the 2024 AGM, former President and CEO Peter Wennink and former President and CTO Martin van den Brink retired. Christophe Fouquet was appointed President and CEO per the 2024 AGM."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.04,
+        "retrieving": 3.96,
+        "generating": 4.39,
+        "total": 9.41
+      }
+    },
+    {
+      "id": "asml-2024-scope12-emissions",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What were ASML's combined scope 1 and 2 greenhouse gas emissions in 2024?",
+      "gold": "32.8 kt CO2e scope 1 and 2 emissions in 2024",
+      "answer": "ASML's combined gross scope 1 and market-based scope 2 greenhouse gas emissions were 32.8 kt CO2e in 2024 (about 33 kt), down from 60 kt in 2019.",
+      "query": "What were ASML's combined scope 1 and 2 greenhouse gas emissions in 2024?",
+      "best_score": 0.9966626763343811,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The answer gives 32.8 kt CO2e (about 33 kt) for 2024, which matches the gold answer. The cited quotes support 32.8 kt and 33 kt. However, the 2019 baseline of 60 kt appears in none of the cited quotes, which only mention a 46% reduction from 2019, so the answer is not fully grounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 194,
+          "quote": "32.8 kt"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 218,
+          "quote": "Subtotal of gross scope 1 and market-based scope 2 GHG emissions"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 200,
+          "quote": "In 2024, with emissions of 33 kt CO2e, we have already reduced absolute scope 1 and 2 emissions from 2019 by 46%, exceeding the SBTi target."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.07,
+        "retrieving": 4.25,
+        "generating": 2.4,
+        "total": 7.73
+      }
+    },
+    {
+      "id": "asml-2024-fte",
+      "type": "factoid",
+      "modality": "table",
+      "question": "How many full-time-equivalent staff did ASML have at the end of 2024?",
+      "gold": "44,027 FTEs (payroll and temporary employees, as of December 31, 2024)",
+      "answer": "ASML had 44,027 total FTEs at December 31, 2024, of which 42,786 FTEs were payroll employees and 1,241 FTEs were temporary employees.",
+      "query": "How many full-time-equivalent staff did ASML have at the end of 2024?",
+      "best_score": 0.9955690503120422,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives 44,027 total FTEs, split into 42,786 payroll and 1,241 temporary, which matches the gold answer. The cited table rows contain all three figures in the 2024 column."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 301,
+          "quote": "Total\n\n42,416\n44,027\n44,209"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 301,
+          "quote": "Payroll employees\n\n40,309\n42,786\n43,520"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 301,
+          "quote": "Less: Temporary employees\n\n2,107\n1,241\n689"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.14,
+        "retrieving": 4.01,
+        "generating": 2.14,
+        "total": 7.3
+      }
+    },
+    {
+      "id": "asml-2024-dividend",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What total dividend per share did ASML declare for financial year 2024?",
+      "gold": "EUR 6.40 per ordinary share for 2024, a 4.9% increase on EUR 6.10 for 2023",
+      "answer": "ASML declared a total dividend of EUR 6.40 per ordinary share for financial year 2024, a 4.9% increase on the 2023 total dividend of EUR 6.10 per ordinary share. This comprises interim dividends of EUR 1.52 per share paid in August 2024, November 2024 and February 2025, plus a final dividend proposal of EUR 1.84 per share.",
+      "query": "What total dividend per share did ASML declare for financial year 2024?",
+      "best_score": 0.9997826218605042,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives EUR 6.40 per ordinary share for 2024, a 4.9% increase on EUR 6.10 for 2023, which matches the gold answer. The breakdown into three EUR 1.52 interims and a EUR 1.84 final dividend is also correct (3 x 1.52 + 1.84 = 6.40). Every figure appears in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 381,
+          "quote": "On January 29, 2025, ASML announced to declare a total dividend for the year 2024 of €6.40 per ordinary share, which is a 4.9% increase compared to the 2023 total dividend of €6.10 per ordinary share."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 381,
+          "quote": "Recognizing the interim dividends of €1.52 per ordinary share paid in August 2024, November 2024 and February 2025, this leads to a final dividend proposal to the General Meeting of €1.84 per ordinary share."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.0,
+        "retrieving": 3.59,
+        "generating": 2.97,
+        "total": 7.57
+      }
+    },
+    {
+      "id": "asml-net-sales-2024-vs-2025",
+      "type": "comparison",
+      "modality": "table",
+      "question": "How did ASML's revenue develop between 2024 and 2025?",
+      "gold": "Total net sales rose from EUR 28.3 billion (28,262.9m) in 2024 to EUR 32.7 billion (32,667.3m) in 2025, an increase of EUR 4.4 billion or 15.6%",
+      "answer": "ASML's total net sales rose 15.6% from EUR 28,262.9 million in 2024 to EUR 32,667.3 million in 2025. Net system sales grew 12.4% from EUR 21,768.7 million to EUR 24,474.3 million. Net service and field option sales grew 26.2% from EUR 6,494.2 million to EUR 8,193.0 million.",
+      "query": "How did ASML's revenue develop between 2024 and 2025?",
+      "best_score": 0.9987218976020813,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold total net sales of EUR 28,262.9m in 2024 and EUR 32,667.3m in 2025, and the 15.6% growth. It also adds a correct split into system sales and service and field option sales. Every figure appears in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 54,
+          "quote": "Total net sales\n\n28,262.9  100.0\n32,667.3  100.0\n 15.6"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 54,
+          "quote": "Net system sales\n\n21,768.7\n 77.0\n24,474.3\n 74.9\n 12.4"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 54,
+          "quote": "Net service and field option sales\n\n6,494.2\n 23.0\n8,193.0\n 25.1\n 26.2"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.2,
+        "retrieving": 7.22,
+        "generating": 2.62,
+        "total": 11.05
+      }
+    },
+    {
+      "id": "asml-gross-margin-2024-vs-2025",
+      "type": "comparison",
+      "modality": "text",
+      "question": "Did ASML's gross margin improve in 2025 compared with 2024?",
+      "gold": "Yes: gross margin rose from 51.3% in 2024 to 52.8% in 2025, up 1.5 percentage points",
+      "answer": "Yes. ASML's gross margin rose to 52.8% in 2025 from 51.3% in 2024, an increase of 1.5 percentage points. Gross profit was EUR 17,258.0 million in 2025 versus EUR 14,492.0 million in 2024. The report attributes the improvement mainly to a favorable NXE product mix and higher net service and field option sales and margins, partly offset by the dilutive impact of EXE systems recognized in sales.",
+      "query": "Did ASML's gross margin improve in 2025 compared with 2024?",
+      "best_score": 0.9993174076080322,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold: gross margin rose from 51.3% to 52.8%, up 1.5 pp. The gross profit figures and the stated drivers both appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 8,
+          "quote": "The gross margin was 52.8%, up by 1.5 percentage points from 2024, and we returned €8.5 billion to shareholders."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 54,
+          "quote": "Gross profit\n\n14,492.0\n 51.3\n17,258.0\n 52.8\n 19.1"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 55,
+          "quote": "Gross profit and gross margin increased, mainly driven by a favorable NXE product mix and higher net service and field option sales and margins. These positive effects on gross margin were partially offset by the dilutive impact of EXE systems recognized in sales."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.22,
+        "retrieving": 7.44,
+        "generating": 3.03,
+        "total": 11.7
+      }
+    },
+    {
+      "id": "asml-litho-units-followup",
+      "type": "followup",
+      "modality": "text",
+      "question": "And how many did it sell the year before?",
+      "gold": "418 lithography systems in 2024 (vs. 327 in 2025)",
+      "answer": "ASML sold 418 lithography systems (in units) in 2024, down from 449 units in 2023.",
+      "query": "How many lithography systems did ASML sell in 2024?",
+      "best_score": 0.9968546628952026,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the gold figure of 418 lithography systems for 2024. The extra 2023 figure of 449 is correct, and both quotes support it."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 55,
+          "quote": "Sales of lithography systems (in units)1\n418\n2023: 449"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 66,
+          "quote": "(327 units in 2025, 418 units in 2024 and 449 units in 2023)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.13,
+        "retrieving": 3.37,
+        "generating": 1.75,
+        "total": 6.27
+      }
+    },
+    {
+      "id": "asml-unans-tsmc-share",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "What share of ASML's 2025 revenue came from TSMC?",
+      "gold": "Not disclosed. The report gives the largest customer's share (23.9% of 2025 net sales) and top-two share (38.0%) but does not name the customers, so TSMC's share cannot be determined.",
+      "answer": "The provided parts of the report do not state what share of ASML's 2025 revenue came from TSMC. They give total net sales of EUR 32,667.3 million in 2025, but no customer-level breakdown naming TSMC.",
+      "query": "What share of ASML's 2025 revenue came from TSMC?",
+      "best_score": 0.9981316924095154,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The gold answer says TSMC's share is not disclosed, and the system correctly says the report does not give it. However, the answer adds a total net sales figure (EUR 32,667.3 million) that no cited quote supports, since no quotes were provided."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.02,
+        "retrieving": 3.25,
+        "generating": 1.74,
+        "total": 6.02
+      }
+    },
+    {
+      "id": "asml-unans-high-na-2026-shipments",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How many High NA EUV systems does ASML plan to ship in 2026?",
+      "gold": "Not stated. The report says the EXE platform is expected to support high-volume manufacturing in 2027 but gives no unit shipment plan for 2026.",
+      "answer": "The report does not state how many High NA EUV (EUV 0.55 NA) systems ASML plans to ship in 2026. The chunks only give related information: revenue was recognized for four EUV 0.55 NA systems shipped to customers' R&D facilities in 2025, and the TWINSCAN EXE platform is expected to start supporting high-volume manufacturing in 2027.",
+      "query": "How many High NA EUV systems does ASML plan to ship in 2026?",
+      "best_score": 0.9612100720405579,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The gold answer says the 2026 shipment plan is not stated, and the system correctly says the report does not disclose it, so it counts as correct. It is not grounded because it adds specific figures (four EUV 0.55 NA systems recognized in 2025, HVM in 2027) without citing any quotes."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.04,
+        "retrieving": 3.62,
+        "generating": 2.0,
+        "total": 6.67
+      }
+    },
+    {
+      "id": "asml-unans-china-2030",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How much revenue does ASML expect to generate from China in 2030?",
+      "gold": "Not stated. ASML gives a 2030 total revenue opportunity (approx. EUR 44-60 billion, in the 2024 report) but no regional or China-specific 2030 revenue expectation.",
+      "answer": "The report does not state an expected revenue from China for 2030. It only gives a total 2030 revenue opportunity of approximately EUR 44 billion to EUR 60 billion, with gross margin of approximately 56% to 60%, not broken down by country.",
+      "query": "How much revenue does ASML expect to generate from China in 2030?",
+      "best_score": 0.9787309169769287,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The system correctly says the report gives no China-specific 2030 revenue figure, which matches the gold answer. Its only figures, the 2030 total revenue opportunity of EUR 44-60 billion and the 56-60% gross margin, both appear in the cited quote."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 58,
+          "quote": "Based on different market and lithography intensity scenarios, we see an opportunity to achieve 2030 annual revenue between approximately €44 billion and €60 billion with gross margin between approximately 56% and 60%."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.09,
+        "retrieving": 3.87,
+        "generating": 2.02,
+        "total": 6.99
+      }
+    },
+    {
+      "id": "cm-2025-adjusted-ebitda",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What was CM.com's adjusted EBITDA for 2025?",
+      "gold": "EUR 19.8 million (2024: EUR 18.1 million)",
+      "answer": "CM.com's adjusted EBITDA for 2025 was EUR 19.8 million, after one-offs of EUR 1.4 million, on a reported EBITDA of EUR 18.4 million.",
+      "query": "What was CM.com's adjusted EBITDA for 2025?",
+      "best_score": 0.9986037611961365,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The answer gives the correct adjusted EBITDA of EUR 19.8 million, which the cited quote supports. However, the one-offs of EUR 1.4 million and the reported EBITDA of EUR 18.4 million appear in no cited quote, so not every figure is grounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 16,
+          "quote": "Operating result, Adjusted EBITDA\n19.8\n18.1\n(0.9)\n(22.3)\n(3.7)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.02,
+        "retrieving": 3.69,
+        "generating": 1.79,
+        "total": 6.52
+      }
+    },
+    {
+      "id": "cm-2025-new-cfo",
+      "type": "factoid",
+      "modality": "text",
+      "question": "Who is taking over as CFO of CM.com after Jörg de Graaf left in 2025?",
+      "gold": "Geert Beullens (incoming CFO, ex-ASML; nomination to be presented at the April 2026 AGM). Jörg de Graaf stepped down on November 1, 2025.",
+      "answer": "Geert Beullens succeeded Jörg de Graaf as CFO effective November 1, 2025. His appointment as a member of the Management Board is to be put forward for formal approval at the General Meeting (AGM) in April 2026.",
+      "query": "Who is taking over as CFO of CM.com after Jörg de Graaf left in 2025?",
+      "best_score": 0.9997132420539856,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer names Geert Beullens as the successor and gives the November 1, 2025 date and the April 2026 AGM nomination, which matches the gold answer. It omits the ex-ASML detail, which is minor. The cited quotes support every fact stated."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 5,
+          "quote": "We are delighted to welcome Geert Beullens as our incoming CFO."
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 128,
+          "quote": "the remuneration of Geert Beullens, who succeeded Jörg de Graaf as CFO effective November 1, 2025, and whose appointment will be proposed for approval at the next General Meeting"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 5,
+          "quote": "Geert’s nomination will be formally presented at the upcoming AGM in April 2026."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.06,
+        "retrieving": 3.61,
+        "generating": 2.82,
+        "total": 7.51
+      }
+    },
+    {
+      "id": "cm-2025-arr",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How much annual recurring revenue did CM.com have at the end of 2025?",
+      "gold": "EUR 35.9 million ARR at end of 2025 (up 7%)",
+      "answer": "CM.com had annual recurring revenue (ARR) of EUR 35.9 million at the end of 2025.",
+      "query": "How much annual recurring revenue did CM.com have at the end of 2025?",
+      "best_score": 0.9984820485115051,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives EUR 35.9 million for ARR at the end of 2025, which matches the gold answer. It leaves out the 7% growth, but that is extra detail rather than the figure asked for. The cited quote states €35.9m for 2025, so the figure is supported."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 2,
+          "quote": "Annual recurring revenue (ARR)* 2025 € 35.9m * Represents the annual recurring revenue streams from customers at the end of the period, related to subscription-based product pricing."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.15,
+        "retrieving": 3.69,
+        "generating": 1.61,
+        "total": 6.46
+      }
+    },
+    {
+      "id": "cm-2025-ghg-market-based",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What were CM.com's total market-based greenhouse gas emissions in 2025?",
+      "gold": "271 tCO2e (scope 1 and 2 only, market-based); location-based 666 tCO2e",
+      "answer": "CM.com's total market-based GHG emissions (scope 1 and 2 only) were 271 tCO2 in 2025, down 6% from 288 tCO2 in 2024.",
+      "query": "What were CM.com's total market-based greenhouse gas emissions in 2025?",
+      "best_score": 0.9976106882095337,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives 271 tCO2 market-based for 2025, which matches the gold answer. The quote supports 271, 288 and the 6% decrease. The 'scope 1 and 2 only' qualifier is a descriptive scope note rather than a figure, and it is consistent with the gold answer."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 73,
+          "quote": "Total GHG emissions (market-based) in tCO2\n271\n288\n(6%)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.08,
+        "retrieving": 3.94,
+        "generating": 2.61,
+        "total": 7.65
+      }
+    },
+    {
+      "id": "cm-2025-women-senior-management",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What share of CM.com's senior management were women in 2025?",
+      "gold": "38.7% (up from 36.1% in 2024)",
+      "answer": "Women made up 38.7% of CM.com's Senior Management in 2025, up from 36.1% in 2024. The report's diversity table shows 12 women in Senior Management as of 31 December 2025. A separate workforce table on page 83 gives a different figure for 2025, 12 women at 36%, so the report is not fully consistent on this point.",
+      "query": "What share of CM.com's senior management were women in 2025?",
+      "best_score": 0.9988086223602295,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the gold figures: 38.7% in 2025, up from 36.1% in 2024. The extra note about the page 83 table showing 36% is backed by a cited quote. Every figure in the answer appears in the quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 38,
+          "quote": "This resulted in a slight increase in the representation of women in Senior Management to 38.7% in 2025 (2024: 36.1%), with men representing 61.3% (2024: 63.9%)."
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 39,
+          "quote": "Executive Committee 19 61.3% 12 38.7% 30.0% 2027 Senior Management"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 83,
+          "quote": "Senior Management2\nFemale\n12\n36%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.05,
+        "retrieving": 3.67,
+        "generating": 12.2,
+        "total": 16.94
+      }
+    },
+    {
+      "id": "cm-2024-messages",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How many messages did CM.com process in 2024?",
+      "gold": "8.3 billion messages (up 18% from 7.0 billion in 2023)",
+      "answer": "CM.com processed 8.3 billion messages in 2024, up 18% from 7.0 billion in 2023.",
+      "query": "How many messages did CM.com process in 2024?",
+      "best_score": 0.9961621761322021,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold: 8.3 billion messages in 2024, up 18% from 7.0 billion in 2023. All three figures appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 58,
+          "quote": "Number of messages (billion) 8.3 7.0 +18%"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 62,
+          "quote": "Underlying number of messages grew 18% to 8.3 billion"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.4,
+        "retrieving": 3.84,
+        "generating": 2.26,
+        "total": 7.51
+      }
+    },
+    {
+      "id": "cm-2024-free-cash-flow",
+      "type": "factoid",
+      "modality": "text",
+      "question": "Was CM.com's free cash flow positive in 2024, and how much was it?",
+      "gold": "Yes, free cash flow for full-year 2024 was EUR 3.4 million positive (H2 2024: EUR 4.7 million)",
+      "answer": "Yes. CM.com's free cash flow for full-year 2024 was positive at EUR 3.4 million, and it was EUR 4.7 million for H2 2024.",
+      "query": "Was CM.com's free cash flow positive in 2024, and how much was it?",
+      "best_score": 0.9995054006576538,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer correctly states that full-year 2024 free cash flow was positive at EUR 3.4 million. It also correctly identifies EUR 4.7 million as the H2 2024 figure rather than the full-year one. Both figures appear in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 63,
+          "quote": "As a result overall Free Cash Flow for 2024 turned € 3.4 million positive – a major milestone in the financial roadmap of CM.com."
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 57,
+          "quote": "Following good working capital control, FCF for FY 2024 was € 3.4 million, and € 4.7 million for H2 2024."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.08,
+        "retrieving": 3.7,
+        "generating": 2.37,
+        "total": 7.15
+      }
+    },
+    {
+      "id": "cm-2024-offices",
+      "type": "factoid",
+      "modality": "text",
+      "question": "How many offices did CM.com have worldwide in 2024, and in how many countries?",
+      "gold": "23 offices in 15 countries (year-end 2024)",
+      "answer": "In 2024, CM.com had 23 offices in 15 countries globally.",
+      "query": "How many offices did CM.com have worldwide in 2024, and in how many countries?",
+      "best_score": 0.9982238411903381,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives 23 offices in 15 countries, which matches the gold answer. Both figures appear in the cited quote from page 5 of the 2024 report."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 5,
+          "quote": "With 666 FTE and 23 ofﬁces in 15 countries globally"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.26,
+        "retrieving": 7.39,
+        "generating": 1.61,
+        "total": 10.28
+      }
+    },
+    {
+      "id": "cm-2024-ghg-total-market-based",
+      "type": "factoid",
+      "modality": "table",
+      "question": "What was CM.com's total carbon footprint (market-based, all scopes) in 2024?",
+      "gold": "4,676 tCO2e market-based (scope 1, 2 and 3), down 13% from 5,352 in 2023; location-based 5,126 tCO2e",
+      "answer": "The report excerpts do not state CM.com's total market-based carbon footprint across all scopes for 2024. The tables with the emission figures are not included in the text. The 2024 report only says the footprint decreased versus 2023 and that about 94% of GHG emissions are from scope three, without giving a total in tCO2e. The 2025 report presents only scope one and two figures.",
+      "query": "What was CM.com's total carbon footprint (market-based, all scopes) in 2024?",
+      "best_score": 0.9928694367408752,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "abstained",
+        "grounded": true,
+        "explanation": "The system abstained, saying the total is not stated. The gold answer is 4,676 tCO2e, so this is an abstention. It makes some claims, such as the 94% scope 3 share, without citing quotes. 4,388 out of 4,676 is about 94%, so that figure is consistent with the gold. Because the answer is mainly an abstention, grounded is treated as true."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.42,
+        "retrieving": 4.37,
+        "generating": 2.58,
+        "total": 8.39
+      }
+    },
+    {
+      "id": "cm-2024-employee-engagement",
+      "type": "factoid",
+      "modality": "text",
+      "question": "What employee engagement score did CM.com achieve in 2024?",
+      "gold": "73 (2023: 69), against a target of 80",
+      "answer": "CM.com scored 73 on employee engagement in 2024, up from 69 in 2023. The target for 2024 was 80.",
+      "query": "What employee engagement score did CM.com achieve in 2024?",
+      "best_score": 0.9992873072624207,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the 2024 score of 73, the 2023 comparative of 69 and the target of 80, all matching the gold answer. Each figure appears in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 136,
+          "quote": "During 2024, CM.com scored 73 (2023: 69)."
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 136,
+          "quote": "we aimed for an employee engagement score of 80 over 2024 (on target score for LTIP 2022-2024)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 0.98,
+        "retrieving": 3.61,
+        "generating": 2.23,
+        "total": 6.84
+      }
+    },
+    {
+      "id": "cm-revenue-change-2024-2025",
+      "type": "comparison",
+      "modality": "table",
+      "question": "How did CM.com's revenue develop between 2024 and 2025?",
+      "gold": "Revenue fell from EUR 274.2 million in 2024 to EUR 259.4 million in 2025, a decrease of about 5%",
+      "answer": "CM.com's revenue declined from EUR 274.2 million in 2024 to EUR 259.4 million in 2025, a fall of about EUR 14.9 million (roughly 5%), based on the income statement figures of EUR 274,249 thousand and EUR 259,394 thousand.",
+      "query": "How did CM.com's revenue develop between 2024 and 2025?",
+      "best_score": 0.999350368976593,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold: revenue fell from EUR 274.2m in 2024 to EUR 259.4m in 2025, about 5% lower. The cited income statement quote supports both figures (259,394 and 274,249 thousand). The EUR 14.9m decline is correctly derived from those two numbers."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 100,
+          "quote": "Revenue\n4\n259,394\n274,249"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 2,
+          "quote": "Revenue 2025 € 259.4m"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.23,
+        "retrieving": 7.3,
+        "generating": 2.02,
+        "total": 10.57
+      }
+    },
+    {
+      "id": "cm-fte-change-2024-2025",
+      "type": "comparison",
+      "modality": "text",
+      "question": "How did CM.com's year-end headcount in FTE change from 2024 to 2025?",
+      "gold": "Year-end FTE decreased from 666 at end-2024 to 616 at end-2025 (about -50 FTE, -7.5%)",
+      "answer": "CM.com's year-end FTE fell from 666 at year-end 2024 to 616 at year-end 2025, a decrease of 50 FTE (about 7.5%).",
+      "query": "How did CM.com's year-end headcount in FTE change from 2024 to 2025?",
+      "best_score": 0.9977869987487793,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the same figures as the gold: year-end FTE of 666 at end-2024 and 616 at end-2025, a drop of 50 (7.5%). Both figures appear in the cited quotes. The 50 and 7.5% are arithmetic derived from them, and the change does work out to about 7.5%."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 63,
+          "quote": "the FTE base ended 7.5% lower YoY at 666"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 2,
+          "quote": "FTE Year-End 2025 616"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.37,
+        "retrieving": 8.05,
+        "generating": 2.02,
+        "total": 11.46
+      }
+    },
+    {
+      "id": "cm-net-result-followup",
+      "type": "followup",
+      "modality": "table",
+      "question": "And what was it the year before?",
+      "gold": "In 2024 CM.com had a net loss of EUR 19.8 million (net result EUR -19.8 million)",
+      "answer": "CM.com reported a net result of a loss of EUR 19.8 million in 2024, compared with a loss of EUR 28.7 million in 2023.",
+      "query": "What was CM.com's net result in 2024?",
+      "best_score": 0.9984070658683777,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 1,
+      "verified": 1,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives a 2024 net loss of EUR 19.8 million, which matches the gold answer. The added 2023 figure of EUR 28.7 million is extra detail and is supported by the cited quote. That quote shows both values, (19.8) and (28.7), on the net result line."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2024,
+          "page": 58,
+          "quote": "Net result\n(19.8)\n(28.7)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.01,
+        "retrieving": 3.53,
+        "generating": 5.39,
+        "total": 9.94
+      }
+    },
+    {
+      "id": "cm-2025-scope3-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "What were CM.com's scope 3 emissions in 2025?",
+      "gold": "Not disclosed: the 2025 report applies phase-in provisions and no longer reports scope 3 emissions for 2025.",
+      "answer": "The 2025 report does not state CM.com's scope 3 emissions for 2025. It says that the phase-in provisions were applied, so scope 3 greenhouse gas emissions are no longer disclosed for the 2025 reporting year. The prior-year report gave 4,388 tCO2e of gross scope 3 emissions for 2024, but that is a different period.",
+      "query": "What were CM.com's scope 3 emissions in 2025?",
+      "best_score": 0.9942666888237,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 2,
+      "verified": 2,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The system correctly says the 2025 scope 3 emissions are not disclosed because of the phase-in provisions. It mentions the 2024 figure of 4,388 tCO2e only as context, clearly labelled as a different period. That figure does not appear in any cited quote, so the answer is not grounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 70,
+          "quote": "the phase-in provisions have been applied and Scope 3 greenhouse gas emissions are therefore no longer disclosed for the 2025 reporting year."
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 73,
+          "quote": "Emissions in this table include scope one and scope two GHG emissions only, whereas in the prior period, we also reported scope three emissions."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 0.96,
+        "retrieving": 3.8,
+        "generating": 2.59,
+        "total": 7.36
+      }
+    },
+    {
+      "id": "cm-2024-patents-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How many patents did CM.com hold in 2024?",
+      "gold": "Not stated in either report.",
+      "answer": "The report passages provided do not state how many patents CM.com held in 2024.",
+      "query": "How many patents did CM.com hold in 2024?",
+      "best_score": 0.910893440246582,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The gold answer says the figure is not stated in either report. The system correctly abstained, saying the report does not state the number of patents. It makes no factual claims, so it needs no supporting quotes."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.05,
+        "retrieving": 3.71,
+        "generating": 1.23,
+        "total": 6.01
+      }
+    },
+    {
+      "id": "cm-2025-water-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How much water did CM.com consume in 2025?",
+      "gold": "Not stated; neither report discloses water consumption.",
+      "answer": "The report excerpts provided do not state how much water CM.com consumed in 2025. They cover energy consumption, greenhouse gas emissions and EU Taxonomy figures, but give no water consumption figure.",
+      "query": "How much water did CM.com consume in 2025?",
+      "best_score": 0.668200671672821,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The gold answer says water consumption is not disclosed. The system abstained, stating that no water consumption figure is given, which is the correct response. It makes no figure claims, so the answer is grounded."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.0,
+        "retrieving": 3.54,
+        "generating": 1.55,
+        "total": 6.1
+      }
+    },
+    {
+      "id": "xco-fte-2025",
+      "type": "comparison",
+      "modality": "table",
+      "question": "Which company employed more people at the end of 2025, ASML or ABN AMRO?",
+      "gold": "ASML: 44,209 FTE (payroll and temporary) vs ABN AMRO 23,126 internal FTE at year-end 2025",
+      "answer": "ASML employed more people at the end of 2025. ASML reports more than 44,000 employees (FTEs) in 2025, while ABN AMRO reports 23,126 internal employees in 2025 and a headcount of 24,632 as at 31 December 2025. The bases differ (FTEs versus headcount), but ASML is clearly higher on either measure.",
+      "query": "Which company employed more people at the end of 2025, ASML or ABN AMRO?",
+      "best_score": 0.9982144832611084,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": false,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer correctly identifies ASML as the larger employer. Its ASML figure of more than 44,000 is consistent with the gold 44,209 FTE, and its ABN AMRO figure of 23,126 internal employees matches the gold exactly. All three figures (44,000, 23,126 and 24,632) appear in the cited quotes. The quotes do not state the 31 December date for the 24,632 headcount, nor that ASML's figure is in FTEs, but these are minor framing details."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 40,
+          "quote": "We depend on more than 44,000 talented, dedicated and motivated employees"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 24,
+          "quote": "23,126 total number of internal employees in 2025"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 258,
+          "quote": "Headcount 24,632"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.33,
+        "retrieving": 7.24,
+        "generating": 4.71,
+        "total": 13.3
+      }
+    },
+    {
+      "id": "xco-revenue-2025",
+      "type": "comparison",
+      "modality": "text",
+      "question": "Compare the 2025 revenue of ASML and CM.com.",
+      "gold": "ASML total net sales EUR 32.7 billion vs CM.com revenue EUR 259.4 million in 2025",
+      "answer": "ASML's total net sales in 2025 were EUR 32,667.3 million (about EUR 32.7 billion). CM.com's revenue in 2025 was EUR 259,394 thousand (EUR 259.4 million).",
+      "query": "What were the 2025 revenues of ASML and CM.com?",
+      "best_score": 0.999350368976593,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches the gold figures: ASML EUR 32.7 billion and CM.com EUR 259.4 million. Each figure appears in the cited quotes, with ASML's 32,667.3 and CM.com's 259,394 / €259.4m shown directly."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 54,
+          "quote": "Total net sales\n\n28,262.9  100.0\n32,667.3  100.0\n 15.6"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 100,
+          "quote": "Revenue\n4\n259,394\n274,249"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 2,
+          "quote": "Revenue 2025 € 259.4m"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.21,
+        "retrieving": 7.08,
+        "generating": 2.26,
+        "total": 10.56
+      }
+    },
+    {
+      "id": "ooc-shell-revenue",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "What was Shell's total revenue in 2025?",
+      "gold": "Not stated: no Shell report is in the corpus.",
+      "answer": "The report does not state Shell's total revenue in 2025. The provided chunks come from the CM.com Annual Report 2025 and contain no figures for Shell.",
+      "query": "What was Shell's total revenue in 2025?",
+      "best_score": 0.5097359418869019,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": false,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The gold answer says the figure is not stated because no Shell report is in the corpus. The system abstained, saying the available material contains no Shell figures, which is the correct behaviour. It makes no factual figure claims, so it is grounded."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.01,
+        "retrieving": 3.01,
+        "generating": 1.29,
+        "total": 5.32
+      }
+    },
+    {
+      "id": "ooc-heineken-volume",
+      "type": "unanswerable",
+      "modality": "text",
+      "question": "How many hectolitres of beer did Heineken sell in 2024?",
+      "gold": "Not stated: no Heineken report is in the corpus.",
+      "answer": "The ingested reports do not appear to cover this. Not stated in the report.",
+      "query": "How many hectolitres of beer did Heineken sell in 2024?",
+      "best_score": null,
+      "status": "not_found",
+      "abstained": true,
+      "skipped_llm": true,
+      "citations": 0,
+      "verified": 0,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": null,
+      "retrieved_gold_page": null,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The gold answer says this is not stated because no Heineken report is in the corpus. The system abstained and said the reports do not cover it. It makes no factual claim, so no quotes are needed."
+      },
+      "cited": [],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 0.96,
+        "retrieving": 3.47,
+        "total": 4.43
+      }
+    },
+    {
+      "id": "abn-2025-multi-cet1-ci-women",
+      "type": "multimetric",
+      "modality": "mixed",
+      "question": "For 2025, what were ABN AMRO's CET1 ratio, its cost/income ratio and the share of women in senior management?",
+      "gold": "CET1 ratio 15.4% at year-end 2025; cost/income ratio 64.4%; 31% women at senior management level (Hay 14 or higher), below the 35% target.",
+      "answer": "At 31 December 2025, ABN AMRO's CET1 ratio was 15.4% (14.5% a year earlier). Its cost/income ratio for 2025 was 64.4% (61.7% in 2024). Women made up 31% of senior management (Hay 14 or higher) in 2025, the same as in 2024.",
+      "query": "For 2025, what were ABN AMRO's CET1 ratio, its cost/income ratio and the share of women in senior management?",
+      "best_score": 0.9998231530189514,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives all three gold figures correctly: CET1 ratio 15.4%, cost/income ratio 64.4% and 31% women in senior management. Each figure, including the 2024 comparatives, is supported by the cited quotes. It omits the 35% target, but that is a minor detail."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 57,
+          "quote": "As at 31 December 2025, the Common Equity Tier 1 (CET1), Tier 1 and total capital ratios were 15.4%, 17.8% and 20.9% respectively (31 December 2024: 14.5%, 16.9% and 20.2% respectively)."
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 47,
+          "quote": "Cost/income ratio\n 64.4 %\n 61.7 %"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2025,
+          "page": 32,
+          "quote": "• Women at senior management level (Hay 14 or higher) 31% 31% 35%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.8,
+        "retrieving": 12.19,
+        "generating": 3.29,
+        "total": 17.31
+      }
+    },
+    {
+      "id": "abn-2024-multi-fte-eps-sustainable",
+      "type": "multimetric",
+      "modality": "mixed",
+      "question": "How many internal FTEs did ABN AMRO have at the end of 2024, what were its earnings per share, and what share of its assets counted as sustainability asset volume?",
+      "gold": "21,976 internal FTEs at end-2024; EUR 2.72 earnings per share; 37% sustainability (acceleration) asset volume (target 36%).",
+      "answer": "At the end of 2024 ABN AMRO had 21,976 internal employees (FTEs). Earnings per share for 2024 were EUR 2.72. The total sustainability (acceleration) asset volume was 37% in 2024, measured against client assets relevant for the sustainability (acceleration) metric (mortgages, corporate loans and ESG + impact investments), not against total balance sheet assets.",
+      "query": "How many internal FTEs did ABN AMRO have at the end of 2024, what were its earnings per share, and what share of its assets counted as sustainability asset volume?",
+      "best_score": 0.9989920258522034,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer gives the gold figures: 21,976 internal FTEs, EUR 2.72 earnings per share and 37% sustainability (acceleration) asset volume. It avoids both traps (the company-only 18,725 FTEs and the 36% target). All three figures appear in the cited quotes. The added description of the asset base is unsupported by the quotes, but it contains no figures."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 46,
+          "quote": "Number of internal employees (end of period, in FTEs)\n21,976\n20,872"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 46,
+          "quote": "Earnings per share (in EUR)4\n2.72\n2.99"
+        },
+        {
+          "verification": "verified",
+          "company": "ABN AMRO",
+          "fiscal_year": 2024,
+          "page": 29,
+          "quote": "Total sustainability (acceleration) asset volume\n 36%\n 32%\n 37%\n 34%"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.48,
+        "retrieving": 12.05,
+        "generating": 2.9,
+        "total": 16.45
+      }
+    },
+    {
+      "id": "asml-2025-multi-income-euv-backlog",
+      "type": "multimetric",
+      "modality": "mixed",
+      "question": "What were ASML's net income, the number of EUV systems it recognized in sales, and its order backlog at the end of 2025?",
+      "gold": "Net income EUR 9,609.4 million; 48 EUV systems recognized (4 EXE and 44 NXE); backlog of EUR 38.8 billion.",
+      "answer": "ASML's net income for 2025 was €9,609.4 million. It recognized 48 EUV systems in 2025 (44 in 2024). Its backlog stood at €38.8 billion, which the CEO described as the current level in the 2025 annual report.",
+      "query": "What were ASML's net income, the number of EUV systems it recognized in sales, and its order backlog at the end of 2025?",
+      "best_score": 0.9992157220840454,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": true,
+        "explanation": "The answer matches all three key facts: net income of €9,609.4 million, 48 EUV systems recognized and a backlog of €38.8 billion. It omits the EXE/NXE split, but that is minor. Every figure, including the 2024 comparison of 44, appears in the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 56,
+          "quote": "Net income for 2025 amounted to €9,609.4 million, representing 29.4% of total net sales and €24.73 basic net income per ordinary share."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 53,
+          "quote": "EUV systems recognized (in units) 48 2024: 44"
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2025,
+          "page": 8,
+          "quote": "Our backlog currently stands at a healthy level of €38.8 billion."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.53,
+        "retrieving": 11.25,
+        "generating": 2.58,
+        "total": 15.38
+      }
+    },
+    {
+      "id": "asml-2024-multi-rd-emissions-fte",
+      "type": "multimetric",
+      "modality": "mixed",
+      "question": "In 2024, how much did ASML spend on R&D, what were its scope 1 and 2 emissions, and how many FTEs did it employ at year-end?",
+      "gold": "R&D costs EUR 4,303.7 million (about EUR 4.3 billion); 32.8 kt CO2e scope 1 and 2 emissions; 44,027 FTEs at December 31, 2024.",
+      "answer": "In 2024 ASML spent €4,303.7 million (about €4.3 billion) on R&D. Its scope 1 and 2 emissions in 2024 were about 33 kt CO2e. The report says ASML relied on more than 44,000 employees, but it gives this as a rounded figure, not an exact year-end FTE count.",
+      "query": "In 2024, how much did ASML spend on R&D, what were its scope 1 and 2 emissions, and how many FTEs did ASML employ at year-end?",
+      "best_score": 0.9993392825126648,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "partial",
+        "grounded": true,
+        "explanation": "R&D (€4,303.7m) and scope 1 and 2 emissions (33 kt, an accepted rounding of 32.8 kt) are correct. For headcount, the answer gives only the rounded 'more than 44,000 employees'. It also wrongly claims the report has no exact year-end FTE count, when the report states 44,027 FTEs. Every figure is supported by the cited quotes."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 57,
+          "quote": "R&D costs were €4,303.7 million in 2024 compared with €3,980.6 million in 2023."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 200,
+          "quote": "In 2024, with emissions of 33 kt CO2e, we have already reduced absolute scope 1 and 2 emissions from 2019 by 46%, exceeding the SBTi target."
+        },
+        {
+          "verification": "verified",
+          "company": "ASML",
+          "fiscal_year": 2024,
+          "page": 42,
+          "quote": "We depend on more than 44,000 talented, dedicated and motivated employees who live our values of challenge, collaborate and care."
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.64,
+        "retrieving": 14.0,
+        "generating": 8.06,
+        "total": 23.71
+      }
+    },
+    {
+      "id": "cm-2025-multi-ebitda-arr-ghg",
+      "type": "multimetric",
+      "modality": "mixed",
+      "question": "What were CM.com's adjusted EBITDA, its annual recurring revenue and its market-based greenhouse gas emissions in 2025?",
+      "gold": "Adjusted EBITDA EUR 19.8 million; ARR EUR 35.9 million at year-end; 271 tCO2e market-based emissions (scope 1 and 2).",
+      "answer": "In 2025, CM.com's adjusted EBITDA was EUR 19.8 million (reported EBITDA was EUR 18.4 million before EUR 1.4 million of one-offs). Annual recurring revenue at the end of 2025 was EUR 35.9 million. Total market-based greenhouse gas emissions (scope 1 and 2) were 271 tCO2 in 2025.",
+      "query": "What were CM.com's adjusted EBITDA, annual recurring revenue, and market-based greenhouse gas emissions in 2025?",
+      "best_score": 0.9990743398666382,
+      "status": "answered",
+      "abstained": false,
+      "skipped_llm": false,
+      "citations": 3,
+      "verified": 3,
+      "fuzzy": 0,
+      "failed": 0,
+      "cited_gold_page": true,
+      "retrieved_gold_page": true,
+      "judge": {
+        "correctness": "correct",
+        "grounded": false,
+        "explanation": "The answer matches all three gold figures: adjusted EBITDA of EUR 19.8m, ARR of EUR 35.9m and 271 tCO2e market-based emissions. It also avoids both traps. However, the extra figures it adds (reported EBITDA of 18.4 and one-offs of 1.4) appear in none of the cited quotes, so the answer is not fully grounded."
+      },
+      "cited": [
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 16,
+          "quote": "Operating result, Adjusted EBITDA\n19.8\n18.1"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 2,
+          "quote": "Annual recurring revenue (ARR)* 2025 € 35.9m"
+        },
+        {
+          "verification": "verified",
+          "company": "CM.com",
+          "fiscal_year": 2025,
+          "page": 73,
+          "quote": "Total GHG emissions (market-based)\n271\n288\n370\n(27%)"
+        }
+      ],
+      "stages": {
+        "start": 0.0,
+        "analyzing": 1.51,
+        "retrieving": 12.13,
+        "generating": 2.74,
+        "total": 16.4
+      }
+    }
+  ]
+}

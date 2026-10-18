@@ -26,6 +26,9 @@ from eval.common import RESULTS_DIR, USAGE, CorpusDoc, instrument, load_corpus, 
 
 
 def ingest(doc: CorpusDoc) -> dict[str, Any]:
+    """Run the app's stages on one report with a timer around each. A stage that raises
+    marks the report failed, as the app does, and the run records the stage and error; the
+    stages before it keep their timings."""
     timings: dict[str, float] = {}
     digest = hashlib.sha256(doc.path.read_bytes()).hexdigest()
     with SessionLocal() as db:
@@ -35,26 +38,56 @@ def ingest(doc: CorpusDoc) -> dict[str, Any]:
         report = Report(company="", fiscal_year=0, filename=doc.path.name, file_hash=digest)
         db.add(report)
         db.commit()
-        mark = USAGE.mark()
-        with timer(timings, "parse"):
-            parsed = pipeline._parse(db, report, doc.path)
-        with timer(timings, "detect_metadata"):
-            pipeline._detect_metadata(report, parsed)
-        with timer(timings, "chunk_and_store"):
+        state: dict[str, Any] = {}
+
+        def parse() -> None:
+            state["parsed"] = pipeline._parse(db, report, doc.path)
+
+        def detect_metadata() -> None:
+            pipeline._detect_metadata(report, state["parsed"])
+
+        def chunk_and_store() -> None:
             pipeline._set_progress(db, report, ReportStatus.CHUNKING)
-            pipeline._store_pages(db, report, parsed)
-            chunks = pipeline._chunk(db, report, parsed)
-        with timer(timings, "embed"):
+            pipeline._store_pages(db, report, state["parsed"])
+            state["chunks"] = pipeline._chunk(db, report, state["parsed"])
+
+        def embed() -> None:
             pipeline._set_progress(db, report, ReportStatus.EMBEDDING)
-            pipeline._embed(db, report, chunks)
-        with timer(timings, "extract"):
+            pipeline._embed(db, report, state["chunks"])
+
+        def extract() -> None:
             pipeline._set_progress(db, report, ReportStatus.EXTRACTING)
             extract_report(db, report, get_provider())
-        pipeline._set_progress(db, report, ReportStatus.READY, fraction=1.0)
+
+        mark = USAGE.mark()
+        run: dict[str, Any] = {}
+        for stage in (parse, detect_metadata, chunk_and_store, embed, extract):
+            try:
+                with timer(timings, stage.__name__):
+                    stage()
+            except Exception as exc:
+                db.rollback()
+                pipeline._mark_failed(db, report.id, exc)
+                run["failed"] = {
+                    "stage": stage.__name__,
+                    "error": f"{type(exc).__name__}: {exc}"[:300],
+                }
+                break
+        else:
+            pipeline._set_progress(db, report, ReportStatus.READY, fraction=1.0)
         timings["total"] = round(sum(timings.values()), 2)
-        llm = USAGE.summary(mark)
-    print(f"{doc.key}: {parsed.page_count} pages, {len(chunks)} chunks, {timings}")
-    return {"pages": parsed.page_count, "timings": timings, "llm": llm}
+        run |= {"timings": timings, "llm": USAGE.summary(mark)}
+        if "parsed" in state:
+            run["pages"] = state["parsed"].page_count
+    outcome = (
+        f"failed at {run['failed']['stage']}: {run['failed']['error']}"
+        if "failed" in run
+        else "ready"
+    )
+    print(
+        f"{doc.key}: {run.get('pages')} pages, {len(state.get('chunks', []))} chunks, {outcome}, {timings}"
+    )
+    return run
 
 
 def chunk_stats(chunks: list[Chunk]) -> dict[str, Any]:
@@ -93,6 +126,7 @@ def score(ingest_runs: dict[str, dict]) -> dict[str, Any]:
     reports = list(out["reports"].values())
     out["summary"] = {
         "reports": len(reports),
+        "failed": [key for key, r in out["reports"].items() if "failed" in r],
         "metadata_accuracy": round(
             sum(r["metadata"]["company_ok"] and r["metadata"]["year_ok"] for r in reports)
             / max(len(reports), 1),
@@ -107,7 +141,7 @@ def score(ingest_runs: dict[str, dict]) -> dict[str, Any]:
             "timed_reports": len(timed),
             "total_seconds": round(total, 1),
             "stage_share": {
-                stage: round(sum(r["timings"][stage] for r in timed) / total, 3)
+                stage: round(sum(r["timings"].get(stage, 0) for r in timed) / total, 3)
                 for stage in ("parse", "detect_metadata", "chunk_and_store", "embed", "extract")
             },
             "llm_cost_usd": round(sum(r["llm"]["cost_usd"] for r in timed), 4),
@@ -122,7 +156,7 @@ def _previous_runs() -> dict[str, dict]:
         return {}
     reports = json.loads(path.read_text())["reports"]
     return {
-        key: {f: run[f] for f in ("pages", "timings", "llm") if f in run}
+        key: {f: run[f] for f in ("pages", "timings", "llm", "failed") if f in run}
         for key, run in reports.items()
     }
 
@@ -133,13 +167,14 @@ def main() -> None:
     args = parser.parse_args()
     instrument(get_provider())
     get_embedder()
-    runs: dict[str, dict] = {}
+    runs = _previous_runs()
     if not args.score:
         for doc in load_corpus():
             run = ingest(doc)
             if run:
                 runs[doc.key] = run
-    result = score({**_previous_runs(), **runs})
+                write_json("ingestion.json", score(runs))  # a crash later loses nothing
+    result = score(runs)
     print(result["summary"])
     print(write_json("ingestion.json", result))
 

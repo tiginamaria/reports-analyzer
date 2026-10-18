@@ -1,0 +1,257 @@
+{
+  "reports": {
+    "abn-2025": {
+      "metadata": {
+        "detected": [
+          "ABN AMRO",
+          2025
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 928,
+        "table_chunks": 197,
+        "words_p50": 280,
+        "words_max": 710,
+        "duplicate_chunks": 0
+      },
+      "datapoints": {
+        "fte": 1,
+        "revenue": 1,
+        "net_income": 1,
+        "dividend_per_share": 1,
+        "sustainability_goal": 18
+      },
+      "timings": {
+        "parse": 36.72,
+        "detect_metadata": 1.06,
+        "chunk_and_store": 0.08,
+        "embed": 63.64,
+        "extract": 118.99,
+        "total": 220.49
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 61481,
+        "output_tokens": 7009,
+        "llm_seconds": 43.77,
+        "cost_usd": 0.1808
+      },
+      "pages": 434
+    },
+    "abn-2024": {
+      "metadata": {
+        "detected": [
+          "ABN AMRO",
+          2024
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 1134,
+        "table_chunks": 215,
+        "words_p50": 321,
+        "words_max": 674,
+        "duplicate_chunks": 0
+      },
+      "datapoints": {
+        "sustainability_goal": 28,
+        "fte": 1,
+        "revenue": 1,
+        "net_income": 1,
+        "dividend_per_share": 1
+      },
+      "timings": {
+        "parse": 45.08,
+        "detect_metadata": 0.92,
+        "chunk_and_store": 0.09,
+        "embed": 81.45,
+        "extract": 130.7,
+        "total": 258.24
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 63499,
+        "output_tokens": 9055,
+        "llm_seconds": 52.59,
+        "cost_usd": 0.206
+      },
+      "pages": 508
+    },
+    "asml-2025": {
+      "metadata": {
+        "detected": [
+          "ASML",
+          2025
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 838,
+        "table_chunks": 158,
+        "words_p50": 309,
+        "words_max": 549,
+        "duplicate_chunks": 1
+      },
+      "datapoints": {
+        "fte": 1,
+        "revenue": 1,
+        "net_income": 1,
+        "dividend_per_share": 1,
+        "sustainability_goal": 15
+      },
+      "timings": {
+        "parse": 43.18,
+        "detect_metadata": 1.23,
+        "chunk_and_store": 0.08,
+        "embed": 48.77,
+        "extract": 107.94,
+        "total": 201.2
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 55879,
+        "output_tokens": 6478,
+        "llm_seconds": 39.77,
+        "cost_usd": 0.1642
+      },
+      "pages": 350
+    },
+    "asml-2024": {
+      "metadata": {
+        "detected": [
+          "ASML",
+          2024
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 960,
+        "table_chunks": 231,
+        "words_p50": 281,
+        "words_max": 670,
+        "duplicate_chunks": 1
+      },
+      "datapoints": {
+        "sustainability_goal": 18,
+        "fte": 1,
+        "revenue": 1,
+        "net_income": 1,
+        "dividend_per_share": 1
+      },
+      "timings": {
+        "parse": 47.3,
+        "detect_metadata": 0.92,
+        "chunk_and_store": 0.08,
+        "embed": 53.72,
+        "extract": 113.69,
+        "total": 215.71
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 55439,
+        "output_tokens": 6988,
+        "llm_seconds": 43.32,
+        "cost_usd": 0.1685
+      },
+      "pages": 410
+    },
+    "cm-2025": {
+      "metadata": {
+        "detected": [
+          "CM.com",
+          2025
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 343,
+        "table_chunks": 81,
+        "words_p50": 209,
+        "words_max": 400,
+        "duplicate_chunks": 3
+      },
+      "datapoints": {
+        "fte": 1,
+        "net_income": 1,
+        "sustainability_goal": 7
+      },
+      "timings": {
+        "parse": 12.37,
+        "detect_metadata": 1.13,
+        "chunk_and_store": 0.03,
+        "embed": 17.35,
+        "extract": 86.57,
+        "total": 117.45
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 56387,
+        "output_tokens": 3888,
+        "llm_seconds": 29.69,
+        "cost_usd": 0.1393
+      },
+      "pages": 159
+    },
+    "cm-2024": {
+      "metadata": {
+        "detected": [
+          "CM.com",
+          2024
+        ],
+        "company_ok": true,
+        "year_ok": true
+      },
+      "chunks": {
+        "chunks": 422,
+        "table_chunks": 69,
+        "words_p50": 217,
+        "words_max": 400,
+        "duplicate_chunks": 19
+      },
+      "datapoints": {
+        "fte": 1,
+        "revenue": 1,
+        "net_income": 1,
+        "sustainability_goal": 7
+      },
+      "timings": {
+        "parse": 14.59,
+        "detect_metadata": 0.97,
+        "chunk_and_store": 0.04,
+        "embed": 21.67,
+        "extract": 90.86,
+        "total": 128.13
+      },
+      "llm": {
+        "calls": 6,
+        "input_tokens": 58152,
+        "output_tokens": 4557,
+        "llm_seconds": 31.28,
+        "cost_usd": 0.1496
+      },
+      "pages": 212
+    }
+  },
+  "summary": {
+    "reports": 6,
+    "failed": [],
+    "metadata_accuracy": 1.0,
+    "chunks": 4625,
+    "timed_reports": 6,
+    "total_seconds": 1141.2,
+    "stage_share": {
+      "parse": 0.175,
+      "detect_metadata": 0.005,
+      "chunk_and_store": 0.0,
+      "embed": 0.251,
+      "extract": 0.568
+    },
+    "llm_cost_usd": 1.0084
+  }
+}

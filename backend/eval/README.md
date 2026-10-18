@@ -3,8 +3,7 @@
 Offline evaluation of the pipeline as it ships, stage by stage: ingestion, retrieval,
 extraction and the end-to-end chat. Each script runs the app's own code with the app's
 settings; an experiment overrides parameters through command-line arguments and lands in its
-own result file. Results and conclusions of the evaluation that chose the current parameters:
-[docs/MVP_EVAL.md](../../docs/MVP_EVAL.md).
+own result file. Results, analysis and improvements: [docs/EVAL.md](../../docs/EVAL.md).
 
 Everything runs against a separate database (`reports_eval`, or `EVAL_DATABASE_URL`), so the
 reports ingested through the UI are never touched. Importing any `eval` module redirects
@@ -63,7 +62,7 @@ questions as a smoke test.
 | | `--no-rerank` | Keep the fused order; no score floor |
 | | `--max-subqueries N` | `0` searches the standalone question only (no decomposition) |
 | `e2e_eval` | `--model`, `--workers` | Answer model; questions in parallel (1 for honest latency) |
-| `extraction_eval` | `--top-k`, `--candidates`, `--min-score`, `--per-query`, `--batch-size` | The tunable fields of a registry entry, applied to every entry |
+| `extraction_eval` | `--top-k`, `--candidates`, `--min-score`, `--per-query` | The tunable fields of a registry entry, applied to every entry |
 | | `--keys fte sustainability_goal` | A subset of the registry |
 | | `--stored` | Score what ingestion wrote; no model calls |
 
@@ -75,7 +74,7 @@ the constants in `ingestion/chunker.py`, run `ingest_eval` and then `retrieval_e
 
 | Stage | Script | Metrics |
 |---|---|---|
-| Ingestion | `ingest_eval` | Seconds per stage and their share, LLM tokens and cost, metadata detection accuracy, chunks per report (table chunks, median and longest chunk, duplicates), datapoints written |
+| Ingestion | `ingest_eval` | Seconds per stage and their share, LLM tokens and cost, metadata detection accuracy, chunks per report (table chunks, median and longest chunk, duplicates), datapoints written; a report whose stage raises is marked failed as the app does, with the stage and error recorded, and the run goes on |
 | Retrieval | `retrieval_eval` | hit@k (a gold page among the retrieved chunks), MRR, facts-in-context (every key fact in the retrieved text of the right reports), report precision (share of chunks from the right company and year), report recall (share of the gold reports with a chunk, for comparisons); in all, per question type and text vs table; sub-queries and chunks per question, retrieval seconds p50/p90; for the abstention floor, the lowest best score on an answerable question and the share of unanswerable questions that retrieved nothing |
 | Extraction | `extraction_eval` | Per datapoint: exact / acceptable alternative / wrong / missing, or correctly nothing where the report states none; whether a gold page was among the candidate chunks; quote verified; chunks passed to the model, tokens, seconds and cost. Goals: recall (all and core), precision (real goal with a verified quote), candidate-page recall, the same cost figures. Totals per report and for the corpus |
 | Answers | `e2e_eval` | Judge correctness (correct, partial, incorrect, abstained) and groundedness in the cited quotes; false abstention; unanswerable questions handled and hallucinated; cited and retrieved gold page; citations verified / fuzzy / failed; latency in all and per stage; tokens and cost |

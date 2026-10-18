@@ -1,7 +1,7 @@
 # Plan
 
-How to run it: [README](../README.md). Why it is built this way: [MVP_DESIGN.md](MVP_DESIGN.md).
-How well it works: [MVP_EVAL.md](MVP_EVAL.md).
+How to run it: [README](../README.md). Why it is built this way: [DESIGN.md](DESIGN.md).
+How well it works: [EVAL.md](EVAL.md).
 
 ## MVP
 
@@ -29,7 +29,7 @@ How well it works: [MVP_EVAL.md](MVP_EVAL.md).
 
 ## Final
 
-**Evaluation** (results: [MVP_EVAL.md](MVP_EVAL.md))
+**Evaluation** (results: [EVAL.md](EVAL.md))
 
 - Gold set:
   - [x] Six reports: 3 companies × 2 fiscal years (2024, 2025)
@@ -55,10 +55,10 @@ How well it works: [MVP_EVAL.md](MVP_EVAL.md).
 **Extraction**
 
 - [x] Detect `max_tokens` truncation; raise the extraction output cap to 16,000
-- [x] Better recall for goals: map-reduce over more candidate chunks
 - [x] Clarify the registry instructions: FTE with or without temporary staff; goals dated
   after the fiscal year only
 - [x] More registry entries: revenue, net profit, dividend per share (with gold labels)
+- [] Better recall for goals
 
 **Retrieval**
 

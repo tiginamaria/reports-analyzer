@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.extraction import prompts
 from app.extraction.numbers import parse_number
-from app.extraction.schemas import ExtractedItem, ExtractionResult, KeptItems, ReportMetadata
+from app.extraction.schemas import ExtractedItem, ExtractionResult, ReportMetadata
 from app.llm import LLMError, LLMProvider
 from app.models import Chunk, Datapoint, Report
 from app.retrieval.search import RETRIEVAL_CANDIDATES, Hit, format_context, retrieve
@@ -49,10 +49,6 @@ class DatapointSpec:
     max_tokens: int = EXTRACTION_MAX_TOKENS
     per_query: int | None = None  # chunks kept per retrieval query; None derives it from top_k
     candidates: int = RETRIEVAL_CANDIDATES  # chunks each search fetches for reranking
-    # For a multi-value entry: chunks per model call. One call over 24 chunks lists the
-    # prominent goals and skims the rest; several calls over smaller batches read them all.
-    # None sends every chunk in one call.
-    batch_size: int | None = None
 
 
 def load_registry(path: Path = REGISTRY_PATH) -> list[DatapointSpec]:
@@ -85,26 +81,20 @@ def _extract_datapoints(
         hits = _candidate_hits(db, report, spec)
     if not hits:
         return []
-    size = spec.batch_size if spec.multi and spec.batch_size else len(hits)
-    items: list[ExtractedItem] = []
-    for start in range(0, len(hits), size):
-        try:
-            result = provider.complete_json(
-                system=prompts.EXTRACT,
-                user=_extraction_prompt(report, spec, hits[start : start + size]),
-                schema=ExtractionResult,
-                max_tokens=spec.max_tokens,
-            )
-        except LLMError as exc:
-            log.error("Extraction of %s failed for %s: %s", spec.key, report.company, exc)
-            continue
-        if result.found:
-            items.extend(item for item in result.items if item.value)
+    try:
+        result = provider.complete_json(
+            system=prompts.EXTRACT,
+            user=_extraction_prompt(report, spec, hits),
+            schema=ExtractionResult,
+            max_tokens=spec.max_tokens,
+        )
+    except LLMError as exc:
+        log.error("Extraction of %s failed for %s: %s", spec.key, report.company, exc)
+        return []
+    items = [item for item in result.items if item.value] if result.found else []
     if not spec.multi:
         items = items[:1]
     items = list(_unique(items))
-    if spec.multi and size < len(hits) and len(items) > 1:
-        items = _consolidate(items, report, spec, provider)
     chunks_by_id = {hit.chunk.id: hit.chunk for hit in hits}
     datapoints = [
         _build_datapoint(db, report, spec, item, chunks_by_id.get(item.chunk_id), provider)
@@ -112,32 +102,6 @@ def _extract_datapoints(
     ]
     db.add_all(datapoints)
     return datapoints
-
-
-def _consolidate(
-    items: list[ExtractedItem], report: Report, spec: DatapointSpec, provider: LLMProvider
-) -> list[ExtractedItem]:
-    """The reduce step after batched extraction: one short call over the collected items
-    drops duplicates found by several batches and items that are not concrete commitments.
-    The quotes are not re-sent; the model sees labels, values and periods. Keeps everything
-    when the call fails."""
-    listing = "\n".join(
-        f"{i}. {item.label} | {item.value} {item.unit or ''} | {item.period or ''}"
-        for i, item in enumerate(items)
-    )
-    user = (
-        f"Report: {report.company}, fiscal year {report.fiscal_year}. "
-        f"Datapoint: {spec.label}.\n\n{listing}"
-    )
-    try:
-        kept = provider.complete_json(
-            system=prompts.CONSOLIDATE, user=user, schema=KeptItems, max_tokens=2000
-        )
-    except LLMError as exc:
-        log.warning("Consolidation of %s skipped for %s: %s", spec.key, report.company, exc)
-        return items
-    indices = [i for i in dict.fromkeys(kept.keep) if 0 <= i < len(items)]
-    return [items[i] for i in indices] or items
 
 
 def _extraction_prompt(report: Report, spec: DatapointSpec, hits: list[Hit]) -> str:
@@ -150,7 +114,7 @@ def _extraction_prompt(report: Report, spec: DatapointSpec, hits: list[Hit]) -> 
 
 def _unique(items: list[ExtractedItem]) -> Iterator[ExtractedItem]:
     """Drop items the model returned twice: the same label, value and period, or the same
-    quote (two batches can each find the same sentence)."""
+    quote (a target restated in two chunks)."""
     seen: set[str] = set()
     for item in items:
         keys = {normalize(f"{item.label}|{item.value}|{item.period}"), normalize(item.quote)}
@@ -176,11 +140,11 @@ def _build_datapoint(
     return Datapoint(
         report_id=report.id,
         key=spec.key,
-        label=item.label or spec.label,
-        value=item.value,
+        label=_fit("label", item.label or spec.label),
+        value=_fit("value", item.value),
         numeric_value=parse_number(item.value),
-        unit=_unit_without_repeated_percent(item.value, item.unit),
-        period=item.period,
+        unit=_fit("unit", _unit_without_repeated_percent(item.value, item.unit)),
+        period=_fit("period", item.period),
         qualifiers={q.name: q.value for q in item.qualifiers},
         quote=item.quote,
         chunk_id=chunk.id if chunk else None,
@@ -188,6 +152,14 @@ def _build_datapoint(
         verification=status,
         model=provider.model_name(),
     )
+
+
+def _fit(column: str, text: str | None) -> str | None:
+    """`text` cut to the length of the datapoints column, so a long qualifier the model wrote
+    ("FY2025 (average during the year; no reliable year-end figure)") can never fail the
+    insert and with it the whole ingestion."""
+    limit = getattr(Datapoint.__table__.c[column].type, "length", None)
+    return text if text is None or limit is None else text[:limit]
 
 
 def _unit_without_repeated_percent(value: str | None, unit: str | None) -> str | None:
