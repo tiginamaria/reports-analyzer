@@ -38,7 +38,7 @@ from app.extraction.extractor import (
     _extract_datapoints,
     load_registry,
 )
-from app.llm import LLMProvider, get_provider
+from app.llm import LLMError, LLMProvider, get_provider
 from app.models import Datapoint, Report
 from app.retrieval.embedder import get_embedder, get_reranker
 from eval.common import USAGE, instrument, judge_provider, load_corpus, load_yaml, write_json
@@ -86,10 +86,16 @@ def run_entry(
     start = time.perf_counter()
     hits = _candidate_hits(db, report, spec)
     mark = USAGE.mark()
-    items = [as_dict(dp) for dp in _extract_datapoints(db, report, spec, provider, hits)]
+    error = None
+    try:
+        items = [as_dict(dp) for dp in _extract_datapoints(db, report, spec, provider, hits)]
+    except LLMError as exc:  # a failed call is a recorded miss, not a silent one
+        items, error = [], str(exc)
+        print(f"{report.company} {report.fiscal_year} {spec.key}: FAILED {exc}", flush=True)
     usage = USAGE.summary(mark)
     seconds = round(time.perf_counter() - start, 1)
     return items, {
+        "error": error,
         "chunks": len(hits),
         "candidate_pages": sorted({hit.chunk.page for hit in hits}),
         "calls": usage["calls"],

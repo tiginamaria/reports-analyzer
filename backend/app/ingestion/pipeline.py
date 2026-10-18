@@ -2,6 +2,11 @@
 
 Runs as a background task with its own database session. Status and progress are written
 to the report row after every stage so the UI can poll.
+
+The report's status tracks its index: `ready` means the pages, chunks and embeddings are
+complete and the report can be searched. How each registry entry's extraction went is
+recorded separately, per entry, in `extractions` (see `extractor.extract_report`); a failed
+entry never fails the report and can be extracted again with `rerun_extraction`.
 """
 
 import logging
@@ -11,7 +16,12 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
-from app.extraction.extractor import detect_metadata, extract_report
+from app.extraction.extractor import (
+    detect_metadata,
+    extract_report,
+    record_failure,
+    start_extraction,
+)
 from app.ingestion.chunker import chunk_document, contextual_header
 from app.ingestion.parser import ParsedDocument, parse_pdf
 from app.llm import get_provider
@@ -58,10 +68,46 @@ def _run_stages(db: Session, report: Report, path: Path) -> None:
     _embed(db, report, chunks)
 
     _set_progress(db, report, ReportStatus.EXTRACTING)
-    extract_report(db, report, get_provider())
+    _extract(db, report)
 
     _set_progress(db, report, ReportStatus.READY, fraction=1.0)
     log.info("Ingested %s (%d pages, %d chunks)", report.filename, doc.page_count, len(chunks))
+
+
+def _extract(db: Session, report: Report, keys: list[str] | None = None) -> None:
+    """The extraction stage. The index is complete by now, so a failure here (no provider
+    configured, the reranker, the database) does not fail the report: every entry without
+    an outcome is recorded as failed, which the UI shows next to a retry."""
+    try:
+        extract_report(db, report, get_provider(), keys=keys)
+    except Exception as exc:
+        db.rollback()
+        log.error("Extraction failed for %s", report.filename, exc_info=exc)
+        record_failure(db, report, exc, keys=keys)
+
+
+def begin_reextraction(db: Session, report: Report, keys: list[str]) -> None:
+    """What the retry endpoint does before scheduling `rerun_extraction`: the entries become
+    `pending` and the report `extracting`, so the response already shows the retry running."""
+    start_extraction(db, report, keys)
+    _set_progress(db, report, ReportStatus.EXTRACTING)
+    db.expire(report, ["extractions"])  # the response reloads the rows just set to pending
+
+
+def rerun_extraction(report_id: str, keys: list[str]) -> None:
+    """Background-task entry point of the retry endpoint: extract `keys` again on an indexed
+    report. Its pages, chunks and embeddings are untouched; only the entries' datapoints are
+    replaced. The report is `ready` again afterwards whatever the entries' outcomes."""
+    with SessionLocal() as db:
+        report = db.get(Report, report_id)
+        if report is None:
+            return
+        try:
+            _extract(db, report, keys)
+            _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+        except Exception as exc:  # the database itself; the entries stay pending
+            db.rollback()
+            log.error("Re-extraction of %s failed for %s", keys, report_id, exc_info=exc)
 
 
 def _mark_failed(db: Session, report_id: str, exc: Exception) -> None:

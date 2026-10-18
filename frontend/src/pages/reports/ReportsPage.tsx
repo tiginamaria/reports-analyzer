@@ -37,6 +37,15 @@ export default function ReportsPage() {
     return () => clearInterval(timer);
   }, [ingesting, refresh]);
 
+  const retry = async (report: Report) => {
+    try {
+      await api.extractAgain(report.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+    await refresh();
+  };
+
   const remove = async (report: Report) => {
     if (!confirm(`Delete ${reportLabel(report)} (${report.filename}) and all its data?`)) return;
     try {
@@ -62,7 +71,7 @@ export default function ReportsPage() {
       {error && <Notice tone="error">{error}</Notice>}
 
       <section className="card overflow-hidden">
-        <ReportsTable reports={reports} onDelete={remove} />
+        <ReportsTable reports={reports} onDelete={remove} onRetry={retry} />
       </section>
     </div>
   );

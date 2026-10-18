@@ -23,6 +23,13 @@ export const api = {
     return request<UploadResult>("/reports", { method: "POST", body });
   },
   deleteReport: (id: string) => request<void>(`/reports/${id}`, { method: "DELETE" }),
+  /** Extract `keys` again (every failed entry when omitted) without re-ingesting the PDF. */
+  extractAgain: (id: string, keys?: string[]) =>
+    request<Report>(`/reports/${id}/extract`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keys: keys ?? null }),
+    }),
   pdfUrl: (reportId: string, page?: number) => `/api/reports/${reportId}/pdf${page ? `#page=${page}` : ""}`,
   /** A single page rendered as an image; cheap to show, unlike the whole PDF. */
   pageImageUrl: (reportId: string, page: number) => `/api/reports/${reportId}/pages/${page}`,

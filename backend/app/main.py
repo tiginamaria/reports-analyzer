@@ -10,7 +10,13 @@ from app.api import chat, datapoints, reports
 from app.config import get_settings
 from app.db import SessionLocal
 from app.llm import get_provider
-from app.models import IN_PROGRESS_STATUSES, Report, ReportStatus
+from app.models import (
+    IN_PROGRESS_STATUSES,
+    Extraction,
+    ExtractionStatus,
+    Report,
+    ReportStatus,
+)
 from app.schemas import StatusOut
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -20,21 +26,35 @@ log = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     log.info("LLM provider: %s", get_settings().llm_provider)
-    _fail_interrupted_ingestions()
+    _recover_interrupted_ingestions()
     yield
 
 
-def _fail_interrupted_ingestions() -> None:
+def _recover_interrupted_ingestions() -> None:
     """Ingestion runs in-process, so a report left mid-way by a previous process can never
-    finish. Mark it failed so the UI does not show it as busy forever."""
+    finish on its own. A report that was still building its index is marked failed. One
+    that was already extracting has a complete index: it becomes `ready`, and the entries
+    it was extracting are marked failed so the UI offers a retry instead of a re-upload."""
     with SessionLocal() as db:
         interrupted = db.query(Report).filter(Report.status.in_(IN_PROGRESS_STATUSES)).all()
         for report in interrupted:
-            report.status = ReportStatus.FAILED
-            report.error = "Ingestion was interrupted by a restart. Delete and upload again."
-        if interrupted:
+            if report.status == ReportStatus.EXTRACTING:
+                report.status = ReportStatus.READY
+                report.progress = 100
+            else:
+                report.status = ReportStatus.FAILED
+                report.error = "Ingestion was interrupted by a restart. Delete and upload again."
+        pending = db.query(Extraction).filter(Extraction.status == ExtractionStatus.PENDING).all()
+        for extraction in pending:
+            extraction.status = ExtractionStatus.ERROR
+            extraction.message = "Extraction was interrupted by a restart. Retry it."
+        if interrupted or pending:
             db.commit()
-            log.warning("Marked %d interrupted ingestion(s) as failed", len(interrupted))
+            log.warning(
+                "Recovered %d interrupted ingestion(s) and %d pending extraction(s)",
+                len(interrupted),
+                len(pending),
+            )
 
 
 app = FastAPI(title="Annual Report RAG Analyzer", version="0.1.0", lifespan=lifespan)

@@ -178,7 +178,8 @@ Example questions:
 | Method | Path | Purpose |
 |---|---|---|
 | `POST` | `/api/reports` | Upload one or many PDFs (`files`); returns started reports and per-file rejections |
-| `GET` | `/api/reports`, `/api/reports/{id}` | Status and progress |
+| `GET` | `/api/reports`, `/api/reports/{id}` | Index status and progress, plus the outcome of every datapoint's extraction |
+| `POST` | `/api/reports/{id}/extract` | Extract the failed datapoints (or the `keys` given) again without re-ingesting the PDF |
 | `GET` | `/api/reports/{id}/pdf` | The PDF (use `#page=N`) |
 | `GET` | `/api/reports/{id}/pages/{n}` | Page `n` rendered as PNG; what the citation panel shows |
 | `GET` | `/api/datapoints?report_id=&key=` | Pre-extracted datapoints |

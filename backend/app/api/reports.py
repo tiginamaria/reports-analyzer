@@ -1,4 +1,4 @@
-"""Report upload, status and deletion; the PDF and its pages rendered as images."""
+"""Report upload, status, extraction retry and deletion; the PDF and its pages as images."""
 
 import hashlib
 import logging
@@ -20,13 +20,14 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.config import get_settings
 from app.db import get_db
-from app.ingestion.pipeline import ingest_report
-from app.models import Chunk, Datapoint, Report, ReportStatus
-from app.schemas import RejectedFile, ReportDetail, ReportOut, UploadResult
+from app.extraction.extractor import registry_entries
+from app.ingestion.pipeline import begin_reextraction, ingest_report, rerun_extraction
+from app.models import Chunk, Datapoint, ExtractionStatus, Report, ReportStatus
+from app.schemas import ExtractRequest, RejectedFile, ReportDetail, ReportOut, UploadResult
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/reports", tags=["reports"])
@@ -90,7 +91,10 @@ def _get_report_or_404(db: Session, report_id: str) -> Report:
 @router.get("", response_model=list[ReportOut])
 def list_reports(db: Session = Depends(get_db)) -> list[Report]:
     return (
-        db.query(Report).order_by(Report.company, Report.fiscal_year.desc(), Report.filename).all()
+        db.query(Report)
+        .options(selectinload(Report.extractions))
+        .order_by(Report.company, Report.fiscal_year.desc(), Report.filename)
+        .all()
     )
 
 
@@ -178,6 +182,38 @@ def get_report(report_id: str, db: Session = Depends(get_db)) -> ReportDetail:
         chunk_count=chunk_count or 0,
         datapoint_count=dp_count or 0,
     )
+
+
+@router.post("/{report_id}/extract", response_model=ReportOut, status_code=status.HTTP_202_ACCEPTED)
+def extract_again(
+    report_id: str,
+    body: ExtractRequest,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> Report:
+    """Run the extraction again for some registry entries of an ingested report: by default
+    every entry whose last attempt failed, or the `keys` given. The PDF is not parsed or
+    embedded again; only the entries' datapoints are replaced. Returns the report with the
+    entries `pending`; poll it until it is `ready` again."""
+    report = _get_report_or_404(db, report_id)
+    if report.status == ReportStatus.EXTRACTING:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Extraction is already running")
+    if report.status != ReportStatus.READY:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Only an ingested report can be extracted again"
+        )
+    if body.keys is None:
+        keys = [e.key for e in report.extractions if e.status == ExtractionStatus.ERROR]
+        if not keys:
+            raise HTTPException(status.HTTP_409_CONFLICT, "No extraction failed on this report")
+    else:
+        try:
+            keys = [spec.key for spec in registry_entries(body.keys)]
+        except KeyError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.args[0]) from exc
+    begin_reextraction(db, report, keys)
+    background.add_task(rerun_extraction, report.id, keys)
+    return report
 
 
 @router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)

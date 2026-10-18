@@ -55,6 +55,15 @@ IN_PROGRESS_STATUSES = (
 INDEXED_STATUSES = (ReportStatus.READY, ReportStatus.EXTRACTING)
 
 
+class ExtractionStatus(StrEnum):
+    """Outcome of one registry entry on one report (an `Extraction` row)."""
+
+    PENDING = "pending"  # the entry is being extracted (or was cut short by a restart)
+    EXTRACTED = "extracted"  # at least one datapoint was stored
+    NOT_FOUND = "not_found"  # the model found nothing in the candidate passages
+    ERROR = "error"  # the entry could not be extracted; `message` says why
+
+
 class Report(Base):
     __tablename__ = "reports"
 
@@ -83,6 +92,12 @@ class Report(Base):
     )
     datapoints: Mapped[list[Datapoint]] = relationship(
         back_populates="report", cascade="all, delete-orphan", passive_deletes=True
+    )
+    extractions: Mapped[list[Extraction]] = relationship(
+        back_populates="report",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="Extraction.key",
     )
 
 
@@ -136,6 +151,27 @@ class Datapoint(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     report: Mapped[Report] = relationship(back_populates="datapoints")
+
+
+class Extraction(Base):
+    """Outcome of one registry entry on one report. Without it a report with no datapoints
+    for an entry could not be told apart from one whose extraction failed: the datapoints
+    table looks the same in both cases."""
+
+    __tablename__ = "extractions"
+    __table_args__ = (UniqueConstraint("report_id", "key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    report_id: Mapped[str] = mapped_column(ForeignKey("reports.id", ondelete="CASCADE"), index=True)
+    key: Mapped[str] = mapped_column(String(60))
+    status: Mapped[str] = mapped_column(String(20), default=ExtractionStatus.PENDING)
+    message: Mapped[str | None] = mapped_column(Text)  # the error behind `error`, else None
+    model: Mapped[str | None] = mapped_column(String(100))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    report: Mapped[Report] = relationship(back_populates="extractions")
 
 
 class Conversation(Base):

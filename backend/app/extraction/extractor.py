@@ -1,8 +1,8 @@
 """Run the datapoint registry against an ingested report."""
 
 import logging
-from collections.abc import Iterator
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Iterable, Iterator
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 from app.extraction import prompts
 from app.extraction.numbers import parse_number
 from app.extraction.schemas import ExtractedItem, ExtractionResult, ReportMetadata
-from app.llm import LLMError, LLMProvider
-from app.models import Chunk, Datapoint, Report
+from app.llm import LLMProvider
+from app.models import Chunk, Datapoint, Extraction, ExtractionStatus, Report
 from app.retrieval.search import RETRIEVAL_CANDIDATES, Hit, format_context, retrieve
 from app.textutil import normalize
 from app.verify import verify_against_chunk
@@ -33,6 +33,7 @@ EXTRACTION_MAX_TOKENS = 64000  # output budget of one call; far above any goal l
 EXTRACTION_WORKERS = 6  # registry entries whose model calls run at the same time
 PER_QUERY_MIN = 4  # at least this many chunks are kept from each retrieval query...
 PER_QUERY_EXTRA = 2  # ...and `top_k / queries + this` otherwise, so the union can fill top_k
+MAX_MESSAGE_LENGTH = 2000  # of the error stored on a failed entry
 
 
 @dataclass
@@ -59,28 +60,142 @@ def load_registry(path: Path = REGISTRY_PATH) -> list[DatapointSpec]:
     return [DatapointSpec(**entry) for entry in entries]
 
 
-def extract_report(db: Session, report: Report, provider: LLMProvider) -> list[Datapoint]:
-    """Replace the report's datapoints with a fresh extraction of every registry entry.
+def registry_entries(keys: Iterable[str] | None = None) -> list[DatapointSpec]:
+    """The registry, or only the entries named in `keys`, in registry order. Raises KeyError
+    for a key the registry does not have."""
+    specs = load_registry()
+    if keys is None:
+        return specs
+    wanted = set(keys)
+    if unknown := wanted - {spec.key for spec in specs}:
+        raise KeyError(f"Unknown datapoint keys: {', '.join(sorted(unknown))}")
+    return [spec for spec in specs if spec.key in wanted]
+
+
+def extract_report(
+    db: Session, report: Report, provider: LLMProvider, keys: Iterable[str] | None = None
+) -> list[Datapoint]:
+    """Extract every registry entry (or only `keys`) of the report, replacing the entries'
+    datapoints, and record an outcome per entry in `extractions`: `extracted`, `not_found`
+    or `error` with the message.
 
     Candidate retrieval runs entry by entry (the reranker runs on one GPU behind a lock and
     the session is not thread-safe); the model calls, which are independent and spend their
     time waiting on the provider, run concurrently; verification and storage run in this
-    thread again."""
-    db.query(Datapoint).filter(Datapoint.report_id == report.id).delete()
-    specs = load_registry()
-    hits = {spec.key: _candidate_hits(db, report, spec) for spec in specs}
-    with ThreadPoolExecutor(EXTRACTION_WORKERS) as pool:
-        futures = {
-            spec.key: pool.submit(_ask_model, report, spec, provider, hits[spec.key])
-            for spec in specs
-        }
-    created: list[Datapoint] = []
-    for spec in specs:
-        created.extend(
-            _store(db, report, spec, futures[spec.key].result(), hits[spec.key], provider)
+    thread again. A failed model call is recorded on its entry and the rest of the registry
+    still runs. A failure outside one entry's call (the database, the reranker) marks every
+    entry still pending as failed and propagates."""
+    specs = registry_entries(keys)
+    outcomes = start_extraction(db, report, [spec.key for spec in specs])
+    try:
+        db.query(Datapoint).filter(
+            Datapoint.report_id == report.id, Datapoint.key.in_(outcomes)
+        ).delete(synchronize_session=False)
+        hits = {spec.key: _candidate_hits(db, report, spec) for spec in specs}
+        with ThreadPoolExecutor(EXTRACTION_WORKERS) as pool:
+            futures = {
+                spec.key: pool.submit(_ask_model, report, spec, provider, hits[spec.key])
+                for spec in specs
+            }
+        created: list[Datapoint] = []
+        for spec in specs:
+            created.extend(
+                _finish_entry(
+                    db,
+                    report,
+                    spec,
+                    outcomes[spec.key],
+                    futures[spec.key],
+                    hits[spec.key],
+                    provider,
+                )
+            )
+        db.commit()
+        return created
+    except Exception as exc:
+        db.rollback()
+        record_failure(db, report, exc, keys=list(outcomes))
+        raise
+
+
+def start_extraction(db: Session, report: Report, keys: Iterable[str]) -> dict[str, Extraction]:
+    """Set the entries to `pending` (creating their rows the first time) and commit, so the
+    UI shows them running before the first model call returns."""
+    keys = list(keys)
+    rows = {
+        row.key: row
+        for row in db.query(Extraction).filter(
+            Extraction.report_id == report.id, Extraction.key.in_(keys)
         )
+    }
+    for key in keys:
+        if key not in rows:
+            rows[key] = Extraction(report_id=report.id, key=key)
+            db.add(rows[key])
+        rows[key].status = ExtractionStatus.PENDING
+        rows[key].message = None
     db.commit()
-    return created
+    return rows
+
+
+def record_failure(
+    db: Session, report: Report, exc: Exception, keys: Iterable[str] | None = None
+) -> None:
+    """Mark every entry of the report (or of `keys`) that has no outcome yet, or is still
+    pending, as failed with the error, and commit. Entries that already finished are kept."""
+    message = _error_text(exc)
+    keys = list(keys) if keys is not None else [spec.key for spec in load_registry()]
+    rows = {
+        row.key: row
+        for row in db.query(Extraction).filter(
+            Extraction.report_id == report.id, Extraction.key.in_(keys)
+        )
+    }
+    for key in keys:
+        row = rows.get(key)
+        if row is None:
+            row = Extraction(report_id=report.id, key=key)
+            db.add(row)
+        elif row.status != ExtractionStatus.PENDING:
+            continue
+        row.status = ExtractionStatus.ERROR
+        row.message = message
+    db.commit()
+
+
+def _finish_entry(
+    db: Session,
+    report: Report,
+    spec: DatapointSpec,
+    outcome: Extraction,
+    future: Future[list[ExtractedItem]],
+    hits: list[Hit],
+    provider: LLMProvider,
+) -> list[Datapoint]:
+    """Store what the model returned for one entry and set the entry's outcome; a failed
+    call becomes `error` with its message, so it is never mistaken for "nothing found"."""
+    outcome.model = provider.model_name()
+    try:
+        items = future.result()
+    except Exception as exc:
+        log.error(
+            "Extraction of %s failed for %s %s",
+            spec.key,
+            report.company,
+            report.fiscal_year,
+            exc_info=exc,
+        )
+        outcome.status = ExtractionStatus.ERROR
+        outcome.message = _error_text(exc)
+        return []
+    datapoints = _store(db, report, spec, items, hits, provider)
+    outcome.status = ExtractionStatus.EXTRACTED if datapoints else ExtractionStatus.NOT_FOUND
+    outcome.message = None
+    return datapoints
+
+
+def _error_text(exc: Exception) -> str:
+    return f"{type(exc).__name__}: {exc}"[:MAX_MESSAGE_LENGTH]
 
 
 def _extract_datapoints(
@@ -90,8 +205,9 @@ def _extract_datapoints(
     provider: LLMProvider,
     hits: list[Hit] | None = None,
 ) -> list[Datapoint]:
-    """One registry entry end to end: retrieve candidate chunks (unless `hits` is given),
-    ask the model, verify every quote and add the datapoints to the session."""
+    """One registry entry end to end, without an outcome row: retrieve candidate chunks
+    (unless `hits` is given), ask the model, verify every quote and add the datapoints to the
+    session. A failed model call raises. Used by the evaluation scripts."""
     if hits is None:
         hits = _candidate_hits(db, report, spec)
     return _store(db, report, spec, _ask_model(report, spec, provider, hits), hits, provider)
@@ -101,20 +217,16 @@ def _ask_model(
     report: Report, spec: DatapointSpec, provider: LLMProvider, hits: list[Hit]
 ) -> list[ExtractedItem]:
     """The model call for one entry over its candidate chunks. Needs no database, so it can
-    run in a worker thread. A failed call is logged and yields nothing; the rest of the
-    registry still runs."""
+    run in a worker thread. A failed call raises (an `LLMError` from the provider); the
+    caller records it on the entry instead of treating it as "nothing found"."""
     if not hits:
         return []
-    try:
-        result = provider.complete_json(
-            system=prompts.EXTRACT,
-            user=_extraction_prompt(report, spec, hits),
-            schema=ExtractionResult,
-            max_tokens=spec.max_tokens,
-        )
-    except LLMError as exc:
-        log.error("Extraction of %s failed for %s: %s", spec.key, report.company, exc)
-        return []
+    result = provider.complete_json(
+        system=prompts.EXTRACT,
+        user=_extraction_prompt(report, spec, hits),
+        schema=ExtractionResult,
+        max_tokens=spec.max_tokens,
+    )
     items = [item for item in result.items if item.value] if result.found else []
     if not spec.multi:
         items = items[:1]

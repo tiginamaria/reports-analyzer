@@ -94,8 +94,18 @@ verbatim quoting matter go to the main one.
   through `pending`, `parsing`, `chunking`, `embedding`, `extracting`, `ready` (or
   `failed`). Status and progress are written after every stage and, within long stages,
   after every batch.
-- **Any error is stored on the report** and shown in the UI. Reports still in progress when
-  the process starts are marked failed ("interrupted by a restart").
+- **The status tracks the index, not the extraction.** `ready` means the pages, chunks and
+  embeddings are complete and the report can be searched (chat already works while it is
+  `extracting`). How each registry entry fared is recorded separately in `extractions`, one
+  row per report and entry: `extracted`, `not_found` (the model saw the candidate passages
+  and found nothing) or `error` with the message. A provider error on one entry is recorded
+  on that entry and the rest of the registry still runs; it is never stored as "nothing
+  found". The UI shows failed entries next to a retry, and `POST /api/reports/{id}/extract`
+  runs the chosen entries again without parsing or embedding the PDF again.
+- **An error while building the index is stored on the report** and shown in the UI.
+  Reports still in progress when the process starts are marked failed ("interrupted by a
+  restart"), except those that were already extracting: their index is complete, so they
+  become `ready` with the interrupted entries marked failed, ready for a retry.
 - On an M-series Mac a report of about 345 pages takes **3.2 minutes** on average (17%
   parsing, 25% embedding, 57% extraction) and **$0.14 to $0.21** of LLM calls, almost all
   of it extraction; on CPU in Docker, 10 to 15 minutes.
@@ -387,7 +397,7 @@ text really on that page of that report?**
 
 ## 6. Data model
 
-Six tables in Postgres, one Alembic migration:
+Seven tables in Postgres, two Alembic migrations:
 
 - **`reports`**: company, fiscal year, title, original file name, SHA-256 (unique), page
   count, status, progress, error.
@@ -397,6 +407,10 @@ Six tables in Postgres, one Alembic migration:
   (pgvector), word count, a generated `tsvector` column with a GIN index.
 - **`datapoints`**: report, registry key, label, value as written, parsed numeric value,
   unit, period, qualifiers (JSON), quote, chunk id, page, verification status, the model.
+- **`extractions`**: one row per report and registry key with the outcome of the last
+  extraction attempt (`pending`, `extracted`, `not_found`, `error`), the error message and
+  the model. It tells "nothing found" and "the call failed" apart, which the datapoints table
+  alone cannot.
 - **`conversations`** and **`messages`**: an assistant message stores its status, its
   citations with verification results, and metadata (standalone question, sub-queries,
   retrieved chunk ids, best reranker score), so a reloaded conversation shows exactly what

@@ -6,6 +6,17 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 
+class ExtractionOut(BaseModel):
+    """Outcome of one registry entry on a report; mirrors `ExtractionStatus`."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    key: str
+    status: str
+    message: str | None
+    updated_at: datetime
+
+
 class ReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -20,6 +31,9 @@ class ReportOut(BaseModel):
     error: str | None
     created_at: datetime
     updated_at: datetime
+    # One entry per registry key once extraction has started; an entry with datapoints and
+    # one whose extraction failed are told apart here, not by counting datapoints.
+    extractions: list[ExtractionOut]
 
 
 class ReportDetail(ReportOut):
@@ -80,6 +94,12 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: str | None = None
     report_ids: list[str] | None = None
+
+
+class ExtractRequest(BaseModel):
+    """Registry keys to extract again; None means every entry whose last attempt failed."""
+
+    keys: list[str] | None = None
 
 
 class RejectedFile(BaseModel):

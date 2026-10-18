@@ -7,6 +7,9 @@ export const isIndexed = (report: Report) => INDEXED_STATUSES.has(report.status)
 
 export const isIngesting = (report: Report) => report.status !== "ready" && report.status !== "failed";
 
+/** The datapoints whose last extraction attempt failed (as opposed to finding nothing). */
+export const failedExtractions = (report: Report) => report.extractions.filter((e) => e.status === "error");
+
 /** Anything that names a report: a Report, a Datapoint or a Citation. */
 interface ReportRef {
   company?: string;

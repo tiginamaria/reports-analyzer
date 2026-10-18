@@ -3,8 +3,23 @@
  * server-sent events of backend/app/api/chat.py; keep the two in sync.
  */
 
-/** Mirrors `ReportStatus` in backend/app/models.py. */
+/**
+ * Mirrors `ReportStatus` in backend/app/models.py. The status tracks the report's index:
+ * `ready` means it can be searched. How each datapoint's extraction went is in `extractions`.
+ */
 export type ReportStatus = "pending" | "parsing" | "chunking" | "embedding" | "extracting" | "ready" | "failed";
+
+/** Mirrors `ExtractionStatus` in backend/app/models.py. */
+export type ExtractionStatus = "pending" | "extracted" | "not_found" | "error";
+
+/** Outcome of one registry entry on a report. */
+export interface Extraction {
+  key: string;
+  status: ExtractionStatus;
+  /** The error behind `error`; null otherwise. */
+  message: string | null;
+  updated_at: string;
+}
 
 export interface Report {
   id: string;
@@ -19,6 +34,8 @@ export interface Report {
   error: string | null;
   created_at: string;
   updated_at: string;
+  /** One per registry entry once extraction has started; empty before that. */
+  extractions: Extraction[];
 }
 
 export interface UploadResult {
