@@ -1,7 +1,5 @@
 """Parse numbers as they appear in annual reports ("23,500", "1.2 million", "€ 3.4bn")."""
 
-from __future__ import annotations
-
 import re
 
 _MULTIPLIERS = {

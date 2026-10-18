@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Chat endpoint (server-sent events) and saved conversations."""
 
 import asyncio
 import json
@@ -96,7 +96,7 @@ def _answer_question(
                 if event.type == "answer":
                     event = _store_answer(db, convo, event)
                 emit(event)
-        except Exception as exc:  # noqa: BLE001 - reported to the client as an event
+        except Exception as exc:  # reported to the client as an event
             emit(ChatEvent("error", {"message": f"{type(exc).__name__}: {exc}"}))
         finally:
             emit(None)

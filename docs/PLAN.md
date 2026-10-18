@@ -1,6 +1,6 @@
 # Plan
 
-How to run it: [README](../README.md). Why it is built this way: [DESIGN.md](DESIGN.md).
+How to run it: [README](../README.md). Why it is built this way: [MVP_DESIGN.md](MVP_DESIGN.md).
 How well it works: [MVP_EVAL.md](MVP_EVAL.md).
 
 ## MVP

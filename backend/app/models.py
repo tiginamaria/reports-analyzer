@@ -1,4 +1,4 @@
-"""SQLAlchemy models. See docs/DESIGN.md, section "Data model"."""
+"""SQLAlchemy models. See docs/MVP_DESIGN.md, section "Data model"."""
 
 from __future__ import annotations
 

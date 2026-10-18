@@ -54,8 +54,8 @@ export default function ReportsPage() {
         <UploadForm onUploaded={refresh} />
         <p className="mt-3 text-xs text-slate-500">
           Ingestion parses the PDF, detects the company and fiscal year from its first pages, chunks and embeds it
-          locally, then extracts FTE and sustainability goals with the configured LLM. Large reports take several
-          minutes on CPU.
+          locally, then extracts the registry datapoints (FTE, revenue, net profit, dividend per share, sustainability
+          goals) with the configured LLM. Large reports take several minutes on CPU.
         </p>
       </section>
 

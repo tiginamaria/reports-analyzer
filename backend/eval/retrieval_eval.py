@@ -18,8 +18,6 @@ alternative configurations.
     uv run python -m eval.retrieval_eval --variant words200   # an index built by variants.py
 """
 
-from __future__ import annotations
-
 import argparse
 import dataclasses
 import hashlib
@@ -40,11 +38,11 @@ from app.chat.schemas import Query
 from app.ingestion.chunker import contextual_header
 from app.llm import get_provider
 from app.models import INDEXED_STATUSES, Message, Report
-from app.retrieval.embedder import get_embedder, get_reranker
+from app.retrieval.embedder import get_embedder
 from app.retrieval.search import rrf_merge
 from app.textutil import normalize
 from eval import EVAL_DATABASE_URL
-from eval.common import CACHE_DIR, instrument, load_yaml, report_keys, write_json
+from eval.common import CACHE_DIR, instrument, load_yaml, report_keys, require_reranker, write_json
 
 DEFAULT_MODES = "app,all,oracle"
 DEPTH = 400  # chunks per cached global ranking; deep enough to cover a one-report scope
@@ -195,7 +193,7 @@ class Index:
         if missing:
             start = time.perf_counter()
             passages = [f"{self.chunks[cid].header}\n{self.chunks[cid].content}" for cid in missing]
-            for cid, score in zip(missing, get_reranker().score(query, passages), strict=True):
+            for cid, score in zip(missing, require_reranker().score(query, passages), strict=True):
                 cached[cid] = score
             self.timings["rerank_per_pair"].append((time.perf_counter() - start) / len(missing))
         return {cid: cached[cid] for cid in chunk_ids}
@@ -320,7 +318,8 @@ def evaluate_app(
     """Run the chat's `_retrieve_all` on every question and score what it returns, with the
     time it takes. Prints a line per question, since every one runs the models."""
     scorer, per_question, seconds = Scorer(index, ids), {}, []
-    get_embedder(), get_reranker()  # load before timing: the app loads them at startup too
+    get_embedder()  # load both models before timing; the app loads them at startup too
+    require_reranker()
     for q in questions:
         rewrite = rewrites[q.id]
         start = time.perf_counter()

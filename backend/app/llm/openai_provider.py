@@ -1,7 +1,5 @@
 """OpenAI adapter."""
 
-from __future__ import annotations
-
 import openai
 from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel

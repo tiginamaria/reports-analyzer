@@ -4,8 +4,6 @@ Runs as a background task with its own database session. Status and progress are
 to the report row after every stage so the UI can poll.
 """
 
-from __future__ import annotations
-
 import logging
 import re
 from pathlib import Path
@@ -43,7 +41,7 @@ def ingest_report(report_id: str, path: Path) -> None:
             return
         try:
             _run_stages(db, report, path)
-        except Exception as exc:  # noqa: BLE001 - any failure is shown in the UI
+        except Exception as exc:  # any failure is shown in the UI
             db.rollback()
             _mark_failed(db, report_id, exc)
 
@@ -100,7 +98,7 @@ def _detect_metadata(report: Report, doc: ParsedDocument) -> None:
     the report keeps year 0 and gets the file name as its company, so it stays visible."""
     try:
         meta = detect_metadata(get_provider(), doc.pages, report.filename)
-    except Exception as exc:  # noqa: BLE001 - detection is best effort
+    except Exception as exc:  # detection is best effort
         log.warning("Metadata detection failed for %s: %s", report.filename, exc)
         report.company = Path(report.filename).stem
         return

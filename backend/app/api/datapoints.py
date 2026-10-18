@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Pre-extracted datapoints and the registry they come from."""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session

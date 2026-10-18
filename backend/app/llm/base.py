@@ -9,8 +9,6 @@ current user message last. Providers send the turns as a real multi-turn convers
 stable prefix (system prompt and earlier turns) can be served from the provider's prompt cache.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 from abc import ABC, abstractmethod

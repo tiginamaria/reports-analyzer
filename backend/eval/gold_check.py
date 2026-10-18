@@ -7,8 +7,6 @@ is what keeps an invented quote or a wrong page number out of the gold set.
     uv run python -m eval.gold_check
 """
 
-from __future__ import annotations
-
 import sys
 from collections import Counter
 

@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Structured outputs of the chat models: the query rewrite and the answer."""
 
 from typing import Literal
 

@@ -9,10 +9,7 @@ from app.chat.pipeline import (
     _conversation_turns,
     _rewrite_turns,
 )
-
-
-def msg(role: str, content: str) -> SimpleNamespace:
-    return SimpleNamespace(role=role, content=content)
+from tests.helpers import msg
 
 
 def exchanges(n: int) -> list[SimpleNamespace]:

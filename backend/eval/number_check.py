@@ -5,8 +5,6 @@ results, to see whether a cheap check in code could flag unsupported figures at 
     uv run python -m eval.number_check baseline tuned
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import re

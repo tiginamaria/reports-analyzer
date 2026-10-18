@@ -4,8 +4,6 @@ Exact match after normalisation is "verified". A fuzzy match above the threshold
 "fuzzy" (shown with a warning). Anything else is "failed".
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Literal
 
@@ -28,9 +26,7 @@ class VerifyResult:
     score: float
 
 
-def verify_quote(
-    quote: str, sources: list[str], fuzzy_threshold: float = FUZZY_THRESHOLD
-) -> VerifyResult:
+def verify_quote(quote: str, sources: list[str]) -> VerifyResult:
     """Check the quote against each source; the first exact match wins, otherwise the best
     fuzzy score decides."""
     needle = normalize(quote)
@@ -42,7 +38,7 @@ def verify_quote(
         if needle in haystack:
             return VerifyResult("verified", 1.0)
         best = max(best, _fuzzy_ratio(needle, haystack))
-    if best >= fuzzy_threshold:
+    if best >= FUZZY_THRESHOLD:
         return VerifyResult("fuzzy", best)
     return VerifyResult("failed", best)
 
@@ -56,8 +52,8 @@ def verify_against_chunk(db: Session, chunk: Chunk, quote: str) -> Status:
         .filter(Page.report_id == chunk.report_id, Page.page_no == chunk.page)
         .one_or_none()
     )
-    sources = [page.text] if page else []
-    return verify_quote(quote, [*sources, chunk.content]).status
+    sources = [page.text, chunk.content] if page else [chunk.content]
+    return verify_quote(quote, sources).status
 
 
 def _fuzzy_ratio(needle: str, haystack: str) -> float:

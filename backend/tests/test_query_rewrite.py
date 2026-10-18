@@ -7,8 +7,6 @@ split beyond what was asked, questions about all companies or all years, and how
 subqueries one question can produce.
 """
 
-from __future__ import annotations
-
 import re
 from types import SimpleNamespace
 
@@ -16,6 +14,9 @@ import pytest
 
 from app.chat.pipeline import _rewrite_query, _rewrite_turns
 from app.chat.schemas import Query
+from app.config import get_settings
+from app.llm import get_provider
+from tests.helpers import msg, require_api_key
 
 pytestmark = pytest.mark.integration
 
@@ -24,22 +25,8 @@ COMPANIES = ("abnamro", "asml", "cmcom", "heineken", "shell")
 
 @pytest.fixture(scope="module")
 def provider():
-    from app.config import get_settings
-    from app.llm import get_provider
-
-    settings = get_settings()
-    key = (
-        settings.anthropic_api_key
-        if settings.llm_provider == "anthropic"
-        else settings.openai_api_key
-    )
-    if not key:
-        pytest.skip(f"No API key configured for LLM provider {settings.llm_provider!r}")
+    require_api_key(get_settings())
     return get_provider()
-
-
-def msg(role: str, content: str) -> SimpleNamespace:
-    return SimpleNamespace(role=role, content=content)
 
 
 def conversation(*pairs: tuple[str, str]) -> list[SimpleNamespace]:

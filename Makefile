@@ -22,5 +22,5 @@ test:          ## unit tests (offline) and integration tests (need db + embeddin
 	cd backend && uv run pytest -q -m "not integration" && uv run pytest -q -m integration
 
 lint:
-	cd backend && uv run ruff check . && uv run ruff format --check . && uv run mypy app
+	cd backend && uv run ruff check . && uv run ruff format --check . && uv run mypy app eval
 	cd frontend && npm run lint && npm run typecheck

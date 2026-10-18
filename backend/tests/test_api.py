@@ -3,8 +3,6 @@
 Uses a tiny generated PDF and the configured LLM provider; skipped when no API key is set.
 """
 
-from __future__ import annotations
-
 import os
 import time
 from pathlib import Path
@@ -12,6 +10,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+
+from tests.helpers import require_api_key
 
 pytestmark = pytest.mark.integration
 
@@ -24,14 +24,7 @@ def client(tmp_path_factory):
     from app.config import get_settings
 
     get_settings.cache_clear()
-    settings = get_settings()
-    key = (
-        settings.anthropic_api_key
-        if settings.llm_provider == "anthropic"
-        else settings.openai_api_key
-    )
-    if not key:
-        pytest.skip(f"No API key configured for LLM provider {settings.llm_provider!r}")
+    require_api_key(get_settings())
     from app.db import engine
 
     try:

@@ -1,8 +1,6 @@
 """Hybrid retrieval: pgvector cosine + Postgres full-text, fused with Reciprocal Rank Fusion,
 then reranked with a cross-encoder."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from sqlalchemy import text as sql
@@ -32,7 +30,6 @@ def retrieve(
     candidates: int = RETRIEVAL_CANDIDATES,
     top_k: int = RERANK_TOP_K,
     min_score: float = RERANK_MIN_SCORE,
-    rrf_k: int = RRF_K,
 ) -> list[Hit]:
     """The top chunks for a query, best first: vector and full-text search fetch
     `candidates` chunks each, fused with RRF; the fused list is reranked, chunks scoring
@@ -44,7 +41,7 @@ def retrieve(
         vector_search(db, query_vector, candidates, report_ids),
         fulltext_search(db, query, candidates, report_ids),
     ]
-    hits = _load_hits(db, rrf_merge(rankings, rrf_k)[:candidates])
+    hits = _load_hits(db, rrf_merge(rankings)[:candidates])
     if rerank(query, hits):
         hits = [hit for hit in hits if hit.score >= min_score]
     return hits[:top_k]

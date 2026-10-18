@@ -11,13 +11,12 @@ different, stronger model than the generator, to limit self-preference.
     uv run python -m eval.e2e_eval baseline fts_or --limit 10
 """
 
-from __future__ import annotations
-
 import argparse
 import dataclasses
 import functools
 import statistics
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from dataclasses import dataclass
@@ -26,6 +25,7 @@ from unittest import mock
 
 from pydantic import BaseModel
 from sqlalchemy import text as sql
+from sqlalchemy.orm import Session
 
 import app.chat.pipeline as pipeline
 import app.retrieval.search as search
@@ -34,9 +34,9 @@ from app.config import get_settings
 from app.llm import LLMProvider
 from app.llm.anthropic_provider import AnthropicProvider
 from app.models import Chunk, Message
-from app.retrieval.embedder import get_embedder, get_reranker
+from app.retrieval.embedder import get_embedder
 from app.textutil import normalize
-from eval.common import USAGE, instrument, report_keys, write_json
+from eval.common import USAGE, instrument, report_keys, require_reranker, write_json
 from eval.retrieval_eval import FTS_SQL, Question, load_questions, session_for
 
 JUDGE_MODEL = "claude-opus-5-5"
@@ -71,10 +71,12 @@ CONFIGS = {
 }
 
 
-def _fulltext(method: str):  # noqa: ANN202
+def _fulltext(method: str) -> Callable[..., list[str]]:
     """`search.fulltext_search` with the given tsquery construction."""
 
-    def fulltext_search(db, query, limit, report_ids):  # noqa: ANN001, ANN202
+    def fulltext_search(
+        db: Session, query: str, limit: int, report_ids: list[str] | None
+    ) -> list[str]:
         where, params = search._report_filter(report_ids)
         rows = db.execute(
             sql(
@@ -131,7 +133,7 @@ def run_question(q: Question, provider: LLMProvider, cfg: E2EConfig) -> dict[str
     }
 
 
-def _chunks(db, chunk_ids: list[str]) -> list[Chunk]:  # noqa: ANN001
+def _chunks(db: Session, chunk_ids: list[str]) -> list[Chunk]:
     by_id = {c.id: c for c in db.query(Chunk).filter(Chunk.id.in_(chunk_ids)).all()}
     return [by_id[cid] for cid in chunk_ids if cid in by_id]
 
@@ -224,7 +226,7 @@ def evaluate(name: str, limit: int | None, workers: int) -> dict[str, Any]:
     )
     # the pipeline calls `retrieve` with the module defaults; hand it one with this
     # configuration's limits bound instead
-    patches = [
+    patches: list[mock._patch] = [
         mock.patch.object(
             pipeline,
             "retrieve",
@@ -287,7 +289,7 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
     answerable = [r for r in rows if r["type"] != "unanswerable"]
     unanswerable = [r for r in rows if r["type"] == "unanswerable"]
 
-    def share(items: list[dict], pred) -> float | None:  # noqa: ANN001
+    def share(items: list[dict], pred: Callable[[dict], Any]) -> float | None:
         return round(sum(1 for r in items if pred(r)) / len(items), 3) if items else None
 
     citations = sum(r["citations"] for r in rows)
@@ -358,7 +360,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=1, help="questions run in parallel")
     parser.add_argument("--tag", default="", help="suffix for the result file (repeat runs)")
     args = parser.parse_args()
-    get_reranker().score("warm-up", ["warm-up"])  # load both models outside the timings
+    require_reranker().score("warm-up", ["warm-up"])  # load both models outside the timings
     get_embedder().embed_query("warm-up")
     for name in args.configs:
         USAGE.calls.clear()

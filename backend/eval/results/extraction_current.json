@@ -21,19 +21,19 @@
         "verified": 1.0,
         "chunks_mean": 7,
         "input_tokens_mean": 5739.3,
-        "output_tokens_mean": 573.7,
-        "seconds_mean": 17.2,
+        "output_tokens_mean": 527,
+        "seconds_mean": 14.3,
         "llm_seconds_mean": 4.5,
         "repair_retries": 0,
         "cost_usd_total": 0.0912
       },
       "revenue": {
         "n": 6,
-        "exact": 0.667,
+        "exact": 0.5,
         "acceptable": 0.833,
         "outcomes": {
-          "exact": 4,
-          "alternative": 1,
+          "exact": 3,
+          "alternative": 2,
           "none": 0,
           "wrong": 0,
           "missing": 1,
@@ -42,15 +42,15 @@
         "gold_page_in_candidates": 0.667,
         "cited_gold_page": 0.167,
         "period_has_year": 0.833,
-        "unit_has_scale": 0.667,
+        "unit_has_scale": 0.5,
         "verified": 0.833,
         "chunks_mean": 10,
         "input_tokens_mean": 8577,
-        "output_tokens_mean": 383.2,
-        "seconds_mean": 15.3,
-        "llm_seconds_mean": 3.3,
+        "output_tokens_mean": 330,
+        "seconds_mean": 12.4,
+        "llm_seconds_mean": 3.0,
         "repair_retries": 0,
-        "cost_usd_total": 0.1139
+        "cost_usd_total": 0.1108
       },
       "net_income": {
         "n": 6,
@@ -71,11 +71,11 @@
         "verified": 1.0,
         "chunks_mean": 10,
         "input_tokens_mean": 7799.2,
-        "output_tokens_mean": 260.2,
-        "seconds_mean": 14.1,
-        "llm_seconds_mean": 2.6,
+        "output_tokens_mean": 255.7,
+        "seconds_mean": 12.7,
+        "llm_seconds_mean": 2.4,
         "repair_retries": 0,
-        "cost_usd_total": 0.0972
+        "cost_usd_total": 0.0969
       },
       "dividend_per_share": {
         "n": 6,
@@ -90,42 +90,42 @@
           "spurious": 0
         },
         "gold_page_in_candidates": 1.0,
-        "cited_gold_page": 0.167,
+        "cited_gold_page": 0.0,
         "period_has_year": 0.667,
         "unit_has_scale": 0.667,
         "verified": 0.667,
         "chunks_mean": 9,
         "input_tokens_mean": 8048,
-        "output_tokens_mean": 196.7,
-        "seconds_mean": 15.2,
+        "output_tokens_mean": 192.3,
+        "seconds_mean": 12.9,
         "llm_seconds_mean": 2.0,
         "repair_retries": 0,
-        "cost_usd_total": 0.0964
+        "cost_usd_total": 0.0961
       }
     },
     "goals": {
-      "recall": 0.61,
-      "recall_core": 0.743,
-      "precision": 0.957,
-      "candidate_page_recall": 0.612,
-      "extracted_total": 102,
+      "recall": 0.658,
+      "recall_core": 0.805,
+      "precision": 0.968,
+      "candidate_page_recall": 0.659,
+      "extracted_total": 109,
       "gold_total": 121,
       "gold_excluded_dated_total": 2,
-      "chunks_mean": 24,
-      "input_tokens_mean": 24908,
-      "output_tokens_mean": 7203.7,
-      "seconds_mean": 71.3,
-      "llm_seconds_mean": 42.6,
+      "chunks_mean": 31.5,
+      "input_tokens_mean": 32565.7,
+      "output_tokens_mean": 7809.7,
+      "seconds_mean": 70.2,
+      "llm_seconds_mean": 46.1,
       "repair_retries": 6,
-      "cost_usd_total": 0.6952
+      "cost_usd_total": 0.8115
     },
     "totals": {
       "reports": 6,
-      "cost_usd_total": 1.0939,
-      "cost_usd_per_report": 0.1823,
-      "input_tokens_per_report": 55072,
-      "output_tokens_per_report": 8617,
-      "seconds_per_report": 133.2
+      "cost_usd_total": 1.2065,
+      "cost_usd_per_report": 0.2011,
+      "input_tokens_per_report": 62729,
+      "output_tokens_per_report": 9115,
+      "seconds_per_report": 122.5
     }
   },
   "reports": {
@@ -140,7 +140,7 @@
         "unit_has_scale": true,
         "extracted": "21,976",
         "unit": "FTE",
-        "period": "year-end 2024",
+        "period": "year-end 2024 (end of period)",
         "page": 46,
         "verification": "verified",
         "chunks": 8,
@@ -156,11 +156,11 @@
         ],
         "calls": 1,
         "input_tokens": 6299,
-        "output_tokens": 573,
-        "cost_usd": 0.0163,
-        "seconds": 16.7,
-        "llm_seconds": 4.4,
-        "retrieval_seconds": 12.3
+        "output_tokens": 544,
+        "cost_usd": 0.0186,
+        "seconds": 15.9,
+        "llm_seconds": 4.8,
+        "retrieval_seconds": 11.1
       },
       "revenue": {
         "gold": "8,861",
@@ -190,11 +190,11 @@
         ],
         "calls": 1,
         "input_tokens": 9205,
-        "output_tokens": 367,
-        "cost_usd": 0.0201,
-        "seconds": 14.8,
-        "llm_seconds": 3.2,
-        "retrieval_seconds": 11.6
+        "output_tokens": 420,
+        "cost_usd": 0.0206,
+        "seconds": 15.0,
+        "llm_seconds": 3.48,
+        "retrieval_seconds": 11.5
       },
       "net_income": {
         "gold": "2,403",
@@ -224,11 +224,11 @@
         ],
         "calls": 1,
         "input_tokens": 9953,
-        "output_tokens": 144,
+        "output_tokens": 138,
         "cost_usd": 0.0193,
-        "seconds": 17.7,
-        "llm_seconds": 1.69,
-        "retrieval_seconds": 16.0
+        "seconds": 13.3,
+        "llm_seconds": 1.64,
+        "retrieval_seconds": 11.7
       },
       "dividend_per_share": {
         "gold": "1.35",
@@ -257,21 +257,21 @@
         "input_tokens": 9003,
         "output_tokens": 248,
         "cost_usd": 0.0185,
-        "seconds": 14.3,
-        "llm_seconds": 2.34,
+        "seconds": 14.0,
+        "llm_seconds": 2.0,
         "retrieval_seconds": 12.0
       },
       "goals": {
         "gold": 24,
         "gold_excluded_dated": 0,
         "gold_core": 7,
-        "extracted": 30,
+        "extracted": 31,
         "extracted_items": [
           {
             "label": "Financing of renewable energy and decarbonisation technologies",
             "value": "EUR 10 billion",
             "period": "2030",
-            "page": 29
+            "page": 30
           },
           {
             "label": "Circular loan volume",
@@ -280,26 +280,26 @@
             "page": 31
           },
           {
-            "label": "Net-zero economy / climate strategy aligned with 1.5°C",
+            "label": "Support the transition to a net-zero economy",
             "value": "net-zero",
             "period": "2050",
             "page": 30
           },
           {
-            "label": "DJSI score relative to industry leader",
+            "label": "DJSI score within range of industry leader",
             "value": "within 5% of the industry leader",
             "period": "ongoing",
             "page": 30
           },
           {
             "label": "Executive Board gender diversity",
-            "value": "at least one-third (1/3rd) underrepresented gender",
+            "value": "at least one-third (1/3rd)",
             "period": "ongoing",
             "page": 163
           },
           {
             "label": "Supervisory Board gender diversity",
-            "value": "at least one-third (1/3) underrepresented gender",
+            "value": "at least one-third (1/3)",
             "period": "ongoing",
             "page": 170
           },
@@ -310,13 +310,19 @@
             "page": 252
           },
           {
-            "label": "Commercial real estate financed emissions intensity",
+            "label": "Inland shipping carbon intensity reduction",
+            "value": "30% reduction",
+            "period": "2030",
+            "page": 258
+          },
+          {
+            "label": "Commercial real estate carbon intensity",
             "value": "35.7",
             "period": "2030",
             "page": 251
           },
           {
-            "label": "Power generation financed emissions intensity",
+            "label": "Power generation emission intensity",
             "value": "< 188",
             "period": "2030",
             "page": 251
@@ -328,52 +334,52 @@
             "page": 251
           },
           {
-            "label": "Oil and gas upstream and midstream emissions intensity",
+            "label": "Oil and gas upstream and midstream emission intensity",
             "value": "9.0",
             "period": "2030",
             "page": 251
           },
           {
             "label": "Deep-sea shipping climate alignment",
-            "value": "0%",
+            "value": "Target is to be\nfully aligned\nwith DNV 1.5\ntrajectory,\nscenario 10",
             "period": "2030",
             "page": 251
           },
           {
-            "label": "Agriculture financed emissions intensity",
+            "label": "Agriculture financed emission intensity",
             "value": "1.4",
             "period": "2030",
             "page": 251
           },
           {
-            "label": "Road transport trucks emissions intensity",
+            "label": "Road transport trucks carbon intensity",
             "value": "61.1",
             "period": "2030",
             "page": 251
           },
           {
-            "label": "Road transport vans emissions intensity",
+            "label": "Road transport vans carbon intensity",
             "value": "141.4",
             "period": "2030",
             "page": 251
           },
           {
-            "label": "Inland shipping carbon intensity reduction",
-            "value": "30%",
+            "label": "Road transport passenger cars carbon intensity",
+            "value": "63.0",
             "period": "2030",
-            "page": 258
-          },
-          {
-            "label": "Passenger cars carbon intensity reduction",
-            "value": "35%",
-            "period": "2030",
-            "page": 261
+            "page": 251
           },
           {
             "label": "Road transport trucks and vans net zero",
             "value": "net zero",
             "period": "2050",
             "page": 261
+          },
+          {
+            "label": "Road transport passenger cars emission intensity reduction",
+            "value": "35%",
+            "period": "2030",
+            "page": 262
           },
           {
             "label": "Client assets WACI ambition 2025",
@@ -386,12 +392,6 @@
             "value": "entire range below -50%",
             "period": "2030",
             "page": 263
-          },
-          {
-            "label": "Own operations net-zero emissions",
-            "value": "net-zero",
-            "period": "2030",
-            "page": 276
           },
           {
             "label": "Lending commitment for renewables and decarbonisation technologies",
@@ -408,6 +408,12 @@
           {
             "label": "Business travel emissions reduction",
             "value": "80%",
+            "period": "2030",
+            "page": 279
+          },
+          {
+            "label": "Own operations emissions reduction vs baseline",
+            "value": "95%",
             "period": "2030",
             "page": 279
           },
@@ -436,7 +442,7 @@
             "page": 302
           },
           {
-            "label": "Participation of people with a work-related disability",
+            "label": "Employment of people with a work-related disability",
             "value": "at least 225",
             "period": "2025",
             "page": 302
@@ -450,7 +456,7 @@
         ],
         "recall": 0.75,
         "recall_core": 0.857,
-        "precision": 0.9,
+        "precision": 0.903,
         "verified_rate": 1.0,
         "candidate_page_recall": 0.667,
         "missed": [
@@ -462,11 +468,11 @@
           "Fully electric international lease fleet"
         ],
         "not_goals": [
-          "DJSI score relative to industry leader",
-          "Executive Board gender diversity",
-          "Supervisory Board gender diversity"
+          "DJSI score within range of industry leader",
+          "Road transport passenger cars emission intensity reduction",
+          "Lending commitment for renewables and decarbonisation technologies"
         ],
-        "chunks": 24,
+        "chunks": 32,
         "candidate_pages": [
           21,
           26,
@@ -474,29 +480,36 @@
           30,
           31,
           33,
+          35,
           36,
           163,
           170,
+          192,
           204,
           216,
+          218,
+          241,
           250,
           251,
           252,
+          254,
           258,
           260,
           261,
+          262,
           263,
           276,
           279,
-          302
+          302,
+          477
         ],
-        "calls": 4,
-        "input_tokens": 26267,
-        "output_tokens": 11957,
-        "cost_usd": 0.1661,
-        "seconds": 95.2,
-        "llm_seconds": 68.71,
-        "retrieval_seconds": 26.5
+        "calls": 5,
+        "input_tokens": 34586,
+        "output_tokens": 11791,
+        "cost_usd": 0.1791,
+        "seconds": 93.3,
+        "llm_seconds": 66.22,
+        "retrieval_seconds": 27.1
       }
     },
     "abn-2025": {
@@ -510,7 +523,7 @@
         "unit_has_scale": true,
         "extracted": "23,126",
         "unit": "FTE",
-        "period": "2025 year-end (end of period)",
+        "period": "31 December 2025 (year-end)",
         "page": 47,
         "verification": "verified",
         "chunks": 7,
@@ -525,11 +538,11 @@
         ],
         "calls": 1,
         "input_tokens": 5563,
-        "output_tokens": 571,
-        "cost_usd": 0.0148,
-        "seconds": 14.6,
-        "llm_seconds": 4.55,
-        "retrieval_seconds": 10.1
+        "output_tokens": 585,
+        "cost_usd": 0.015,
+        "seconds": 16.1,
+        "llm_seconds": 6.23,
+        "retrieval_seconds": 9.9
       },
       "revenue": {
         "gold": "8,716",
@@ -561,9 +574,9 @@
         "input_tokens": 9313,
         "output_tokens": 130,
         "cost_usd": 0.0179,
-        "seconds": 13.9,
-        "llm_seconds": 1.81,
-        "retrieval_seconds": 12.1
+        "seconds": 12.0,
+        "llm_seconds": 1.72,
+        "retrieval_seconds": 10.3
       },
       "net_income": {
         "gold": "2,252",
@@ -575,7 +588,7 @@
         "unit_has_scale": true,
         "extracted": "2,252",
         "unit": "EUR million",
-        "period": "FY2025",
+        "period": "2025",
         "page": 296,
         "verification": "verified",
         "chunks": 10,
@@ -593,11 +606,11 @@
         ],
         "calls": 1,
         "input_tokens": 9525,
-        "output_tokens": 130,
-        "cost_usd": 0.0184,
-        "seconds": 14.5,
-        "llm_seconds": 1.75,
-        "retrieval_seconds": 12.8
+        "output_tokens": 128,
+        "cost_usd": 0.0183,
+        "seconds": 12.6,
+        "llm_seconds": 1.73,
+        "retrieval_seconds": 10.9
       },
       "dividend_per_share": {
         "gold": "1.24",
@@ -608,8 +621,8 @@
         "period_has_year": true,
         "unit_has_scale": true,
         "extracted": "1.24",
-        "unit": "EUR per share",
-        "period": "FY2025",
+        "unit": "EUR",
+        "period": "2025",
         "page": 44,
         "verification": "verified",
         "chunks": 10,
@@ -624,24 +637,18 @@
         ],
         "calls": 1,
         "input_tokens": 9006,
-        "output_tokens": 354,
-        "cost_usd": 0.0196,
-        "seconds": 14.3,
-        "llm_seconds": 2.81,
+        "output_tokens": 327,
+        "cost_usd": 0.0193,
+        "seconds": 14.5,
+        "llm_seconds": 2.96,
         "retrieval_seconds": 11.5
       },
       "goals": {
         "gold": 22,
         "gold_excluded_dated": 1,
         "gold_core": 8,
-        "extracted": 18,
+        "extracted": 21,
         "extracted_items": [
-          {
-            "label": "Renewable energy financing (2028)",
-            "value": "EUR 8 billion",
-            "period": "2028",
-            "page": 19
-          },
           {
             "label": "Net-zero emissions",
             "value": "net-zero",
@@ -649,16 +656,22 @@
             "page": 19
           },
           {
-            "label": "Executive Board gender diversity",
+            "label": "Executive Board gender diversity target",
             "value": "at least one-third (1/3)",
             "period": "ongoing",
             "page": 144
           },
           {
-            "label": "Supervisory Board gender diversity",
+            "label": "Supervisory Board gender diversity target",
             "value": "at least one-third (1/3)",
             "period": "ongoing",
             "page": 150
+          },
+          {
+            "label": "Oil and gas (upstream and midstream) operational emissions intensity reduction",
+            "value": "27%",
+            "period": "2030",
+            "page": 227
           },
           {
             "label": "Inland shipping carbon intensity reduction",
@@ -679,10 +692,22 @@
             "page": 232
           },
           {
-            "label": "Client assets WACI ambition",
+            "label": "Client assets (equity portfolios) WACI ambition",
             "value": "entire range below -50%",
             "period": "2030",
             "page": 232
+          },
+          {
+            "label": "Lending commitment for renewables and decarbonisation technologies (interim)",
+            "value": "EUR 8 billion",
+            "period": "2028",
+            "page": 247
+          },
+          {
+            "label": "Commitment target 2030 (climate strategy context)",
+            "value": "EUR 10 billion",
+            "period": "2030",
+            "page": 247
           },
           {
             "label": "Women in Extended Leadership Team",
@@ -697,13 +722,13 @@
             "page": 257
           },
           {
-            "label": "Cultural diversity: migration background in management",
+            "label": "Migration background in senior and middle management",
             "value": "8% of senior management, and 9% of middle management",
             "period": "ongoing",
             "page": 257
           },
           {
-            "label": "Participation of people with an occupational disability",
+            "label": "Employees with an occupational disability",
             "value": "at least 225",
             "period": "ongoing",
             "page": 257
@@ -715,8 +740,26 @@
             "page": 257
           },
           {
+            "label": "Net zero own operations emissions",
+            "value": "net zero",
+            "period": "2030",
+            "page": 288
+          },
+          {
             "label": "Reduction of base year emissions in own operations",
             "value": "91%",
+            "period": "2030",
+            "page": 288
+          },
+          {
+            "label": "Business travel emissions target",
+            "value": "5 kilotonnes of CO2e",
+            "period": "2030",
+            "page": 288
+          },
+          {
+            "label": "Business travel reduction",
+            "value": "60%",
             "period": "2030",
             "page": 288
           },
@@ -731,42 +774,29 @@
             "value": "fully electric",
             "period": "2030",
             "page": 288
-          },
-          {
-            "label": "Business travel emissions target",
-            "value": "5 kilotonnes of CO2e",
-            "period": "2030",
-            "page": 288
-          },
-          {
-            "label": "Business travel emission reduction",
-            "value": "60%",
-            "period": "2030",
-            "page": 288
           }
         ],
-        "recall": 0.591,
-        "recall_core": 0.625,
-        "precision": 0.944,
+        "recall": 0.682,
+        "recall_core": 0.75,
+        "precision": 1.0,
         "verified_rate": 1.0,
-        "candidate_page_recall": 0.455,
+        "candidate_page_recall": 0.591,
         "missed": [
-          "Renewable energy financing",
           "Early-stage capital for the energy transition (direct equity, funds, hybrid debt)",
           "Residential mortgages carbon intensity",
           "Commercial real estate carbon intensity",
-          "Oil and gas (upstream and midstream) operational emissions intensity",
           "Agriculture financed emissions intensity",
           "Road transport - trucks carbon intensity",
           "Road transport - vans carbon intensity",
           "Thermal coal phase-out"
         ],
-        "not_goals": [
-          "Business travel emission reduction"
-        ],
-        "chunks": 24,
+        "not_goals": [],
+        "chunks": 32,
         "candidate_pages": [
+          14,
           19,
+          20,
+          24,
           29,
           32,
           35,
@@ -776,22 +806,24 @@
           182,
           219,
           223,
+          227,
           228,
           232,
           247,
+          256,
           257,
           287,
           288,
           407,
           410
         ],
-        "calls": 4,
-        "input_tokens": 23661,
-        "output_tokens": 7261,
-        "cost_usd": 0.1139,
-        "seconds": 68.7,
-        "llm_seconds": 42.58,
-        "retrieval_seconds": 26.1
+        "calls": 5,
+        "input_tokens": 32122,
+        "output_tokens": 8730,
+        "cost_usd": 0.1436,
+        "seconds": 77.9,
+        "llm_seconds": 52.24,
+        "retrieval_seconds": 25.7
       }
     },
     "asml-2024": {
@@ -818,24 +850,24 @@
         ],
         "calls": 1,
         "input_tokens": 4996,
-        "output_tokens": 204,
-        "cost_usd": 0.01,
-        "seconds": 15.7,
-        "llm_seconds": 2.39,
-        "retrieval_seconds": 13.3
+        "output_tokens": 208,
+        "cost_usd": 0.0101,
+        "seconds": 12.8,
+        "llm_seconds": 2.1,
+        "retrieval_seconds": 10.7
       },
       "revenue": {
         "gold": "28,262.9",
         "gold_page": 56,
         "gold_page_in_candidates": true,
-        "outcome": "exact",
+        "outcome": "alternative",
         "cited_gold_page": false,
         "period_has_year": true,
-        "unit_has_scale": true,
-        "extracted": "28,263",
-        "unit": "EUR million",
+        "unit_has_scale": false,
+        "extracted": "€28.3 billion",
+        "unit": "EUR billion",
         "period": "FY2024",
-        "page": 57,
+        "page": 344,
         "verification": "verified",
         "chunks": 10,
         "candidate_pages": [
@@ -850,11 +882,11 @@
         ],
         "calls": 1,
         "input_tokens": 7785,
-        "output_tokens": 905,
-        "cost_usd": 0.0226,
-        "seconds": 19.2,
-        "llm_seconds": 6.29,
-        "retrieval_seconds": 12.9
+        "output_tokens": 605,
+        "cost_usd": 0.0196,
+        "seconds": 14.1,
+        "llm_seconds": 4.46,
+        "retrieval_seconds": 9.6
       },
       "net_income": {
         "gold": "7,571.6",
@@ -887,21 +919,21 @@
         "output_tokens": 137,
         "cost_usd": 0.0141,
         "seconds": 12.2,
-        "llm_seconds": 1.82,
-        "retrieval_seconds": 10.4
+        "llm_seconds": 1.62,
+        "retrieval_seconds": 10.6
       },
       "dividend_per_share": {
         "gold": "6.40",
         "gold_page": 372,
         "gold_page_in_candidates": true,
         "outcome": "exact",
-        "cited_gold_page": true,
+        "cited_gold_page": false,
         "period_has_year": true,
         "unit_has_scale": true,
         "extracted": "€6.40",
         "unit": "EUR per ordinary share",
         "period": "FY2024",
-        "page": 372,
+        "page": 138,
         "verification": "verified",
         "chunks": 8,
         "candidate_pages": [
@@ -915,17 +947,17 @@
         ],
         "calls": 1,
         "input_tokens": 7065,
-        "output_tokens": 260,
-        "cost_usd": 0.0147,
-        "seconds": 14.3,
-        "llm_seconds": 2.29,
-        "retrieval_seconds": 12.0
+        "output_tokens": 225,
+        "cost_usd": 0.0144,
+        "seconds": 13.4,
+        "llm_seconds": 2.13,
+        "retrieval_seconds": 11.3
       },
       "goals": {
         "gold": 30,
         "gold_excluded_dated": 0,
         "gold_core": 8,
-        "extracted": 20,
+        "extracted": 21,
         "extracted_items": [
           {
             "label": "GHG neutral across value chain",
@@ -934,45 +966,57 @@
             "page": 198
           },
           {
-            "label": "Scope 3 GHG emissions reduction 2030",
-            "value": "55.0%",
-            "period": "2030",
-            "page": 202
-          },
-          {
-            "label": "Scope 3 GHG emissions reduction 2040",
-            "value": "97.0%",
-            "period": "2040",
-            "page": 202
-          },
-          {
-            "label": "SBTi submission and validation of near-term and long-term targets",
-            "value": "validation by SBTi",
+            "label": "SBTi validation of near-term (2030) and long-term (2040) targets",
+            "value": "submit targets and have them validated by SBTi",
             "period": "2025",
             "page": 199
           },
           {
-            "label": "Supplier commitments to reduce or offset emissions",
-            "value": "suppliers commit to reducing or offsetting scopes 1, 2 and 3 emissions",
-            "period": "2030",
-            "page": 204
+            "label": "Zero waste from operations to landfill and incineration",
+            "value": "zero waste",
+            "period": "ongoing",
+            "page": 4
           },
           {
-            "label": "Gross scope 1 and 2 emissions reduction (SBTi)",
+            "label": "Reduce absolute scope 1 and 2 GHG emissions (SBTi near-term)",
+            "value": "25.2%",
+            "period": "2025",
+            "page": 221
+          },
+          {
+            "label": "Reduce absolute scope 1 and 2 GHG emissions",
+            "value": "75%",
+            "period": "2030",
+            "page": 200
+          },
+          {
+            "label": "Reduce gross scope 1 and 2 emissions",
             "value": "90%",
             "period": "2040",
             "page": 221
           },
           {
-            "label": "GHG neutral scope 3 purchased goods and services, capital goods and logistics",
-            "value": "GHG neutral",
+            "label": "Reduce scope 3 GHG emissions intensity (2030)",
+            "value": "55.0%",
             "period": "2030",
+            "page": 202
+          },
+          {
+            "label": "Reduce scope 3 GHG emissions intensity (2040)",
+            "value": "97.0%",
+            "period": "2040",
+            "page": 202
+          },
+          {
+            "label": "Reduce gross scope 3 GHG emissions intensity (SBTi near-term)",
+            "value": "35.3%",
+            "period": "2025",
             "page": 221
           },
           {
-            "label": "Gross scope 1 and 2 emissions reduction (SBTi near-term)",
-            "value": "25.2%",
-            "period": "2025",
+            "label": "GHG neutral scope 3 purchased goods and services and logistics",
+            "value": "GHG neutral",
+            "period": "2030",
             "page": 221
           },
           {
@@ -982,34 +1026,22 @@
             "page": 221
           },
           {
-            "label": "Gross scope 3 emissions intensity reduction (SBTi near-term)",
-            "value": "35.3%",
-            "period": "2025",
-            "page": 221
-          },
-          {
-            "label": "Gross scope 1 and 2 emissions reduction",
-            "value": "75%",
-            "period": "2030",
-            "page": 221
-          },
-          {
-            "label": "GHG neutral all scope 3 emissions",
+            "label": "GHG neutral for all scope 3 emissions",
             "value": "GHG neutral",
             "period": "2040",
             "page": 221
           },
           {
-            "label": "GHG neutral scope 1 and 2 from manufacturing and buildings",
+            "label": "Supplier commitments to reduce or offset emissions",
+            "value": "suppliers commit to reducing or offsetting scopes 1, 2 and 3 emissions",
+            "period": "2030",
+            "page": 204
+          },
+          {
+            "label": "GHG neutrality for scope 1 and 2 emissions from manufacturing and buildings",
             "value": "GHG neutral",
             "period": "2025",
             "page": 221
-          },
-          {
-            "label": "Attrition rate",
-            "value": "<7%",
-            "period": "2025",
-            "page": 259
           },
           {
             "label": "Employees with at least one development item in development plan",
@@ -1018,7 +1050,19 @@
             "page": 269
           },
           {
-            "label": "Representation of women in senior leadership roles (job grade 13+)",
+            "label": "Employee engagement score vs benchmark",
+            "value": ">-2.0% vs. top 25% performing companies",
+            "period": "2025",
+            "page": 259
+          },
+          {
+            "label": "Attrition rate",
+            "value": "<7%",
+            "period": "2025",
+            "page": 259
+          },
+          {
+            "label": "Women in senior leadership roles (job grade 13+)",
             "value": "14%",
             "period": "2026",
             "page": 271
@@ -1030,7 +1074,7 @@
             "page": 271
           },
           {
-            "label": "Inflow of women to middle management and above (external hires only)",
+            "label": "Inflow of women to middle management and above (job grades 9+), external hires only",
             "value": "24%",
             "period": "2025",
             "page": 271
@@ -1040,17 +1084,11 @@
             "value": "Netherlands (top 5), United States (top 75), China (top 100) and Taiwan (top 5)",
             "period": "2025",
             "page": 283
-          },
-          {
-            "label": "Engagement score relative to top 25% benchmark",
-            "value": "within a two percentage point range of the top 25% performing companies benchmark",
-            "period": "2025",
-            "page": 283
           }
         ],
-        "recall": 0.567,
-        "recall_core": 0.625,
-        "precision": 0.95,
+        "recall": 0.6,
+        "recall_core": 0.75,
+        "precision": 0.952,
         "verified_rate": 1.0,
         "candidate_page_recall": 0.433,
         "missed": [
@@ -1059,7 +1097,6 @@
           "At least 100 TJ annual energy savings from projects 2021-2025",
           "60% decrease in energy consumption per wafer of NXE (0.33 NA EUV) systems vs 2018",
           "10% decrease in absolute equivalent power consumption of NXE systems vs 2018",
-          "Zero waste from operations to landfill and incineration",
           "65% recycling rate of waste from operations (excl. construction)",
           "90% reuse rate of parts returned from field and factory",
           "Waste from operations of 295 kg per EUR m revenue",
@@ -1071,10 +1108,13 @@
         "not_goals": [
           "Supplier commitments to reduce or offset emissions"
         ],
-        "chunks": 24,
+        "chunks": 32,
         "candidate_pages": [
           4,
           104,
+          171,
+          173,
+          185,
           198,
           199,
           200,
@@ -1085,19 +1125,20 @@
           244,
           259,
           262,
+          268,
           269,
           271,
           272,
           283,
           405
         ],
-        "calls": 4,
-        "input_tokens": 24281,
-        "output_tokens": 7928,
-        "cost_usd": 0.1219,
-        "seconds": 71.4,
-        "llm_seconds": 45.32,
-        "retrieval_seconds": 26.1
+        "calls": 5,
+        "input_tokens": 32681,
+        "output_tokens": 10133,
+        "cost_usd": 0.1587,
+        "seconds": 83.0,
+        "llm_seconds": 58.61,
+        "retrieval_seconds": 24.4
       }
     },
     "asml-2025": {
@@ -1111,7 +1152,7 @@
         "unit_has_scale": true,
         "extracted": "44,209",
         "unit": "FTE",
-        "period": "December 31, 2025 (year-end)",
+        "period": "year-end 2025 (as of December 31, 2025)",
         "page": 301,
         "verification": "verified",
         "chunks": 6,
@@ -1123,11 +1164,11 @@
         ],
         "calls": 1,
         "input_tokens": 4409,
-        "output_tokens": 606,
+        "output_tokens": 605,
         "cost_usd": 0.0129,
-        "seconds": 14.8,
-        "llm_seconds": 4.39,
-        "retrieval_seconds": 10.4
+        "seconds": 14.2,
+        "llm_seconds": 4.43,
+        "retrieval_seconds": 9.8
       },
       "revenue": {
         "gold": "32,667.3",
@@ -1139,7 +1180,7 @@
         "unit_has_scale": true,
         "extracted": "32,667.3",
         "unit": "EUR million",
-        "period": "2025",
+        "period": "FY2025",
         "page": 54,
         "verification": "verified",
         "chunks": 10,
@@ -1155,11 +1196,11 @@
         ],
         "calls": 1,
         "input_tokens": 8134,
-        "output_tokens": 146,
-        "cost_usd": 0.0157,
-        "seconds": 12.1,
-        "llm_seconds": 1.87,
-        "retrieval_seconds": 10.2
+        "output_tokens": 148,
+        "cost_usd": 0.0158,
+        "seconds": 10.7,
+        "llm_seconds": 1.69,
+        "retrieval_seconds": 9.0
       },
       "net_income": {
         "gold": "9,609.4",
@@ -1191,9 +1232,9 @@
         "input_tokens": 7215,
         "output_tokens": 137,
         "cost_usd": 0.0138,
-        "seconds": 12.0,
-        "llm_seconds": 1.73,
-        "retrieval_seconds": 10.3
+        "seconds": 11.5,
+        "llm_seconds": 1.44,
+        "retrieval_seconds": 10.1
       },
       "dividend_per_share": {
         "gold": "7.50",
@@ -1220,11 +1261,11 @@
         ],
         "calls": 1,
         "input_tokens": 7277,
-        "output_tokens": 290,
-        "cost_usd": 0.0155,
-        "seconds": 13.7,
-        "llm_seconds": 2.4,
-        "retrieval_seconds": 11.3
+        "output_tokens": 326,
+        "cost_usd": 0.0158,
+        "seconds": 13.6,
+        "llm_seconds": 2.53,
+        "retrieval_seconds": 11.1
       },
       "goals": {
         "gold": 21,
@@ -1233,73 +1274,73 @@
         "extracted": 20,
         "extracted_items": [
           {
+            "label": "Absolute gross scope 1 and 2 GHG reduction",
+            "value": "75%",
+            "period": "2030",
+            "page": 160
+          },
+          {
+            "label": "Scope 3 GHG intensity reduction per €m gross profit",
+            "value": "55%",
+            "period": "2030",
+            "page": 160
+          },
+          {
+            "label": "Absolute gross scope 1 and 2 GHG reduction",
+            "value": "90%",
+            "period": "2040",
+            "page": 160
+          },
+          {
+            "label": "Scope 3 emission intensity reduction",
+            "value": "-97%",
+            "period": "2040",
+            "page": 155
+          },
+          {
             "label": "GHG neutrality across value chain",
             "value": "GHG neutrality",
             "period": "2040",
             "page": 155
           },
           {
-            "label": "Absolute gross scope 1 and 2 GHG reduction 2030",
-            "value": "75%",
-            "period": "2030",
-            "page": 160
-          },
-          {
-            "label": "Scope 3 GHG intensity reduction 2030",
-            "value": "55%",
-            "period": "2030",
-            "page": 160
-          },
-          {
-            "label": "Absolute gross scope 1 and 2 GHG reduction 2040",
-            "value": "90%",
-            "period": "2040",
-            "page": 160
-          },
-          {
-            "label": "Scope 3 GHG intensity reduction 2040",
-            "value": "97%",
-            "period": "2040",
-            "page": 160
-          },
-          {
-            "label": "EUV EXE:5200C energy per wafer pass (LTI ESG measure)",
+            "label": "EUV EXE:5200C energy use per wafer pass (LTI 2026–2028)",
             "value": "8.6",
-            "period": "2028",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "Localization of service part repair (LTI ESG measure)",
+            "label": "Localization of service part repair (LTI 2026–2028)",
             "value": "60%",
-            "period": "2028",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "Inflow of women JG 9+ (LTI gender diversity measure)",
+            "label": "Inflow of women JG 9+ (LTI 2026–2028)",
             "value": "26%",
-            "period": "2028",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "Representation of women in JG 13+ (LTI gender diversity measure)",
+            "label": "Representation of women in JG 13+ (LTI 2026–2028)",
             "value": "16.5%",
-            "period": "2028",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "Employee engagement vs benchmark (LTI measure)",
-            "value": "—2 p.p.",
-            "period": "2028",
+            "label": "Employee engagement vs benchmark (LTI 2026–2028)",
+            "value": "0 p.p.",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "Inclusion vs benchmark (LTI measure)",
-            "value": "—2 p.p.",
-            "period": "2028",
+            "label": "Inclusion score vs benchmark (LTI 2026–2028)",
+            "value": "0 p.p.",
+            "period": "2026–2028",
             "page": 126
           },
           {
-            "label": "GHG neutral scope 3 categories 1, 2 and 4",
+            "label": "GHG neutral scope 3 purchased goods and services, capital goods and logistics",
             "value": "GHG neutral",
             "period": "2030",
             "page": 178
@@ -1314,22 +1355,28 @@
             "label": "Zero waste to landfill and incineration",
             "value": "zero waste",
             "period": "2030",
+            "page": 187
+          },
+          {
+            "label": "Recycling rate of waste from operations",
+            "value": "85%",
+            "period": "2030",
             "page": 195
           },
           {
             "label": "Green building certification of new and renovated buildings",
-            "value": "BREEAM-certified (EU), LEED-certified (US and Asia), LEED/GSEED-certified (South Korea)",
+            "value": "BREEAM/LEED/GSEED-certified",
             "period": "ongoing",
             "page": 197
           },
           {
-            "label": "Women in senior leadership roles (job grades 13+)",
+            "label": "Representation of women in job grade 13+",
             "value": "14%",
             "period": "2026",
-            "page": 220
+            "page": 210
           },
           {
-            "label": "Inflow of women to middle management and above (job grades 9+)",
+            "label": "Inflow of women to middle management and above",
             "value": "26%",
             "period": "2026",
             "page": 220
@@ -1341,20 +1388,14 @@
             "page": 220
           },
           {
-            "label": "Inclusion score vs. top 25% benchmark",
+            "label": "Inclusion score relative to top 25% of companies",
             "value": "within 2 percentage points of (or higher than)",
             "period": "2027",
             "page": 220
-          },
-          {
-            "label": "Employer brand ranking in the US",
-            "value": "Top 75",
-            "period": "2026",
-            "page": 216
           }
         ],
-        "recall": 0.524,
-        "recall_core": 0.75,
+        "recall": 0.571,
+        "recall_core": 0.875,
         "precision": 0.95,
         "verified_rate": 1.0,
         "candidate_page_recall": 0.333,
@@ -1364,7 +1405,6 @@
           "Cut business travel CO2e emissions per FTE by 50% vs base year",
           "NXE (0.33 NA EUV) energy use per wafer pass of 4.7 kWh (-63% vs 2018)",
           "Additional 130 TJ energy savings under the 2026-2030 energy savings master plan",
-          "85% recycling rate of waste from operations",
           "Keep 90% reuse rate of parts returned from field and factory",
           "Community investment of EUR 2,500 per employee (EUR 2,000 CPP + EUR 500 employee giving)",
           "Support 25 ESG-focused scaleups",
@@ -1373,14 +1413,19 @@
         "not_goals": [
           "Green building certification of new and renovated buildings"
         ],
-        "chunks": 24,
+        "chunks": 32,
         "candidate_pages": [
+          52,
           82,
+          125,
           126,
           155,
           160,
           164,
+          174,
+          175,
           178,
+          187,
           190,
           195,
           197,
@@ -1389,15 +1434,16 @@
           216,
           220,
           233,
-          234
+          234,
+          333
         ],
-        "calls": 4,
-        "input_tokens": 26410,
-        "output_tokens": 7917,
-        "cost_usd": 0.126,
-        "seconds": 68.7,
-        "llm_seconds": 44.08,
-        "retrieval_seconds": 24.6
+        "calls": 5,
+        "input_tokens": 33415,
+        "output_tokens": 9446,
+        "cost_usd": 0.1533,
+        "seconds": 77.9,
+        "llm_seconds": 53.19,
+        "retrieval_seconds": 24.7
       }
     },
     "cm-2024": {
@@ -1427,11 +1473,11 @@
         ],
         "calls": 1,
         "input_tokens": 7742,
-        "output_tokens": 292,
-        "cost_usd": 0.0164,
-        "seconds": 11.9,
-        "llm_seconds": 2.39,
-        "retrieval_seconds": 9.5
+        "output_tokens": 279,
+        "cost_usd": 0.0163,
+        "seconds": 11.2,
+        "llm_seconds": 2.37,
+        "retrieval_seconds": 8.8
       },
       "revenue": {
         "gold": "274,249",
@@ -1441,7 +1487,7 @@
         "cited_gold_page": false,
         "period_has_year": true,
         "unit_has_scale": false,
-        "extracted": "274.2m",
+        "extracted": "274.2",
         "unit": "EUR million",
         "period": "FY 2024",
         "page": 5,
@@ -1460,11 +1506,11 @@
         ],
         "calls": 1,
         "input_tokens": 9548,
-        "output_tokens": 527,
-        "cost_usd": 0.0224,
-        "seconds": 13.1,
-        "llm_seconds": 4.21,
-        "retrieval_seconds": 8.9
+        "output_tokens": 496,
+        "cost_usd": 0.0221,
+        "seconds": 13.0,
+        "llm_seconds": 4.4,
+        "retrieval_seconds": 8.6
       },
       "net_income": {
         "gold": "(19,813)",
@@ -1493,11 +1539,11 @@
         ],
         "calls": 1,
         "input_tokens": 6478,
-        "output_tokens": 565,
-        "cost_usd": 0.0166,
-        "seconds": 15.0,
-        "llm_seconds": 4.6,
-        "retrieval_seconds": 10.4
+        "output_tokens": 506,
+        "cost_usd": 0.016,
+        "seconds": 13.2,
+        "llm_seconds": 3.92,
+        "retrieval_seconds": 9.3
       },
       "dividend_per_share": {
         "gold": null,
@@ -1519,15 +1565,15 @@
         "input_tokens": 7641,
         "output_tokens": 14,
         "cost_usd": 0.0134,
-        "seconds": 23.2,
-        "llm_seconds": 1.03,
-        "retrieval_seconds": 22.2
+        "seconds": 10.3,
+        "llm_seconds": 0.89,
+        "retrieval_seconds": 9.4
       },
       "goals": {
         "gold": 14,
         "gold_excluded_dated": 0,
         "gold_core": 5,
-        "extracted": 6,
+        "extracted": 9,
         "extracted_items": [
           {
             "label": "Management Board female representation target",
@@ -1548,7 +1594,7 @@
             "page": 71
           },
           {
-            "label": "Women in leadership roles (LTIP target)",
+            "label": "Female leadership (LTIP 2024-2026)",
             "value": "33%",
             "period": "2026",
             "page": 112
@@ -1564,26 +1610,43 @@
             "value": "80",
             "period": "2025",
             "page": 136
+          },
+          {
+            "label": "Employee participation in learning and development",
+            "value": "95%",
+            "period": "ongoing",
+            "page": 137
+          },
+          {
+            "label": "Equal training hours between male and female employees",
+            "value": "equal division",
+            "period": "ongoing",
+            "page": 137
+          },
+          {
+            "label": "Carbon neutrality transition plan",
+            "value": "carbon neutrality",
+            "period": "2025",
+            "page": 149
           }
         ],
-        "recall": 0.429,
+        "recall": 0.643,
         "recall_core": 0.8,
         "precision": 1.0,
         "verified_rate": 1.0,
-        "candidate_page_recall": 0.786,
+        "candidate_page_recall": 0.929,
         "missed": [
           "Employee engagement score 2026",
-          "Learning and development participation",
-          "Equal training hours by gender",
           "Mandatory security and compliance training completion",
           "No new fossil fuel vehicles",
           "Renewable electricity for remaining offices",
-          "Renewable electricity for data center colocations",
-          "Climate transition plan with GHG targets"
+          "Renewable electricity for data center colocations"
         ],
         "not_goals": [],
-        "chunks": 24,
+        "chunks": 29,
         "candidate_pages": [
+          24,
+          54,
           62,
           71,
           95,
@@ -1593,6 +1656,7 @@
           109,
           111,
           112,
+          114,
           121,
           122,
           123,
@@ -1601,17 +1665,19 @@
           132,
           134,
           136,
+          137,
           144,
           145,
-          146
+          146,
+          149
         ],
-        "calls": 4,
-        "input_tokens": 25240,
-        "output_tokens": 3682,
-        "cost_usd": 0.0813,
-        "seconds": 70.9,
-        "llm_seconds": 24.77,
-        "retrieval_seconds": 46.1
+        "calls": 5,
+        "input_tokens": 30064,
+        "output_tokens": 3103,
+        "cost_usd": 0.0832,
+        "seconds": 42.4,
+        "llm_seconds": 20.74,
+        "retrieval_seconds": 21.7
       }
     },
     "cm-2025": {
@@ -1625,7 +1691,7 @@
         "unit_has_scale": true,
         "extracted": "648",
         "unit": "FTE",
-        "period": "FY2025 (average during the year; no clear year-end FTE figure available)",
+        "period": "FY2025 (average during the year; no year-end FTE figure could be read reliably)",
         "page": 124,
         "verification": "verified",
         "chunks": 6,
@@ -1639,11 +1705,11 @@
         ],
         "calls": 1,
         "input_tokens": 5427,
-        "output_tokens": 1196,
-        "cost_usd": 0.0208,
-        "seconds": 29.7,
-        "llm_seconds": 8.97,
-        "retrieval_seconds": 20.7
+        "output_tokens": 941,
+        "cost_usd": 0.0183,
+        "seconds": 15.4,
+        "llm_seconds": 6.77,
+        "retrieval_seconds": 8.6
       },
       "revenue": {
         "gold": "259,394",
@@ -1664,11 +1730,11 @@
         ],
         "calls": 1,
         "input_tokens": 7477,
-        "output_tokens": 224,
-        "cost_usd": 0.0152,
-        "seconds": 19.0,
-        "llm_seconds": 2.55,
-        "retrieval_seconds": 16.4
+        "output_tokens": 181,
+        "cost_usd": 0.0148,
+        "seconds": 9.8,
+        "llm_seconds": 2.08,
+        "retrieval_seconds": 7.7
       },
       "net_income": {
         "gold": "(3,786)",
@@ -1698,11 +1764,11 @@
         ],
         "calls": 1,
         "input_tokens": 6280,
-        "output_tokens": 448,
-        "cost_usd": 0.015,
-        "seconds": 13.0,
-        "llm_seconds": 3.73,
-        "retrieval_seconds": 9.3
+        "output_tokens": 488,
+        "cost_usd": 0.0154,
+        "seconds": 13.3,
+        "llm_seconds": 4.14,
+        "retrieval_seconds": 9.2
       },
       "dividend_per_share": {
         "gold": null,
@@ -1725,27 +1791,33 @@
         "input_tokens": 8296,
         "output_tokens": 14,
         "cost_usd": 0.0147,
-        "seconds": 11.6,
-        "llm_seconds": 1.07,
-        "retrieval_seconds": 10.5
+        "seconds": 11.7,
+        "llm_seconds": 1.51,
+        "retrieval_seconds": 10.2
       },
       "goals": {
         "gold": 10,
         "gold_excluded_dated": 1,
         "gold_core": 5,
-        "extracted": 8,
+        "extracted": 7,
         "extracted_items": [
           {
-            "label": "Women in leadership roles (LTIP 2025-2027 target)",
-            "value": "33%",
-            "period": "2027",
-            "page": 61
-          },
-          {
-            "label": "Women in Executive Committee",
+            "label": "Women on Supervisory Board target",
             "value": "30.0%",
             "period": "2027",
             "page": 39
+          },
+          {
+            "label": "Women representation target (Executive Committee / Senior Management row)",
+            "value": "30.0%",
+            "period": "2027",
+            "page": 39
+          },
+          {
+            "label": "Women in leadership roles (LTIP 2025-2027)",
+            "value": "33%",
+            "period": "2027",
+            "page": 61
           },
           {
             "label": "No new fossil fuel vehicles",
@@ -1754,25 +1826,13 @@
             "page": 71
           },
           {
-            "label": "Renewable electricity for remaining offices",
-            "value": "switch the remaining offices to renewable electricity contracts",
-            "period": "ongoing",
-            "page": 71
-          },
-          {
-            "label": "Women on Supervisory Board",
-            "value": "at least 33%",
-            "period": "ongoing",
-            "page": 82
-          },
-          {
             "label": "Female representation in Management Board",
             "value": "at least 30%",
             "period": "2032",
             "page": 82
           },
           {
-            "label": "Employee engagement score (LTIP 2025-2027)",
+            "label": "Employee engagement score (LTIP 2025-2027 on target score)",
             "value": "75",
             "period": "2027",
             "page": 84
@@ -1784,25 +1844,29 @@
             "page": 86
           }
         ],
-        "recall": 0.8,
+        "recall": 0.7,
         "recall_core": 0.8,
         "precision": 1.0,
         "verified_rate": 1.0,
         "candidate_page_recall": 1.0,
         "missed": [
           "Women in Senior Management",
+          "Renewable electricity for remaining offices",
           "Annual leadership training"
         ],
         "not_goals": [],
-        "chunks": 24,
+        "chunks": 32,
         "candidate_pages": [
           22,
+          38,
           39,
           51,
           52,
+          60,
           61,
           62,
           63,
+          65,
           67,
           70,
           71,
@@ -1815,15 +1879,16 @@
           93,
           94,
           95,
-          97
+          97,
+          152
         ],
-        "calls": 4,
-        "input_tokens": 23589,
-        "output_tokens": 4477,
-        "cost_usd": 0.086,
-        "seconds": 52.8,
-        "llm_seconds": 29.93,
-        "retrieval_seconds": 22.9
+        "calls": 5,
+        "input_tokens": 32526,
+        "output_tokens": 3655,
+        "cost_usd": 0.0936,
+        "seconds": 46.4,
+        "llm_seconds": 25.7,
+        "retrieval_seconds": 20.7
       }
     }
   }

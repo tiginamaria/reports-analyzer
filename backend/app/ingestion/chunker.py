@@ -6,8 +6,6 @@ in the next one. Each detected table is a chunk of its own, never cut, and is in
 once. No document structure is inferred.
 """
 
-from __future__ import annotations
-
 from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass

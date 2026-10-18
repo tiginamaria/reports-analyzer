@@ -7,8 +7,6 @@ parameters and re-embedded. No LLM calls.
     uv run python -m eval.variants words200 words600 noheader
 """
 
-from __future__ import annotations
-
 import argparse
 import os
 import subprocess

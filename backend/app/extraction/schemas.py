@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Structured outputs of the extraction models."""
 
 from pydantic import BaseModel, Field
 

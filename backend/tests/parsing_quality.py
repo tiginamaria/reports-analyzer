@@ -3,8 +3,6 @@
 Shared by the pytest test (thresholds) and the `python -m tests.parsing_quality` scorecard.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -63,18 +61,14 @@ def score_document(spec: dict, doc: ParsedDocument, card: Scorecard) -> None:
 
         for s in p.get("text_contains", []):
             add("text", s, _contains(page_text, s))
+        body = doc.bodies[n - 1]  # what text windows are built from
+        outside_tables = page_text_outside_tables(page_text, tables)
         for s in p.get("table_cells", []):
             add("table_cells", s, any(_contains(t, s) for t in tables))
+            # The body must not repeat table content, unless the prose also mentions it.
+            add("table_not_in_body", s, not _contains(body, s) or _contains(outside_tables, s))
         if p.get("no_tables"):
             add("no_false_tables", f"{len(tables)} tables", not tables)
-        for s in p.get("table_cells", []):
-            # The body text (what text windows are built from) must not repeat table content.
-            body = doc.bodies[n - 1]
-            add(
-                "table_not_in_body",
-                s,
-                not _contains(body, s) or _contains(page_text_outside_tables(page_text, tables), s),
-            )
         for earlier, later in p.get("order", []):
             text = normalize(page_text)
             a, b = text.find(normalize(earlier)), text.find(normalize(later))

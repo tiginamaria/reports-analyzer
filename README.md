@@ -6,7 +6,7 @@ that were pre-extracted at ingestion (FTE, revenue, net profit, dividend per sha
 sustainability goals). Every answer and every
 datapoint carries a verbatim quote that is checked, in code, against the PDF text.
 
-Design, pipeline details, alternatives and risks: [docs/DESIGN.md](docs/DESIGN.md).
+Design, pipeline details, alternatives and risks: [docs/MVP_DESIGN.md](docs/MVP_DESIGN.md).
 Done and todo, by area: [docs/PLAN.md](docs/PLAN.md).
 Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/MVP_EVAL.md).
 
@@ -124,9 +124,10 @@ command line, the same endpoint takes one or many files:
 curl -F "files=@data/reports/shell-annual-report-2025.pdf" localhost:8000/api/reports
 ```
 
-Ingestion runs in the background with a progress bar: parse, chunk, embed, then extract FTE
-and sustainability goals with the LLM. A 400-page report takes about 2 minutes on an M-series
-Mac and 10 to 15 minutes on CPU in Docker. The sample set in `data/reports/SOURCES.md` lists
+Ingestion runs in the background with a progress bar: parse, chunk, embed, then extract the
+registry datapoints (FTE, revenue, net profit, dividend per share, sustainability goals) with
+the LLM. A 400-page report takes about 2 minutes on an M-series Mac and 10 to 15 minutes on
+CPU in Docker. The sample set in `data/reports/SOURCES.md` lists
 where the five example reports came from.
 
 ### Provider options
@@ -181,7 +182,7 @@ Example questions:
 | `POST` | `/api/chat` | Server-sent events: `conversation`, `stage`…, `answer` |
 | `GET` | `/api/conversations` | Saved conversations |
 
-## Tests and CI
+## Tests
 
 ```bash
 make test     # unit tests (offline) + integration test (Postgres, real embedder, needs an LLM API key)
@@ -201,8 +202,6 @@ cd backend && uv run python -m tests.parsing_quality
 
 prints the full scorecard with every failing label. Current scores: text, table cells,
 false tables and reading order all at 1.00.
-
-GitHub Actions runs the same with a pgvector service container.
 
 ## Project layout
 

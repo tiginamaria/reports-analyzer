@@ -56,10 +56,20 @@ def hit(chunk_id, score):
     return SimpleNamespace(chunk=SimpleNamespace(id=chunk_id), score=score)
 
 
+def recording(calls: list[str]):
+    """A `retrieve` stand-in that records what is searched and finds nothing."""
+
+    def retrieve(db, question, report_ids):
+        calls.append(question)
+        return []
+
+    return retrieve
+
+
 def test_each_sub_query_is_retrieved_and_merged(monkeypatch):
     calls = []
 
-    def fake_retrieve(db, question, report_ids, top_k=None):
+    def fake_retrieve(db, question, report_ids):
         calls.append((question, report_ids))
         if question == "shell?":
             return [hit("shell", 0.99), hit("both", 0.5)]
@@ -72,10 +82,8 @@ def test_each_sub_query_is_retrieved_and_merged(monkeypatch):
 
 
 def test_without_sub_queries_the_standalone_question_is_searched(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        pipeline, "retrieve", lambda db, question, report_ids: calls.append(question) or []
-    )
+    calls: list[str] = []
+    monkeypatch.setattr(pipeline, "retrieve", recording(calls))
     _retrieve_all(None, analysis(), None)
     assert calls == ["whole?"]
 
@@ -100,20 +108,16 @@ def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch, searchable
 
 
 def test_sub_queries_are_searched_by_their_search_text(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        pipeline, "retrieve", lambda db, question, report_ids: calls.append(question) or []
-    )
+    calls: list[str] = []
+    monkeypatch.setattr(pipeline, "retrieve", recording(calls))
     sub = SubQuery(company="ASML", fiscal_year=2025, question="How many FTEs?")
     _retrieve_all(None, Query(standalone_question="whole?", subqueries=[sub]), None)
     assert calls == ["How many FTEs? ASML annual report 2025"]
 
 
 def test_only_the_first_max_subqueries_are_searched(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        pipeline, "retrieve", lambda db, question, report_ids: calls.append(question) or []
-    )
+    calls: list[str] = []
+    monkeypatch.setattr(pipeline, "retrieve", recording(calls))
     questions = [f"q{i}?" for i in range(MAX_SUBQUERIES + 5)]
     _retrieve_all(None, analysis(*questions), None)
     assert calls == questions[:MAX_SUBQUERIES]

@@ -8,14 +8,13 @@ documents are cached for the chunking experiments in `variants.py`.
     uv run python -m eval.ingest_eval --score    # score only
 """
 
-from __future__ import annotations
-
 import argparse
 import hashlib
 import json
 import pickle
 import statistics
 from collections import Counter
+from pathlib import Path
 
 from app.db import SessionLocal
 from app.extraction.extractor import extract_report
@@ -29,6 +28,7 @@ from eval.common import (
     CACHE_DIR,
     RESULTS_DIR,
     USAGE,
+    CorpusDoc,
     instrument,
     load_corpus,
     timer,
@@ -39,11 +39,11 @@ EMPTY_PAGE_CHARS = 200  # a page with less text than this is a cover, divider or
 BOILERPLATE_PAGE_SHARE = 0.2  # a line repeated on this share of pages is a running header
 
 
-def parsed_cache_path(key: str):
+def parsed_cache_path(key: str) -> Path:
     return CACHE_DIR / "parsed" / f"{key}.pkl"
 
 
-def ingest(doc) -> dict:  # noqa: ANN001 - CorpusDoc
+def ingest(doc: CorpusDoc) -> dict:
     timings: dict[str, float] = {}
     digest = hashlib.sha256(doc.path.read_bytes()).hexdigest()
     with SessionLocal() as db:

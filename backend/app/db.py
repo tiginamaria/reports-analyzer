@@ -1,3 +1,5 @@
+"""Database engine and the per-request session."""
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine

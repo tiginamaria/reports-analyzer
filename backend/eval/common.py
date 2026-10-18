@@ -1,7 +1,5 @@
 """Shared helpers for the evaluation scripts: corpus, gold files, results, LLM usage."""
 
-from __future__ import annotations
-
 import json
 import time
 from collections.abc import Iterator
@@ -11,6 +9,12 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from sqlalchemy.orm import Session
+
+from app.llm import LLMProvider
+from app.llm.anthropic_provider import AnthropicProvider
+from app.models import Report
+from app.retrieval.embedder import Reranker, get_reranker
 
 EVAL_DIR = Path(__file__).parent
 BACKEND_DIR = EVAL_DIR.parent
@@ -55,10 +59,8 @@ def write_json(name: str, data: Any) -> Path:
     return path
 
 
-def report_keys(db) -> dict[str, str]:  # noqa: ANN001 - Session
+def report_keys(db: Session) -> dict[str, str]:
     """Corpus key -> report id in the eval database, matched on the stored file name."""
-    from app.models import Report
-
     by_name = {Path(doc.path).name: doc.key for doc in load_corpus()}
     return {by_name[r.filename]: r.id for r in db.query(Report).all() if r.filename in by_name}
 
@@ -107,11 +109,21 @@ class Usage:
 USAGE = Usage()
 
 
-def instrument(provider) -> None:  # noqa: ANN001 - AnthropicProvider
-    """Record the usage of every Anthropic call the provider makes into `USAGE`."""
-    provider.on_response = lambda response, seconds: USAGE.record(
-        response.model, response.usage, seconds
-    )
+def instrument(provider: LLMProvider) -> None:
+    """Record the usage of every call the provider makes into `USAGE`. Only the Anthropic
+    adapter reports usage; with another provider the cost figures stay empty."""
+    if isinstance(provider, AnthropicProvider):
+        provider.on_response = lambda response, seconds: USAGE.record(
+            response.model, response.usage, seconds
+        )
+
+
+def require_reranker() -> Reranker:
+    """The evals measure the shipped pipeline, which reranks; refuse to run without one."""
+    reranker = get_reranker()
+    if reranker is None:
+        raise SystemExit("The evaluation needs the reranker: set RERANKER_MODEL")
+    return reranker
 
 
 @contextmanager

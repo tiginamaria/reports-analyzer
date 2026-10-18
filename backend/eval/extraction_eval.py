@@ -18,15 +18,15 @@ To measure a change to an entry, change it in registry.yaml and run again.
 Nothing is written to the database: each report's extraction is rolled back.
 """
 
-from __future__ import annotations
-
 import argparse
 import re
 import statistics
 import time
+from collections.abc import Callable
 from typing import Any
 
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import SessionLocal
@@ -77,10 +77,7 @@ def as_dict(dp: Datapoint) -> dict[str, Any]:
 
 
 def run_entry(
-    db,
-    report: Report,
-    spec: DatapointSpec,
-    provider: LLMProvider,  # noqa: ANN001 - Session
+    db: Session, report: Report, spec: DatapointSpec, provider: LLMProvider
 ) -> tuple[list[dict], dict[str, Any]]:
     """One registry entry on one report, as ingestion runs it: candidate retrieval, the
     model call, quote verification. Returns the datapoints and the run's accounting."""
@@ -103,7 +100,9 @@ def run_entry(
     }
 
 
-def stored_entry(db, report: Report, spec: DatapointSpec) -> tuple[list[dict], dict[str, Any]]:  # noqa: ANN001
+def stored_entry(
+    db: Session, report: Report, spec: DatapointSpec
+) -> tuple[list[dict], dict[str, Any]]:
     """What ingestion wrote for one entry, with today's candidates for the page check."""
     hits = _candidate_hits(db, report, spec)
     rows = db.query(Datapoint).filter(Datapoint.report_id == report.id, Datapoint.key == spec.key)
@@ -296,7 +295,8 @@ def evaluate(stored: bool) -> dict[str, Any]:
     judge = AnthropicProvider(get_settings().model_copy(update={"anthropic_model": JUDGE_MODEL}))
     provider = get_provider()
     instrument(provider)
-    get_embedder(), get_reranker()
+    get_embedder()
+    get_reranker()
 
     per_report: dict[str, dict[str, Any]] = {}
     with SessionLocal() as db:
@@ -360,7 +360,7 @@ def summarize(per_report: dict[str, dict], single_keys: list[str], stored: bool)
     reports = list(per_report.values())
     n = len(reports)
 
-    def share(rows: list[dict], test) -> float:  # noqa: ANN001 - predicate
+    def share(rows: list[dict], test: Callable[[dict], Any]) -> float:
         return round(sum(bool(test(r)) for r in rows) / len(rows), 3)
 
     def mean(rows: list[dict], field: str) -> float | None:

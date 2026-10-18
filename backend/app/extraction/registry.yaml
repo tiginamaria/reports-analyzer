@@ -1,6 +1,6 @@
 # Pre-extraction registry. Each entry is a datapoint the ingestion pipeline extracts from
-# every report. Adding a field is a config change: add an entry here, then run
-# `python -m app.extraction.rerun` to extract it from reports that are already ingested.
+# every report. Adding a field is a config change: add an entry here; reports that are
+# already ingested get it when they are deleted and uploaded again.
 #
 # key:          stable identifier stored in `datapoints.key`
 # label:        human label shown in the UI

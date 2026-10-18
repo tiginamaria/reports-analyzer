@@ -9,13 +9,12 @@ the current vectors).
     uv run python -m eval.embed_bench --chunks 512
 """
 
-from __future__ import annotations
-
 import argparse
 import random
 import time
 
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 from app.db import SessionLocal
 from app.ingestion.chunker import contextual_header
@@ -35,7 +34,7 @@ def texts_sample(n: int) -> list[str]:
     ]
 
 
-def run(model, texts: list[str], per_batch: bool) -> tuple[float, np.ndarray]:  # noqa: ANN001
+def run(model: SentenceTransformer, texts: list[str], per_batch: bool) -> tuple[float, np.ndarray]:
     start = time.perf_counter()
     if per_batch:
         parts = [

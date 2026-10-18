@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Report upload, status and deletion; the PDF and its pages rendered as images."""
 
 import hashlib
 import logging

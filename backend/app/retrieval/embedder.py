@@ -1,7 +1,5 @@
 """Local embedding and reranking models (sentence-transformers). Loaded lazily, once."""
 
-from __future__ import annotations
-
 import logging
 import threading
 

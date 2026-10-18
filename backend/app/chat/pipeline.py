@@ -8,8 +8,6 @@ carry only question and answer text, never their chunks, so each answer is groun
 verified against this turn's evidence alone.
 """
 
-from __future__ import annotations
-
 import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -112,18 +110,11 @@ def _rewrite_turns(
     ]
 
 
-def _rewrite_query(
-    provider: LLMProvider,
-    question: str,
-    history: list[Message],
-    questions: int = REWRITE_QUESTIONS,
-    answer_messages: int = REWRITE_ANSWER_MESSAGES,
-) -> Query:
+def _rewrite_query(provider: LLMProvider, question: str, history: list[Message]) -> Query:
     """The small model rewrites the question to stand alone and splits it into subqueries,
     one per company, year and topic. Falls back to the raw question when the call fails, so
-    the chat still works. `questions` and `answer_messages` bound the conversation it sees
-    (see `_rewrite_turns`)."""
-    turns = _rewrite_turns(history, questions, answer_messages)
+    the chat still works. It sees the part of the conversation `_rewrite_turns` selects."""
+    turns = _rewrite_turns(history)
     transcript = "\n".join(f"{turn.role}: {turn.content}" for turn in turns)
     user = f"Conversation so far:\n{transcript or '(none)'}\n\nQuestion: {question}"
     try:
@@ -165,7 +156,7 @@ def _searchable_reports(db: Session, report_ids: list[str] | None) -> bool:
     """Whether retrieval had any indexed report to search, within the user's filter if
     given. Tells an empty result that means "nothing relevant" from one that means "nothing
     to search"."""
-    reports = db.query(Report.id).filter(Report.status.in_([str(s) for s in INDEXED_STATUSES]))
+    reports = db.query(Report.id).filter(Report.status.in_(INDEXED_STATUSES))
     if report_ids:
         reports = reports.filter(Report.id.in_(report_ids))
     return reports.first() is not None

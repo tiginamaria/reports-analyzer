@@ -1,3 +1,5 @@
+"""FastAPI application: routers, startup, health and status."""
+
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager

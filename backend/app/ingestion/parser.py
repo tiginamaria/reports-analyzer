@@ -5,8 +5,6 @@ verification. For tables only the detected boundary is used and the raw text ins
 stored, because PyMuPDF's cell extraction often merges columns of borderless tables.
 """
 
-from __future__ import annotations
-
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
