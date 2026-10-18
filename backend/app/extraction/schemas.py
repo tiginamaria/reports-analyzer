@@ -23,6 +23,10 @@ class ExtractionResult(BaseModel):
     items: list[ExtractedItem]
 
 
+class KeptItems(BaseModel):
+    keep: list[int] = Field(description="Indices of the items to keep, in the order given")
+
+
 class ReportMetadata(BaseModel):
     company: str
     fiscal_year: int

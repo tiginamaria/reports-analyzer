@@ -13,17 +13,8 @@ from app.models import INDEXED_STATUSES, Chunk, Report
 from app.retrieval.embedder import get_embedder, get_reranker
 
 RRF_K = 60  # standard smoothing constant; higher values flatten the rank bonus
-# Both rankings weigh the same in the fusion. The any-word full-text list always fills its
-# share of the candidates and so displaces about half of the vector candidates; weighting it
-# down to keep the vector depth was measured (eval `fts_weight` configs) to equal vector-only
-# search and lose three questions, so the full-text-only candidates are worth their slots.
-# Tuned on the eval set (docs/MVP_EVAL.md): 40 candidates missed answers ranked 41 to 60 by
-# fusion.
 RETRIEVAL_CANDIDATES = 60  # chunks fetched by each search and kept after fusion, for reranking
 RERANK_TOP_K = 8  # chunks kept after reranking, per query
-# Reranker probability below which a chunk is dropped. On the eval set the best chunk of every
-# answerable question scored 0.95 or more, and questions about companies outside the corpus
-# 0.10 to 0.18 (docs/MVP_EVAL.md), so this removes what such a query would otherwise return.
 RERANK_MIN_SCORE = 0.2
 
 
@@ -38,24 +29,25 @@ def retrieve(
     db: Session,
     query: str,
     report_ids: list[str] | None = None,
-    top_k: int | None = None,
+    candidates: int = RETRIEVAL_CANDIDATES,
+    top_k: int = RERANK_TOP_K,
     min_score: float = RERANK_MIN_SCORE,
+    rrf_k: int = RRF_K,
 ) -> list[Hit]:
     """The top chunks for a query, best first: vector and full-text search fetch
-    `RETRIEVAL_CANDIDATES` chunks each, fused with RRF; the fused list is reranked, chunks
-    scoring below `min_score` are dropped, and the rest is cut to `top_k` (default
-    `RERANK_TOP_K`). Without a reranker nothing is dropped: RRF scores are not
-    probabilities."""
-    candidates = RETRIEVAL_CANDIDATES
+    `candidates` chunks each, fused with RRF; the fused list is reranked, chunks scoring
+    below `min_score` are dropped, and the rest is cut to `top_k`. Without a reranker
+    nothing is dropped: RRF scores are not probabilities. The limits default to the module
+    constants; the extraction registry and the evals pass their own."""
     query_vector = get_embedder().embed_query(query)
     rankings = [
         vector_search(db, query_vector, candidates, report_ids),
         fulltext_search(db, query, candidates, report_ids),
     ]
-    hits = _load_hits(db, rrf_merge(rankings)[:candidates])
+    hits = _load_hits(db, rrf_merge(rankings, rrf_k)[:candidates])
     if rerank(query, hits):
         hits = [hit for hit in hits if hit.score >= min_score]
-    return hits[: top_k or RERANK_TOP_K]
+    return hits[:top_k]
 
 
 def vector_search(

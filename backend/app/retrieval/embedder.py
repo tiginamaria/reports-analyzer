@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import threading
-from functools import lru_cache
 
 from app.config import get_settings
 
@@ -79,17 +78,29 @@ class Reranker:
         return [float(p) for p in probabilities]
 
 
-@lru_cache
+# Loaded once per process. Not `lru_cache`: it only stores a result after the call returns,
+# so concurrent first calls (ingestion and chat, or an eval's worker threads) each loaded
+# their own copy onto the GPU. Construction happens under the model lock, so a second
+# caller waits and then finds the instance.
+_embedder: Embedder | None = None
+_reranker: Reranker | None = None
+_reranker_loaded = False
+
+
 def get_embedder() -> Embedder:
-    settings = get_settings()
+    global _embedder
     with _model_lock:
-        return Embedder(settings.embedding_model, settings.embedding_batch_size)
+        if _embedder is None:
+            settings = get_settings()
+            _embedder = Embedder(settings.embedding_model, settings.embedding_batch_size)
+        return _embedder
 
 
-@lru_cache
 def get_reranker() -> Reranker | None:
-    settings = get_settings()
-    if not settings.reranker_model:
-        return None
+    global _reranker, _reranker_loaded
     with _model_lock:
-        return Reranker(settings.reranker_model)
+        if not _reranker_loaded:
+            settings = get_settings()
+            _reranker = Reranker(settings.reranker_model) if settings.reranker_model else None
+            _reranker_loaded = True
+        return _reranker

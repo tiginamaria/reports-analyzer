@@ -49,24 +49,22 @@ How well it works: [MVP_EVAL.md](MVP_EVAL.md).
 
 **Ingestion**
 
-- [ ] Embed all chunks of a report in one call (47% faster, identical vectors)
+- [x] Embed all chunks of a report in one call (47% faster, identical vectors): slices of 512
 - [ ] Strip repeated page furniture (navigation bars) before chunking
 
 **Extraction**
 
-- [ ] Detect `max_tokens` truncation; raise the extraction output cap
-- [ ] Better recall for goals: map-reduce over more candidate chunks
-- [ ] Clarify the registry instructions: FTE with or without temporary staff; goals dated
+- [x] Detect `max_tokens` truncation; raise the extraction output cap to 16,000
+- [x] Better recall for goals: map-reduce over more candidate chunks
+- [x] Clarify the registry instructions: FTE with or without temporary staff; goals dated
   after the fiscal year only
-- [ ] More registry entries
-- [ ] Re-run extraction without re-ingesting
+- [x] More registry entries: revenue, net profit, dividend per share (with gold labels)
 
 **Retrieval**
 
 - [x] Apply the tuned settings: 60 candidates, top 12, abstain below 0.2
 - [x] Multi-search for comparison questions across companies and years (sub-queries)
-- [ ] Filter each sub-query by its company and year (measured: gold page 0.98 vs 0.90),
-  with the ingested company list in query analysis and a clear answer for unknown companies
+- [ ] Filter each sub-query by its company and year, with the ingested company list in query analysis and a clear answer for unknown companies (try)
 - [ ] Abstain when the question names a company that has no ingested report
 - [ ] Fix or drop full-text search (the AND query matches nothing for half the questions)
 - [ ] Expand a chunk to its page when it looks truncated

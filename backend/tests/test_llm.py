@@ -26,6 +26,35 @@ class FlakyProvider(LLMProvider):
         return self.replies.pop(0)
 
 
+def test_anthropic_reports_a_cut_off_reply_instead_of_returning_broken_json(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.config import Settings
+    from app.llm.anthropic_provider import AnthropicProvider
+
+    provider = AnthropicProvider(Settings(anthropic_api_key="test"))
+    usage = SimpleNamespace(
+        input_tokens=1, cache_read_input_tokens=0, cache_creation_input_tokens=0, output_tokens=5
+    )
+    response = SimpleNamespace(
+        stop_reason="max_tokens",
+        usage=usage,
+        model="m",
+        content=[SimpleNamespace(type="text", text='{"name": "x", "cou')],
+    )
+    from contextlib import contextmanager
+
+    @contextmanager
+    def fake_stream(**kwargs):
+        yield SimpleNamespace(get_final_message=lambda: response)
+
+    monkeypatch.setattr(provider._client.messages, "stream", fake_stream)
+    with pytest.raises(LLMError, match="cut off at 5 output tokens"):
+        provider._raw_json(
+            system="s", turns=[ChatTurn("user", "u")], schema=Out, small=False, max_tokens=5
+        )
+
+
 def test_repair_retry_sends_validation_error_back_and_accepts_fenced_json():
     p = FlakyProvider(['{"name": "x"}', '```json\n{"name": "x", "count": 2}\n```'])
     out = p.complete_json(system="s", user="u", schema=Out)

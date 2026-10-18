@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, chatStream } from "../../api";
 import { errorMessage } from "../../lib/format";
-import type { ChatStage, Message } from "../../types";
+import type { ChatProgress, Message } from "../../types";
+
+const LOST_CONNECTION =
+  "The connection closed before an answer arrived. Reopen the conversation to check whether it was stored.";
 
 /** The optimistic user turn shown while the backend is still working. */
 function localUserMessage(content: string): Message {
@@ -23,7 +26,7 @@ function localUserMessage(content: string): Message {
 export function useChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [stage, setStage] = useState<ChatStage | null>(null);
+  const [stage, setStage] = useState<ChatProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef<AbortController | null>(null);
 
@@ -58,7 +61,8 @@ export function useChat() {
       inFlight.current = controller;
       setError(null);
       setMessages((prev) => [...prev, localUserMessage(question)]);
-      setStage("analyzing");
+      setStage({ name: "analyzing" });
+      let settled = false; // an `answer` or `error` event arrived
       try {
         const stream = chatStream(
           { question, conversation_id: conversationId, report_ids: reportIds.length ? reportIds : null },
@@ -70,16 +74,21 @@ export function useChat() {
               setConversationId(event.data.id);
               break;
             case "stage":
-              setStage(event.data.name);
+              setStage(event.data);
               break;
             case "answer":
+              settled = true;
               setMessages((prev) => [...prev, event.data]);
               break;
             case "error":
+              settled = true;
               setError(event.data.message);
               break;
           }
         }
+        // The backend always ends with an answer or an error; a stream that stops without
+        // one was cut off (server restart, dropped proxy connection).
+        if (!settled) setError(LOST_CONNECTION);
       } catch (err) {
         if (!controller.signal.aborted) setError(errorMessage(err));
       } finally {

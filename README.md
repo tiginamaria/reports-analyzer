@@ -2,7 +2,8 @@
 
 A local full-stack Retrieval-Augmented Generation (RAG) application for analysing company
 annual reports (PDF). Upload a report, ask questions in a chat, and browse the datapoints
-that were pre-extracted at ingestion (FTE and sustainability goals). Every answer and every
+that were pre-extracted at ingestion (FTE, revenue, net profit, dividend per share and
+sustainability goals). Every answer and every
 datapoint carries a verbatim quote that is checked, in code, against the PDF text.
 
 Design, pipeline details, alternatives and risks: [docs/DESIGN.md](docs/DESIGN.md).
@@ -37,7 +38,8 @@ Evaluation of every stage, with the chosen parameters: [docs/MVP_EVAL.md](docs/M
 5. Quote verification against the stored page text; answers with no verified quote become "not stated in the report":
    [verify.py](backend/app/verify.py)
 
-**Extracted data**: FTE and sustainability goals per report with quote, page link and
+**Extracted data**: FTE, revenue, net profit, dividend per share and sustainability goals
+per report with quote, page link and
 verification badge: [datapoints.py](backend/app/api/datapoints.py),
 [DataPage.tsx](frontend/src/pages/data/DataPage.tsx). New fields go in
 [registry.yaml](backend/app/extraction/registry.yaml).
@@ -148,7 +150,8 @@ curl localhost:8000/api/status            # provider and models in use
 ## Using it
 
 - **Reports**: upload one PDF or a folder, watch ingestion progress, delete.
-- **Extracted data**: cross-company table of FTE and sustainability goals. Click a page
+- **Extracted data**: cross-company tables of FTE, revenue, net profit, dividend per share
+  and sustainability goals. Click a page
   number to open that page in a side panel. Badges: `verified` (exact substring of the page
   text after normalisation), `fuzzy match` (small whitespace or typography differences),
   `quote not found` (the quote is not in the report text).

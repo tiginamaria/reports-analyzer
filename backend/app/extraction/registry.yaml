@@ -1,12 +1,22 @@
 # Pre-extraction registry. Each entry is a datapoint the ingestion pipeline extracts from
-# every report. Adding a field is a config change: add an entry here.
+# every report. Adding a field is a config change: add an entry here, then run
+# `python -m app.extraction.rerun` to extract it from reports that are already ingested.
 #
 # key:          stable identifier stored in `datapoints.key`
 # label:        human label shown in the UI
 # multi:        true when a report can have many values (goals), false for a single figure
 # queries:      retrieval queries used to find candidate chunks (hybrid search + rerank)
-# top_k:        how many chunks to pass to the model
 # instructions: extraction prompt for this field
+# top_k:        how many chunks to pass to the model
+#
+# Optional tuning, defaulting to the constants in extractor.py (an eval experiment can
+# override them too):
+# min_score:    reranker floor for candidate chunks (0.0 keeps every candidate; 0.2 is the
+#               chat's floor)
+# max_tokens:   output budget of the model call
+# per_query:    chunks kept from each retrieval query before the union is cut to top_k
+# candidates:   chunks each search fetches for reranking
+# batch_size:   multi-value entries only: chunks per model call (default: all in one call)
 
 - key: fte
   label: Employees (FTE)
@@ -18,29 +28,94 @@
     - "total workforce FTE employees"
   instructions: |
     Extract the company's total number of employees expressed as full-time equivalents (FTE)
-    for the fiscal year of this report. Prefer the group-wide, year-end FTE figure. If the
-    report only gives headcount, extract it and set unit to "headcount". If both year-end and
-    average figures exist, extract the year-end figure and mention "year-end" in the period.
-    Set qualifiers such as basis ("year-end" or "average"), scope ("group", "excluding
+    for the fiscal year of this report. Prefer the group-wide, year-end figure that includes
+    temporary and external staff when the report gives such a total; otherwise the year-end
+    internal or payroll FTE, and say so in the scope qualifier. If the report only gives
+    headcount, extract it and set unit to "headcount". If both year-end and average figures
+    exist, extract the year-end figure and mention "year-end" in the period. Set qualifiers
+    such as basis ("year-end" or "average"), scope ("group", "internal only", "excluding
     temporary staff") and the comparison figure for the previous year when given.
     Return at most one item. value must be the number exactly as written in the quote.
+
+- key: revenue
+  label: Revenue
+  multi: false
+  top_k: 10
+  queries:
+    - "total net sales revenue for the year consolidated income statement"
+    - "revenue increased decreased compared to previous year million"
+    - "total operating income net interest income fee income"
+  instructions: |
+    Extract the company's total revenue for the fiscal year of this report, group
+    consolidated: "total net sales", "revenue" or "turnover"; for a bank, "total operating
+    income". Prefer the figure from the income statement or the key figures table over a
+    rounded figure in prose. Set unit to the currency and scale exactly as the table states
+    them (e.g. "EUR million", "EUR thousand"), period to the fiscal year, and a qualifier
+    with the previous year's figure when given. Return at most one item. value must be the
+    number exactly as written in the quote.
+
+- key: net_income
+  label: Net profit
+  multi: false
+  top_k: 10
+  queries:
+    - "net income net profit for the year attributable to shareholders"
+    - "profit or loss for the period result after tax income statement"
+    - "net result for the year compared to previous year"
+  instructions: |
+    Extract the company's net profit for the fiscal year of this report, group consolidated:
+    "net income", "net profit", "profit/(loss) for the period" or "result after tax", the
+    total before attribution to minority interests unless only the attributable figure is
+    given. Prefer the income statement or key figures table over a rounded figure in prose.
+    A loss is written as in the report, e.g. "(3,786)" or "-3.8". Set unit to the currency
+    and scale exactly as stated (e.g. "EUR million"), period to the fiscal year, and a
+    qualifier with the previous year's figure when given. Return at most one item. value
+    must be the number exactly as written in the quote.
+
+- key: dividend_per_share
+  label: Dividend per share
+  multi: false
+  top_k: 10
+  queries:
+    - "total dividend per share for the year proposed final dividend interim dividend"
+    - "dividend policy payout ratio dividend per ordinary share"
+    - "no dividend retain profit shareholders"
+  instructions: |
+    Extract the total ordinary dividend per share for the fiscal year of this report: the
+    sum of interim and proposed final dividends, as the report states it ("total dividend
+    for the year of EUR 1.24 per share"). Do not use a single interim or final payment
+    alone, and do not add special or additional distributions unless the report counts them
+    in the per-share total; mention such distributions in a qualifier. If the report states
+    that no dividend is paid or proposed, return found=false. Set unit to the currency per
+    share, period to the fiscal year, and qualifiers for the interim and final components
+    and the payout ratio when given. Return at most one item. value must be the number
+    exactly as written in the quote.
 
 - key: sustainability_goal
   label: Sustainability goals
   multi: true
-  top_k: 24
+  top_k: 32
+  batch_size: 8
   queries:
     - "sustainability targets and goals net zero emissions reduction target year"
     - "climate ambition scope 1 2 3 emissions reduction target by 2030 baseline"
     - "sustainability commitments renewable energy water waste circularity targets"
     - "diversity inclusion gender target percentage women in leadership"
+    - "employee engagement score target training hours learning and development target"
     - "sustainable finance volume target billion"
   instructions: |
-    Extract the company's stated sustainability goals and targets: forward-looking,
-    quantified or clearly defined commitments (emissions, energy, water, waste, circularity,
-    biodiversity, sustainable finance, diversity, safety, etc.). For each goal set:
-    label = short name of the goal; value = the target as written (e.g. "net zero",
-    "-50%", "100%"); unit = unit or metric; period = target year; qualifiers for
-    baseline year, scope, and status/progress where stated. Skip past achievements that
-    are not goals, and skip generic statements without a concrete commitment. Return each
-    distinct goal once. The quote must be copied verbatim from exactly one chunk.
+    Extract every sustainability goal and target the company states: forward-looking,
+    quantified or clearly defined commitments on emissions, energy, water, waste,
+    circularity, biodiversity, sustainable finance, suppliers, products, diversity,
+    training, engagement, safety and the like. A commitment without a date counts only when
+    it names a measurable outcome ("no new fossil fuel vehicles", "100% renewable electricity
+    for all offices"); an intention or activity without one ("engage with suppliers",
+    "improve energy efficiency", "update the plan annually") is not a goal. A target whose
+    stated year is in or before the fiscal year of this report is a result by now, not a
+    goal: skip it. For each goal set: label = short name of the goal; value = the
+    target as written (e.g. "net zero", "-50%", "100%"); unit = unit or metric; period =
+    target year, or "ongoing" when none is stated; qualifiers for baseline year, scope, and
+    status/progress where stated. Skip past achievements and generic statements without a
+    concrete commitment. Go through all the chunks; small targets in people and governance
+    sections count as much as climate targets. Return each distinct goal once. The quote
+    must be copied verbatim from exactly one chunk.

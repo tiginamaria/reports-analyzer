@@ -13,6 +13,7 @@ import sys
 from collections import Counter
 
 from app.db import SessionLocal
+from app.extraction.extractor import load_registry
 from app.models import Page
 from app.textutil import normalize
 from eval.common import load_corpus, load_yaml, report_keys
@@ -58,8 +59,20 @@ def main() -> int:
         for fact in item.get("key_facts", []):
             if item["evidence"] and normalize(fact) not in context:
                 errors.append(f"{item['id']}: key fact {fact!r} not in any evidence quote")
-    for fte in extraction["fte"]:
-        check(f"fte {fte['report']}", fte["report"], fte["page"], fte["quote"])
+    # every single-value registry entry needs a gold section with one label per report
+    singles = {key: entries for key, entries in extraction.items() if key != "sustainability_goals"}
+    for spec in load_registry():
+        if not spec.multi and spec.key not in singles:
+            errors.append(f"registry entry {spec.key!r} has no gold section in extraction.yaml")
+    for key, entries in singles.items():
+        if {entry["report"] for entry in entries} != keys:
+            errors.append(f"{key}: gold labels do not cover exactly the corpus reports")
+        for entry in entries:
+            if (entry["value"] is None) != (entry["numeric"] is None):
+                errors.append(
+                    f"{key} {entry['report']}: value and numeric must both be null or set"
+                )
+            check(f"{key} {entry['report']}", entry["report"], entry["page"], entry["quote"])
     for entry in extraction["sustainability_goals"]:
         for goal in entry["goals"]:
             check(
@@ -71,7 +84,8 @@ def main() -> int:
 
     by_type = Counter(item["type"] for item in qa)
     goals = sum(len(e["goals"]) for e in extraction["sustainability_goals"])
-    print(f"{len(qa)} questions {dict(by_type)}, {len(extraction['fte'])} FTE, {goals} goals")
+    counts = ", ".join(f"{len(entries)} {key}" for key, entries in singles.items())
+    print(f"{len(qa)} questions {dict(by_type)}, {counts}, {goals} goals")
     for error in errors:
         print("ERROR", error)
     return 1 if errors else 0

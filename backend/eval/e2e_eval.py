@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import functools
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +27,7 @@ from unittest import mock
 from pydantic import BaseModel
 from sqlalchemy import text as sql
 
+import app.chat.pipeline as pipeline
 import app.retrieval.search as search
 from app.chat.pipeline import run_chat
 from app.config import get_settings
@@ -220,9 +222,14 @@ def evaluate(name: str, limit: int | None, workers: int) -> dict[str, Any]:
     judge_provider = AnthropicProvider(
         get_settings().model_copy(update={"anthropic_model": JUDGE_MODEL})
     )
+    # the pipeline calls `retrieve` with the module defaults; hand it one with this
+    # configuration's limits bound instead
     patches = [
-        mock.patch.object(search, "RETRIEVAL_CANDIDATES", cfg.candidates),
-        mock.patch.object(search, "RERANK_TOP_K", cfg.top_k),
+        mock.patch.object(
+            pipeline,
+            "retrieve",
+            functools.partial(search.retrieve, candidates=cfg.candidates, top_k=cfg.top_k),
+        )
     ]
     if cfg.fts:
         patches.append(mock.patch.object(search, "fulltext_search", _fulltext(cfg.fts)))

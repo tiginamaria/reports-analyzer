@@ -111,9 +111,18 @@ export interface ChatRequest {
 
 export type ChatStage = "analyzing" | "retrieving" | "generating";
 
+/** Where the question in flight is, with what the backend reports about that stage. */
+export interface ChatProgress {
+  name: ChatStage;
+  /** `retrieving`: the question rewritten to stand alone, as it is searched. */
+  query?: string;
+  /** `generating`: how many retrieved passages the answer is written from. */
+  chunks?: number;
+}
+
 /** Server-sent events of POST /api/chat, in the order they arrive. */
 export type ChatStreamEvent =
   | { event: "conversation"; data: { id: string; title: string } }
-  | { event: "stage"; data: { name: ChatStage } }
+  | { event: "stage"; data: ChatProgress }
   | { event: "answer"; data: Message }
   | { event: "error"; data: { message: string } };

@@ -20,9 +20,9 @@ CACHE_DIR = EVAL_DIR / "cache"
 
 # USD per million tokens (input, output), for the cost estimate only.
 PRICES = {
-    "claude-sonnet-5-5": (3.0, 15.0),
+    "claude-sonnet-5-5": (2.0, 10.0),
     "claude-haiku-4-5-20251001": (1.0, 5.0),
-    "claude-opus-5-5": (5.0, 25.0),
+    "claude-opus-5-5": (4.0, 20.0),
 }
 CACHE_READ_FACTOR = 0.1
 CACHE_WRITE_FACTOR = 1.25
@@ -109,19 +109,9 @@ USAGE = Usage()
 
 def instrument(provider) -> None:  # noqa: ANN001 - AnthropicProvider
     """Record the usage of every Anthropic call the provider makes into `USAGE`."""
-    messages = provider._client.messages
-    original = messages.create
-    if getattr(original, "_eval_wrapped", False):
-        return
-
-    def create(*args: Any, **kwargs: Any) -> Any:
-        start = time.perf_counter()
-        response = original(*args, **kwargs)
-        USAGE.record(response.model, response.usage, time.perf_counter() - start)
-        return response
-
-    create._eval_wrapped = True  # type: ignore[attr-defined]
-    messages.create = create
+    provider.on_response = lambda response, seconds: USAGE.record(
+        response.model, response.usage, seconds
+    )
 
 
 @contextmanager

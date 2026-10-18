@@ -89,9 +89,13 @@ def _conversation_turns(history: list[Message]) -> list[ChatTurn]:
     return turns
 
 
-def _rewrite_turns(history: list[Message]) -> list[ChatTurn]:
-    """The conversation as the rewrite sees it: the last `REWRITE_QUESTIONS` questions, and
-    answers only within the last `REWRITE_ANSWER_MESSAGES` messages, in order.
+def _rewrite_turns(
+    history: list[Message],
+    questions: int = REWRITE_QUESTIONS,
+    answer_messages: int = REWRITE_ANSWER_MESSAGES,
+) -> list[ChatTurn]:
+    """The conversation as the rewrite sees it: the last `questions` questions, and answers
+    only within the last `answer_messages` messages, in order.
 
     A follow-up like "And emissions?" refers to a company and year that may have been named
     many turns back, and only in a question. Questions are short, so all of them are kept;
@@ -99,8 +103,8 @@ def _rewrite_turns(history: list[Message]) -> list[ChatTurn]:
     rather than their earlier rewrites, so a wrong rewrite never feeds later ones."""
     messages = [m for m in history if m.role in ("user", "assistant")]
     question_indexes = [i for i, m in enumerate(messages) if m.role == "user"]
-    first = question_indexes[-REWRITE_QUESTIONS] if len(question_indexes) > REWRITE_QUESTIONS else 0
-    recent = max(first, len(messages) - REWRITE_ANSWER_MESSAGES)
+    first = question_indexes[-questions] if len(question_indexes) > questions else 0
+    recent = max(first, len(messages) - answer_messages)
     return [
         ChatTurn(cast(Role, m.role), m.content)
         for i, m in enumerate(messages[first:], start=first)
@@ -108,11 +112,19 @@ def _rewrite_turns(history: list[Message]) -> list[ChatTurn]:
     ]
 
 
-def _rewrite_query(provider: LLMProvider, question: str, history: list[Message]) -> Query:
+def _rewrite_query(
+    provider: LLMProvider,
+    question: str,
+    history: list[Message],
+    questions: int = REWRITE_QUESTIONS,
+    answer_messages: int = REWRITE_ANSWER_MESSAGES,
+) -> Query:
     """The small model rewrites the question to stand alone and splits it into subqueries,
     one per company, year and topic. Falls back to the raw question when the call fails, so
-    the chat still works."""
-    transcript = "\n".join(f"{turn.role}: {turn.content}" for turn in _rewrite_turns(history))
+    the chat still works. `questions` and `answer_messages` bound the conversation it sees
+    (see `_rewrite_turns`)."""
+    turns = _rewrite_turns(history, questions, answer_messages)
+    transcript = "\n".join(f"{turn.role}: {turn.content}" for turn in turns)
     user = f"Conversation so far:\n{transcript or '(none)'}\n\nQuestion: {question}"
     try:
         return provider.complete_json(
@@ -126,15 +138,20 @@ def _rewrite_query(provider: LLMProvider, question: str, history: list[Message])
         return Query(standalone_question=question, subqueries=[])
 
 
-def _retrieve_all(db: Session, query: Query, report_ids: list[str] | None) -> list[Hit]:
+def _retrieve_all(
+    db: Session,
+    query: Query,
+    report_ids: list[str] | None,
+    max_subqueries: int = MAX_SUBQUERIES,
+) -> list[Hit]:
     """Retrieve for every subquery (or the standalone question if there are none): each keeps
     its own top chunks, and they are merged best first, a chunk found by two subqueries kept
     once. Each subquery is searched by its `search_text`, which always names its company and
-    year. `report_ids` is the user's report filter; retrieval itself keeps to indexed
-    reports."""
-    if len(query.subqueries) > MAX_SUBQUERIES:
-        log.warning("Searching %d of %d subqueries", MAX_SUBQUERIES, len(query.subqueries))
-    subqueries = query.subqueries[:MAX_SUBQUERIES]
+    year. At most `max_subqueries` are searched. `report_ids` is the user's report filter;
+    retrieval itself keeps to indexed reports."""
+    if len(query.subqueries) > max_subqueries:
+        log.warning("Searching %d of %d subqueries", max_subqueries, len(query.subqueries))
+    subqueries = query.subqueries[:max_subqueries]
     searches = [subquery.search_text for subquery in subqueries] or [query.standalone_question]
     best: dict[str, Hit] = {}
     for search in searches:

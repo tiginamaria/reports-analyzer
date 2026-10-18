@@ -18,9 +18,11 @@ reports ingested through the UI are never touched. Importing any `eval` module r
   plausible but not disclosed, 2 about companies outside the corpus). Each answerable
   question has a short gold answer, key facts as the report writes them, and evidence quotes
   with pages.
-- [gold/extraction.yaml](gold/extraction.yaml): year-end FTE per report with the acceptable
-  alternatives (average FTE, headcount, payroll only), and 123 sustainability goals
-  (41 marked `core`).
+- [gold/extraction.yaml](gold/extraction.yaml): one label per report for each single-value
+  registry entry, year-end FTE, revenue, net profit and dividend per share, each with the
+  acceptable alternatives the report also states (average FTE, a rounded figure, a final
+  dividend alone) or a null value where the report states none (CM.com pays no dividend);
+  and 123 sustainability goals (41 marked `core`).
 
 Labels were drafted per company with LLM help from the page text and then checked in code:
 `gold_check` fails if any evidence quote is not on its page in `pages.text`, or a key fact is
@@ -39,7 +41,8 @@ uv run python -m eval.ingest_eval                  # ingest the corpus with stag
 uv run python -m eval.gold_check                   # gold quotes are on their pages
 uv run python -m eval.retrieval_eval               # shipped retrieval code, then stage ablation + sweeps (offline after first run)
 uv run python -m eval.retrieval_eval --modes app   # the shipped code only: run after any pipeline change
-uv run python -m eval.extraction_eval stored goals_k48 goals_queries goals_k48_queries
+uv run python -m eval.extraction_eval              # run the registry on each report as ingestion does, score and cost it
+uv run python -m eval.extraction_eval --stored     # score what ingestion wrote, no model calls
 uv run python -m eval.e2e_eval baseline tuned      # full chat pipeline + LLM judge
 uv run python -m eval.variants words200 words600 noheader   # alternative indexes
 uv run python -m eval.retrieval_eval --variant words200     # ... and their retrieval scores
@@ -56,7 +59,7 @@ reranker scores, query analyses) make reruns of the retrieval sweeps free.
 | Ingestion | `ingest_eval` | Seconds per stage, LLM tokens and cost, metadata detection accuracy, empty pages, text kept vs lost around tables, repeated header lines, chunk length distribution, duplicates |
 | Embedding | `embed_bench` | Chunks per second for the batching scheme, fp16 and length cap; cosine to current vectors |
 | Retrieval | `retrieval_eval` | hit@k (a gold page in the top k), MRR, facts-in-context (every key fact in the retrieved text of the right reports), report precision (share of chunks from the right company and year), report recall (share of the gold reports with a chunk, for comparisons); per question type and text vs table. Mode `app` runs the chat's own `_retrieve_all` (rewrite split into sub-queries, real `retrieve`, score floor, merge) and adds sub-queries and chunks per question and retrieval seconds p50/p90; the replay modes sweep configurations on one search per question over all reports or over the gold reports only (`oracle`); abstention threshold curve |
-| Extraction | `extraction_eval` | FTE exact / acceptable alternative / wrong, cited page, verification; goals recall (all and core), precision (real goal with a verified quote), candidate-page recall (did retrieval surface the gold page) |
+| Extraction | `extraction_eval` | Runs the registry on each report as ingestion does (rolled back). Per datapoint (FTE, revenue, net profit, dividend per share): exact / acceptable alternative / wrong / missing, or correctly nothing where the report states none; whether a gold page was among the candidate chunks; chunks passed to the model, input and output tokens, seconds and cost per call; verification. Goals: recall (all and core), precision (real goal with a verified quote), candidate-page recall, and the same cost figures. Totals per report and for the corpus |
 | Answers | `e2e_eval` | Judge correctness (correct, partial, incorrect, abstained), groundedness in the cited quotes, key facts in the answer, cited gold page, false abstention, abstention and hallucination on unanswerable questions, citation verified/fuzzy/failed, latency per stage, tokens and cost |
 
 The judge is `claude-opus-5-5`, a different and stronger model than the generator, with a

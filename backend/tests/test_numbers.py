@@ -14,6 +14,8 @@ from app.extraction.numbers import parse_number
         ("€ 3.4bn", 3_400_000_000),
         ("99.5%", 99.5),
         ("−12.3", -12.3),  # unicode minus
+        ("(3,786)", -3786),  # accounting negative, as financial tables write a loss
+        ("( 19.8 )", -19.8),
         ("net zero", None),
         (None, None),
     ],

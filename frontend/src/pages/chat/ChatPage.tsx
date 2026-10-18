@@ -2,17 +2,26 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../../api";
 import { Notice } from "../../components/Notice";
 import PdfPanel from "../../components/PdfPanel";
+import { plural } from "../../lib/format";
 import { isIndexed, pdfTargetOf, type PdfTarget } from "../../lib/reports";
-import type { ChatStage, Citation, Conversation, Message, Report } from "../../types";
+import type { ChatProgress, Citation, Conversation, Message, Report } from "../../types";
 import ConversationSidebar from "./ConversationSidebar";
 import MessageView from "./MessageView";
 import { useChat } from "./useChat";
 
-const STAGE_LABEL: Record<ChatStage, string> = {
-  analyzing: "Understanding the question…",
-  retrieving: "Searching the reports…",
-  generating: "Writing the answer from the retrieved passages…",
-};
+/** The status line of the question in flight, with what the backend reports about the stage. */
+function stageLabel({ name, query, chunks }: ChatProgress): string {
+  switch (name) {
+    case "analyzing":
+      return "Understanding the question…";
+    case "retrieving":
+      return query ? `Searching the reports for “${query}”…` : "Searching the reports…";
+    case "generating":
+      return chunks ? `Writing the answer from ${plural(chunks, "passage")}…` : "Writing the answer…";
+    default:
+      return name;
+  }
+}
 
 const EXAMPLE_QUESTIONS = [
   "How much did Shell spend on climate change adaptation in 2025?",
@@ -89,7 +98,7 @@ export default function ChatPage() {
 
 interface MessageListProps {
   messages: Message[];
-  stage: ChatStage | null;
+  stage: ChatProgress | null;
   error: string | null;
   onCite: (citation: Citation) => void;
 }
@@ -111,7 +120,7 @@ function MessageList({ messages, stage, error, onCite }: MessageListProps) {
         {stage && (
           <div className="flex items-center gap-2 text-sm text-slate-500" role="status">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-600" />
-            {STAGE_LABEL[stage] ?? stage}
+            {stageLabel(stage)}
           </div>
         )}
         {error && <Notice tone="error">{error}</Notice>}

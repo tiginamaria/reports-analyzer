@@ -12,7 +12,6 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.db import SessionLocal
 from app.extraction.extractor import detect_metadata, extract_report
 from app.ingestion.chunker import chunk_document, contextual_header
@@ -33,6 +32,7 @@ PROGRESS_RANGES = {
 }
 
 MAX_ERROR_LENGTH = 2000
+EMBED_SLICE = 512  # chunks per embedding call; see `_embed`
 
 
 def ingest_report(report_id: str, path: Path) -> None:
@@ -143,11 +143,11 @@ def _chunk_id_prefix(report: Report) -> str:
     return f"{slug}-{report.fiscal_year}-{report.id[:6]}"
 
 
-def _embed(db: Session, report: Report, chunks: list[Chunk]) -> None:
+def _embed(db: Session, report: Report, chunks: list[Chunk], slice_size: int = EMBED_SLICE) -> None:
+    """Embed in slices of `slice_size` chunks."""
     embedder = get_embedder()
-    batch_size = get_settings().embedding_batch_size
-    for start in range(0, len(chunks), batch_size):
-        batch = chunks[start : start + batch_size]
+    for start in range(0, len(chunks), slice_size):
+        batch = chunks[start : start + slice_size]
         texts = [_embedding_input(report, chunk) for chunk in batch]
         for chunk, vector in zip(batch, embedder.embed_documents(texts), strict=True):
             chunk.embedding = vector

@@ -937,3 +937,248 @@ sustainability_goals:
     page: 123
     quote: Our ESG manager will present a draft of this transition plan, including proposed short-, medium-,
       and long-term targets, to the Management Board in H1 2025.
+# Single-value financial datapoints, one entry per report, same shape as `fte`. A null value
+# means the report states none (CM.com pays no dividend): the extractor must return nothing.
+revenue:
+- report: abn-2025
+  value: '8,716'
+  numeric: 8716
+  basis: total operating income
+  unit: EUR million
+  page: 40
+  quote: Operating income 8,716 8,861
+  alternatives: []
+- report: abn-2024
+  value: '8,861'
+  numeric: 8861
+  basis: total operating income
+  unit: EUR million
+  page: 40
+  quote: Operating income 8,861 8,618
+  alternatives:
+  - value: EUR 8.9 billion
+    numeric: 8900000000
+    meaning: rounded figure in the prose of the same page
+    page: 40
+- report: asml-2025
+  value: '32,667.3'
+  numeric: 32667.3
+  basis: total net sales
+  unit: EUR million
+  page: 54
+  quote: Total net sales 28,262.9 100.0 32,667.3 100.0 15.6
+  alternatives:
+  - value: '32.7'
+    numeric: 32.7
+    meaning: rounded, in billions
+    page: 54
+  - value: 32.7 billion
+    numeric: 32700000000
+    meaning: rounded, in billions, with the scale word
+    page: 54
+- report: asml-2024
+  value: '28,262.9'
+  numeric: 28262.9
+  basis: total net sales
+  unit: EUR million
+  page: 56
+  quote: Total net sales 27,558.5 100.0 28,262.9 100.0 2.6
+  alternatives:
+  - value: '28.3'
+    numeric: 28.3
+    meaning: rounded, in billions (key figures page)
+    page: 6
+  - value: €28.3bn
+    numeric: 28300000000
+    meaning: rounded, in billions, with the scale word
+    page: 6
+- report: cm-2025
+  value: '259,394'
+  numeric: 259394
+  basis: revenue
+  unit: EUR thousand
+  page: 100
+  quote: Revenue 4 259,394 274,249
+  alternatives:
+  - value: '259.4'
+    numeric: 259.4
+    meaning: in EUR million, as in the key figures
+    page: 16
+  - value: 259.4 million
+    numeric: 259400000
+    meaning: in EUR million with the scale word
+    page: 16
+- report: cm-2024
+  value: '274,249'
+  numeric: 274249
+  basis: revenue
+  unit: EUR thousand
+  page: 153
+  quote: Revenue 4 274,249 266,234
+  alternatives:
+  - value: '274.2'
+    numeric: 274.2
+    meaning: in EUR million, as in the prose and key figures
+    page: 57
+  - value: 274.2 million
+    numeric: 274200000
+    meaning: in EUR million with the scale word
+    page: 57
+net_income:
+- report: abn-2025
+  value: '2,252'
+  numeric: 2252
+  basis: profit for the period
+  unit: EUR million
+  page: 40
+  quote: Profit/(loss) for the period 2,252 2,403
+  alternatives:
+  - value: EUR 2.3 billion
+    numeric: 2300000000
+    meaning: rounded figure in the prose of the same page
+    page: 40
+- report: abn-2024
+  value: '2,403'
+  numeric: 2403
+  basis: profit for the period
+  unit: EUR million
+  page: 40
+  quote: Profit/(loss) for the period 2,403 2,697
+  alternatives:
+  - value: EUR 2.4 billion
+    numeric: 2400000000
+    meaning: rounded figure in the prose of the same page
+    page: 40
+- report: asml-2025
+  value: '9,609.4'
+  numeric: 9609.4
+  basis: net income
+  unit: EUR million
+  page: 56
+  quote: Net income for 2025 amounted to €9,609.4 million
+  alternatives:
+  - value: 9.6 billion
+    numeric: 9600000000
+    meaning: rounded
+    page: 56
+- report: asml-2024
+  value: '7,571.6'
+  numeric: 7571.6
+  basis: net income
+  unit: EUR million
+  page: 58
+  quote: Net income in 2024 amounted to €7,571.6 million
+  alternatives:
+  - value: 7.6 billion
+    numeric: 7600000000
+    meaning: rounded
+    page: 58
+- report: cm-2025
+  value: (3,786)
+  numeric: -3786
+  basis: result after tax (a loss)
+  unit: EUR thousand
+  page: 100
+  quote: Result after tax (3,786) (19,813)
+  alternatives:
+  - value: '-3.8'
+    numeric: -3.8
+    meaning: in EUR million, as in the key figures chart
+    page: 17
+  - value: -3.8 million
+    numeric: -3800000
+    meaning: in EUR million with the scale word
+    page: 17
+- report: cm-2024
+  value: (19,813)
+  numeric: -19813
+  basis: result after tax (a loss)
+  unit: EUR thousand
+  page: 153
+  quote: Result after tax (19,813) (28,719)
+  alternatives:
+  - value: (19.8)
+    numeric: -19.8
+    meaning: in EUR million, as in the segment table
+    page: 58
+  - value: -19.8 million
+    numeric: -19800000
+    meaning: in EUR million with the scale word
+    page: 58
+dividend_per_share:
+- report: abn-2025
+  value: '1.24'
+  numeric: 1.24
+  basis: total ordinary dividend for the year (interim 0.54 + final 0.70)
+  unit: EUR per share
+  page: 41
+  quote: brings the total dividend for 2025 to EUR 1.24 per share
+  alternatives:
+  - value: '1.54'
+    numeric: 1.54
+    meaning: dividend per share in the key figures table, which counts the additional EUR 500 million distribution
+    page: 40
+  - value: '0.70'
+    numeric: 0.7
+    meaning: proposed final dividend only
+    page: 41
+  - value: '0.54'
+    numeric: 0.54
+    meaning: interim dividend only
+    page: 41
+- report: abn-2024
+  value: '1.35'
+  numeric: 1.35
+  basis: total dividend proposed for the year
+  unit: EUR per share
+  page: 43
+  quote: total dividend proposed for 2024 is EUR 1.35 per share
+  alternatives: []
+- report: asml-2025
+  value: '7.50'
+  numeric: 7.5
+  basis: total dividend for the year (three interims of 1.60 + final)
+  unit: EUR per ordinary share
+  page: 315
+  quote: ASML intends to declare a total dividend for the year of 2025 of €7.50 per ordinary share
+  alternatives:
+  - value: '4.80'
+    numeric: 4.8
+    meaning: the three interim dividends together
+    page: 111
+  - value: '1.60'
+    numeric: 1.6
+    meaning: one interim dividend
+    page: 315
+- report: asml-2024
+  value: '6.40'
+  numeric: 6.4
+  basis: total dividend for the year
+  unit: EUR per ordinary share
+  page: 372
+  quote: ASML intends to declare a total dividend for the year of 2024 of €6.40 per ordinary share
+  alternatives:
+  - value: '1.84'
+    numeric: 1.84
+    meaning: final dividend only
+    page: 138
+  - value: '1.52'
+    numeric: 1.52
+    meaning: one interim dividend
+    page: 372
+- report: cm-2025
+  value: null
+  numeric: null
+  basis: no dividend; the policy is to retain profit
+  unit: null
+  page: 26
+  quote: does not anticipate paying any dividends to shareholders in the foreseeable future
+  alternatives: []
+- report: cm-2024
+  value: null
+  numeric: null
+  basis: no dividend; the policy is to retain profit
+  unit: null
+  page: 65
+  quote: does not anticipate paying any dividends to shareholders in the foreseeable future
+  alternatives: []

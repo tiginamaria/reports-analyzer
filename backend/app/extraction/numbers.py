@@ -33,8 +33,9 @@ _SEPARATORS_RE = re.compile(r"[,.\s]")
 
 
 def parse_number(text: str | None) -> float | None:
-    """Return the first number in `text` as a float, honouring thousands separators and
-    magnitude words. Returns None when nothing numeric is found."""
+    """Return the first number in `text` as a float, honouring thousands separators,
+    magnitude words and the accounting notation for negatives, "(3,786)". Returns None when
+    nothing numeric is found."""
     if not text:
         return None
     match = _NUMBER_RE.search(text)
@@ -43,9 +44,16 @@ def parse_number(text: str | None) -> float | None:
     number = _to_float(match.group("num"))
     if match.group("mult"):
         number *= _MULTIPLIERS[match.group("mult").lower()]
-    if match.group("sign"):
+    if match.group("sign") or _in_parentheses(text, match):
         number = -number
     return number
+
+
+def _in_parentheses(text: str, match: re.Match[str]) -> bool:
+    """Whether the matched number is wrapped like "(3,786)", a loss in financial tables."""
+    before = text[: match.start()].rstrip()
+    after = text[match.end() :].lstrip()
+    return before.endswith("(") and after.startswith(")")
 
 
 def _to_float(raw: str) -> float:
