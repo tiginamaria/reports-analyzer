@@ -9,6 +9,7 @@ query, a rerank) go ahead of background work (document embedding) between batche
 
 import logging
 import threading
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
@@ -155,6 +156,10 @@ class OpenAIEmbedder(Embedder):
     and server errors with backoff, `max_retries` times. No lock: the service is the
     limit, and a chat query never waits for a report."""
 
+    # Called after every request with the tokens billed and the seconds it took; the eval
+    # harness records the embedding cost through it.
+    on_response: Callable[[int, float], None] | None = None
+
     def __init__(self, settings: Settings) -> None:
         import openai
 
@@ -196,6 +201,7 @@ class OpenAIEmbedder(Embedder):
         import openai
 
         inputs = [_embedding_input(t) for t in texts]
+        start = time.perf_counter()
         try:
             if self._dimensions:
                 response = self._client.embeddings.create(
@@ -215,6 +221,9 @@ class OpenAIEmbedder(Embedder):
             ) from exc
         except openai.APIConnectionError as exc:
             raise EmbeddingError(f"Could not reach the embedding provider: {exc}") from exc
+        if self.on_response:
+            usage = getattr(response, "usage", None)
+            self.on_response(usage.total_tokens if usage else 0, time.perf_counter() - start)
         data = sorted(response.data, key=lambda item: item.index)
         if len(data) != len(texts):
             raise EmbeddingError(

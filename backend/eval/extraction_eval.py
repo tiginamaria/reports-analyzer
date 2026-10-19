@@ -231,7 +231,13 @@ def score_goals(
             sum(g["page"] in candidate_pages for g in gold) / max(len(gold), 1), 3
         ),
         "extracted_items": [
-            {"label": d["label"], "value": d["value"], "period": d["period"], "page": d["page"]}
+            {
+                "label": d["label"],
+                "value": d["value"],
+                "period": d["period"],
+                "page": d["page"],
+                "verification": d["verification"],
+            }
             for d in goals
         ],
     }

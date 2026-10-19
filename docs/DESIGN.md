@@ -37,7 +37,7 @@ flowchart LR
     subgraph backend[Backend, one process]
         api --> ing["Ingestion pipeline<br/>parse · detect · chunk · embed · extract · verify"]
         api --> chat["Chat pipeline<br/>rewrite · retrieve · rerank · answer · verify"]
-        ing --> emb["Local models<br/>bge-m3 embedder<br/>bge reranker"]
+        ing --> emb["Retrieval models<br/>hosted text-embedding-3-large (default)<br/>or local bge-m3 + bge reranker"]
         chat --> emb
         ing --> llm["LLM provider interface"]
         chat --> llm
@@ -47,8 +47,9 @@ flowchart LR
     chat --> db
     ing --> files[("PDF store on disk<br/>named by SHA-256")]
 
-    llm --> claude["Claude API"]
     llm --> openai["OpenAI API"]
+    llm --> claude["Claude API"]
+    emb --> openai
 ```
 
 ### Request flows
@@ -72,18 +73,18 @@ flowchart LR
 | Database | Postgres 16 + pgvector | One store for relational data, vectors and full-text search, with real transactions and cascading deletes. No second system to keep in sync |
 | PDF parsing | PyMuPDF | Fast on CPU, gives text blocks in reading order and table boundaries, no external service. Scored 1.00 on a labelled set of 26 hard pages (see Tests) |
 | Embeddings | Hosted `text-embedding-3-large` by default (`RETRIEVAL_MODELS=openai`, any OpenAI-compatible endpoint); local `BAAI/bge-m3` with `RETRIEVAL_MODELS=local` | Hosted inference removes the CPU and model-memory burden that made ingestion take 10 to 15 minutes in Docker and blocked chat behind it; batched requests with bounded concurrency, timeouts and retries. The embedding configuration is independent of the LLM provider; each report records which model embedded it, and `python -m app.reembed` rebuilds the index after a change |
-| Reranker | Off in the `openai` profile; the local `BAAI/bge-reranker-v2-m3` cross-encoder in the `local` profile | The cross-encoder was the largest quality gain in the evaluation and its probability drives abstention, but on CPU it is the slowest part of every query and of extraction. Without it the fused hybrid order is kept and no score floor applies |
-| LLM | Claude (default) or OpenAI, selected in `.env` | Strong structured output and prompt caching. Two providers behind one interface prove the design is not tied to a vendor |
+| Reranker | Off in the `openai` profile; the local `BAAI/bge-reranker-v2-m3` cross-encoder in the `local` profile | The cross-encoder is the largest quality lever in the evaluation (a gold page retrieved for 91% of questions with it against 72% without, on the same embeddings) and its probability drives abstention, but it needs `torch`, a 2 GB model and a GPU to stay under 5 s per query. The default keeps to one API key: without the reranker the fused hybrid order is kept and no score floor applies, and a hosted or LLM reranker is the first planned change (5.2) |
+| LLM | OpenAI (default) or Claude, selected in `.env` | One key covers the LLM and the embeddings; both providers give strict JSON-schema output and prompt caching. Two providers behind one interface prove the design is not tied to a vendor; both were evaluated ([EVAL.md](EVAL.md)) |
 | Frontend | React 19 + Vite + TypeScript, Tailwind v4, react-router 7 | Three pages, a typed API client, a hand-written SSE parser; no component library |
 | PDF viewing | The backend renders a cited page to PNG | One request per citation instead of loading a 400-page PDF in the browser; the full PDF is one click away |
 | Tooling | ruff, mypy, pytest; eslint, prettier, tsc; Makefile | Lint and type checks on both sides |
 
 Model roles, configurable in `backend/app/config.py`:
 
-| Role | Anthropic | OpenAI | Used for |
+| Role | OpenAI (default) | Anthropic | Used for |
 |---|---|---|---|
-| Main model | `claude-sonnet-5-5` | `gpt-5` | Answers, datapoint extraction |
-| Small model | `claude-haiku-4-5` | `gpt-5-mini` | Company and year detection, query rewriting |
+| Main model | `gpt-5` (reasoning effort `low`) | `claude-sonnet-5-5` | Answers, datapoint extraction |
+| Small model | `gpt-5-mini` | `claude-haiku-4-5` | Company and year detection, query rewriting |
 
 Cheap, frequent, easy calls go to the small model; calls where reading comprehension and
 verbatim quoting matter go to the main one.
@@ -106,9 +107,11 @@ verbatim quoting matter go to the main one.
   Reports still in progress when the process starts are marked failed ("interrupted by a
   restart"), except those that were already extracting: their index is complete, so they
   become `ready` with the interrupted entries marked failed, ready for a retry.
-- On an M-series Mac a report of about 345 pages takes **3.2 minutes** on average (17%
-  parsing, 25% embedding, 57% extraction) and **$0.14 to $0.21** of LLM calls, almost all
-  of it extraction; on CPU in Docker, 10 to 15 minutes.
+- With the default hosted models a report of about 345 pages takes **1.3 minutes** on
+  average (42% parsing, 7% embedding, 49% extraction) and **$0.14 to $0.21** ($0.12 to
+  $0.16 of LLM calls, almost all of it extraction, plus $0.01 to $0.06 of embeddings); the
+  same in Docker, since only parsing runs locally. With the local retrieval profile, 3.2
+  minutes on an M-series GPU and 10 to 15 minutes on CPU.
 
 ### 4.1 Upload and storage
 
@@ -205,15 +208,16 @@ verbatim quoting matter go to the main one.
   (`top_k`) and instructions in plain English. Five entries ship: FTE, revenue, net profit,
   dividend per share (3 queries and 10 chunks each) and sustainability goals (6 queries and
   32 chunks).
-- **Candidates**: every query runs through the chat's hybrid search and reranker, restricted
-  to the report and with the reranker floor off (recall matters more here); a few chunks per
-  query, the union cut to `top_k`, passed to the main model in page order.
-- **One model call per entry**; the six calls of a report run **concurrently**. The gain is
-  small (about 10 s of a 100 s stage), because the goals call dominates the wait and most of
-  the stage is candidate retrieval: 18 queries with 60 reranker pairs each. The model returns items
-  with label, value exactly as written, unit, period, qualifiers, a verbatim quote and the
-  chunk id it came from. Duplicates (same label, value and period, or same quote) are
-  dropped.
+- **Candidates**: every query runs through the chat's hybrid search (and, in the local
+  profile, the reranker with its floor off: recall matters more here), restricted to the
+  report; a few chunks per query, the union cut to `top_k`, passed to the main model in
+  page order.
+- **One model call per entry**; the six calls of a report run **concurrently**. With the
+  hosted models the stage takes 30 to 46 s per report, almost all of it the calls (60 to
+  94 s of model time, overlapped); with the local reranker, candidate retrieval adds about
+  a minute (18 queries with 60 reranker pairs each). The model returns items with label,
+  value exactly as written, unit, period, qualifiers, a verbatim quote and the chunk id it
+  came from. Duplicates (same label, value and period, or same quote) are dropped.
 - **Every quote is verified** against the stored page text (5.4) and stored with a
   `verified`, `fuzzy` or `failed` badge; text fields are cut to their column length so a long
   qualifier can never fail the insert. The value is parsed to a number ("23,500", "1.2
@@ -223,14 +227,20 @@ verbatim quoting matter go to the main one.
   target whose year is past is a result, not a goal. The shared system prompt adds the
   rules for every entry: only the chunks, never round or rescale, prefer the most precise
   statement of a figure.
-- **Results** on the six evaluation reports: every single-value figure exact or a defensible
-  alternative the report also states, **none wrong**, one missing; goals **precision 0.97,
-  recall 0.56** (0.73 on the headline goals).
+- **Results** on the six evaluation reports (default models): 17 of 24 single-value figures
+  exact, 4 a defensible alternative the report also states, 2 correctly empty, **none
+  wrong**, one missing; goals **recall 0.66, precision 0.85**. With Claude and the local
+  reranker: 19 exact, recall 0.56, precision 0.97.
 
 **Improvements**
 
-- **Fewer reranker pairs**: about 1,080 pairs per report, around 60 s on the GPU; 20
-  candidates per query instead of 60 would cut most of it.
+- **A reranker for candidate retrieval**: without one the FTE table and the income
+  statement are missed for a third of the reports and the model falls back to a headcount
+  or a rounded figure; with the local reranker both were found (in that profile, 20
+  candidates per query instead of 60 would cut its minute of reranker pairs).
+- **Stable verbatim quotes**: gpt-5 sometimes assembles a quote from non-adjacent table
+  cells; one goals call lost half its quotes to verification. Cell-by-cell verification
+  (5.4) and a prompt that asks for one contiguous row.
 - **Page-level extraction for goals**: the ceiling on recall is retrieval (37 of 54 missed
   goals were on pages the queries did not reach). Use the candidate chunks to locate the
   sustainability pages, then send those whole pages, or the chapter, to the model.
@@ -243,10 +253,11 @@ verbatim quoting matter go to the main one.
 ## 5. Chat pipeline
 
 Five steps: **rewrite** the question so it stands alone and split it into sub-queries,
-**retrieve** candidates per sub-query, **rerank** and decide whether to abstain, **generate**
-a structured answer with citations, **verify** every quote. The median question takes
-**7.5 s** (about 1 s rewriting, 4 s retrieving and reranking, 2.5 s generating) and costs
-**$0.018**.
+**retrieve** candidates per sub-query, **rerank** (local profile) and decide whether to
+abstain, **generate** a structured answer with citations, **verify** every quote. The
+median question takes **9.0 s** with the default models (2.5 s rewriting, 0.4 s
+retrieving, 5.6 s generating) and costs **$0.014**; 7.5 s and $0.018 with Claude and the
+local reranker, where retrieval takes 4 s and the models answer faster.
 
 ### 5.1 Query rewriting and decomposition
 
@@ -265,7 +276,8 @@ a structured answer with citations, **verify** every quote. The median question 
   follow-up refers to and answers only matter for what was just said. Raw questions, not
   earlier rewrites, so one wrong rewrite never contaminates the next.
 - **Decomposition is what makes comparisons work**: each side gets its own retrieval budget;
-  all 8 comparison questions in the evaluation were answered correctly.
+  all 8 comparison questions retrieved both sides in every run, and 7 of 8 were answered
+  correctly with the default models (8 of 8 with the local profile).
 
 **Improvements**
 
@@ -282,34 +294,47 @@ a structured answer with citations, **verify** every quote. The median question 
   pgvector cosine search and a Postgres full-text search matching any word of the query,
   ranked by `ts_rank_cd`. **60 candidates each**, fused with **Reciprocal Rank Fusion**
   (k = 60), which only looks at ranks, so the two score scales never need calibrating.
-- The fused top 60 go to the **cross-encoder reranker**, which returns a probability that the
-  chunk answers the query. Chunks **below 0.2 are dropped, the top 8 kept** per sub-query;
-  the sub-queries' chunks are merged, a chunk found twice kept once with its best score.
-- **The 0.2 floor is the first abstention gate**: questions about companies outside the
-  corpus score low, answerable questions score 0.96 or more. When nothing survives, or there
-  is no indexed report to search, the pipeline answers "not stated in the report" without
-  calling the main model. Plausible questions the reports do not answer score high anyway,
-  so for those the model has to say so, and it did for every one.
+- **Default profile, no reranker**: the **top 8 of the fused order are kept** per sub-query
+  and no score floor applies, since RRF scores are not probabilities; the sub-queries'
+  chunks are merged, a chunk found twice kept once with its best score.
+- **Local profile**: the fused top 60 go to the **cross-encoder reranker**, which returns a
+  probability that the chunk answers the query. Chunks **below 0.2 are dropped, the top 8
+  kept**. **The 0.2 floor is the first abstention gate**: questions about companies outside
+  the corpus score low, answerable questions score 0.96 or more. When nothing survives, or
+  there is no indexed report to search, the pipeline answers "not stated in the report"
+  without calling the main model. Plausible questions the reports do not answer score high
+  anyway, so for those the model has to say so, and it did for every one, with and without
+  the gate.
 - Reports are searchable as soon as their index is complete, while extraction still runs. A
   user filter is never widened.
-- **Results**: a gold page among the retrieved chunks for 95.7% of answerable questions,
-  every key fact retrieved for 93.5%, MRR 0.61.
+- **Results**: with the default profile a gold page among the retrieved chunks for 71.7% of
+  answerable questions, every key fact retrieved for 65.2%, MRR 0.41, in 0.4 s. The same
+  hosted embeddings with the local reranker: 91.3%, 91.3%, 0.60 in 4.4 s; the local profile
+  95.7%, 93.5%, 0.61. **The reranker, not the embedding model, makes the difference**:
+  without it the two searches rarely agree, so the fused top 8 alternates between the
+  vector ranking and the noisier full-text ranking.
 
 **Improvements**
 
+- **A reranker in the default profile**: the measured gain is 20 points of hit@k and 26
+  points of facts-in-context. In order of effort: a hosted rerank API (a second key, no
+  local model), an LLM rerank with `gpt-5-mini` over the 60 candidates (one cheap call per
+  sub-query), or the local cross-encoder whenever the `local-models` group is installed.
 - **Filter each sub-query by its company and year.** The rewrite outputs both, but they are
-  only appended to the search text, so 21% of retrieved chunks come from the wrong report,
-  mostly the other year of the same company. A report filter fixes that; combine it with
-  the ingested-company list in the rewrite and a fallback to the unfiltered search when the
-  filter matches nothing.
-- **Keep 12 chunks instead of 8**: three gold chunks landed at rank 9 to 12; with the year
-  filter the extra chunks would all be from the right report.
-- **Fix or drop full-text search**: added for exact terms (FTE, Scope 3, EUV) but given whole
-  sentences, it adds little; build it from the sub-query's key terms or a BM25 index, or
-  drop one search per sub-query.
-- **Reranker throughput**: 60 pairs per sub-query at about 60 ms each is the largest part of
-  latency; batching the sub-queries' pairs into one call, or a smaller first-cut reranker,
-  would bring a three-sub-query question from 13 s towards 6 s.
+  only appended to the search text, so 39% of retrieved chunks come from the wrong report
+  without the reranker (21% with it), mostly the other year of the same company. A report
+  filter fixes that; combine it with the ingested-company list in the rewrite and a
+  fallback to the unfiltered search when the filter matches nothing.
+- **Fix or drop full-text search**: added for exact terms (FTE, Scope 3, EUV) but given
+  whole sentences; without a reranker it takes half of the eight slots and vector search
+  alone scores higher. Build it from the sub-query's key terms or a BM25 index, lower its
+  RRF weight, or drop it.
+- **Keep 12 to 16 chunks instead of 8**: cheap without a reranker, and three gold chunks
+  landed at rank 9 to 12 with it; with the year filter the extra chunks would all be from
+  the right report.
+- **Reranker throughput** (local profile): 60 pairs per sub-query at about 60 ms each is
+  the largest part of latency; batching the sub-queries' pairs into one call, or a smaller
+  first-cut reranker, would bring a three-sub-query question from 13 s towards 6 s.
 
 ### 5.3 Answer generation with structured output
 
@@ -325,8 +350,10 @@ a structured answer with citations, **verify** every quote. The median question 
   citations, each a chunk id and a quote copied character for character. Instructions:
   prefer the sentence or table row with the number, never use outside knowledge, use
   `partial` when the report gives a related but different figure.
-- **Results**: 91.3% of answerable questions correct, 95.7% correct or partial, **0%
-  incorrect**, all 11 unanswerable questions handled without inventing a figure.
+- **Results** with the default models: 65.2% of answerable questions correct, 84.8% correct
+  or partial, 6.5% incorrect (three answers), all 11 unanswerable questions handled without
+  inventing a figure; 9 of the 16 answers that were not correct never had the evidence
+  retrieved. With Claude and the local reranker: 91.3%, 95.7%, **0% incorrect**.
 
 **Improvements**
 
@@ -335,9 +362,10 @@ a structured answer with citations, **verify** every quote. The median question 
   a verified quote (with scale normalisation) would flag these as "figure not quoted".
 - **Stream the answer**: stages stream, the answer does not, because the JSON is validated
   whole; incremental parsing of the `answer` field would make generation feel shorter.
-- **Table reading**: both generation failures in the evaluation were tables the model
-  skimmed; asking it to check table chunks cell by cell is a prompt change, a better table
-  rendering (4.2) the structural fix.
+- **Table reading**: the generation failures in both evaluations were tables the model
+  skimmed or misread (a reported instead of an adjusted EBITDA, a figure in thousands given
+  without its unit, an unlabelled infographic); asking it to check table chunks cell by cell
+  is a prompt change, a better table rendering (4.2) the structural fix.
 
 ### 5.4 Quote verification
 
@@ -363,10 +391,15 @@ text really on that page of that report?**
   and show it, so a failed one is visible rather than dropped.
 - **The threshold** was chosen on 570 generated quote variants from the fixture reports: real
   quotes with small edits passed 96%, invented text was rejected 100%. In the evaluation,
-  **106 of 106 chat citations verified exactly**.
+  **106 of 106 chat citations verified exactly with Claude; 84 of 93 with gpt-5**, whose 9
+  failures were all quotes assembled from non-adjacent table cells (a heading, then the
+  row), nothing invented. The downgrade rule then withheld two correct answers.
 
 **Improvements**
 
+- **Verify table quotes cell by cell**: when a quote fails, split it on line breaks and
+  "..." and verify each segment that carries a figure; accept as `fuzzy` when all are on
+  the page. Recovers the stitched quotes without accepting invented ones.
 - **Fuzzy is a warning, not a proof**: a changed digit or an inserted "not" is a small edit
   above 0.92. Requiring the quote's digits unchanged in the matched window would close the
   digit case.
@@ -385,8 +418,13 @@ text really on that page of that report?**
   timeout), detects truncation at `max_tokens` and reports it as an error, and places cache
   breakpoints on the system prompt and the last earlier turn. OpenAI caches shared prefixes
   automatically, so its adapter keeps the prefix byte-identical.
-- **Token usage**, including cache reads and writes, is logged per call; the evaluation
-  harness hooks into it for cost.
+- **Token usage**, including cache reads and writes, is logged per call by both adapters;
+  the evaluation harness hooks into it for cost, and into the hosted embedder for embedding
+  tokens.
+- **Both providers were evaluated** on the same corpus ([EVAL.md](EVAL.md)): gpt-5 ingests
+  for less and lists more sustainability goals; Claude quotes tables verbatim and reads
+  them more carefully. The difference in answer quality is mostly the retrieval profile
+  each ran with, not the model.
 
 **Improvements**
 
@@ -490,8 +528,12 @@ RAG". Details in [EVAL.md](EVAL.md).
   precision and recall; extraction outcomes scored in code and goals by an LLM judge; end
   to end correctness and groundedness judged by `claude-opus-5-5`, plus deterministic
   checks. Parameter experiments through command-line overrides.
-- **Headline**: **91.3% correct, 0% incorrect, 0 hallucinations** on unanswerable
-  questions, **106 of 106 citations verified**, 7.5 s and $0.018 per question.
+- **Headline, default configuration** (gpt-5, hosted embeddings, no reranker): **65.2%
+  correct, 6.5% incorrect, 0 hallucinations** on unanswerable questions, **84 of 93
+  citations verified** (9 stitched table quotes rejected), 9.0 s and $0.014 per question;
+  ingestion 2.4 times faster than with local models. **Local retrieval profile with
+  Claude**: 91.3% correct, 0% incorrect, 106 of 106 citations verified, 7.5 s and $0.018.
+  A reranker ablation attributes most of the gap to the missing reranker.
 
 **Improvements**
 
@@ -499,7 +541,9 @@ RAG". Details in [EVAL.md](EVAL.md).
   the 91%.
 - **Statistical power**: 46 answerable questions means one question moves a rate by two
   points; more comparisons and multi-metric questions before tuning further.
-- **Provider comparison**: only Anthropic was evaluated.
+- **One component at a time**: the two evaluated stacks differ in LLM, embeddings, reranker
+  and rewrite model at once; only the reranker was isolated. Claude on the hosted profile
+  and gpt-5 on the local one would separate the model from the retrieval.
 
 ## 10. Alternatives considered
 
@@ -512,8 +556,8 @@ RAG". Details in [EVAL.md](EVAL.md).
 | PyMuPDF | Docling, `pymupdf4llm`, LlamaParse, a vision LLM per page | Slow on CPU, third-party upload of the PDF, or high cost on 400 pages; PyMuPDF reached 1.00 on the labelled pages. A vision step for infographic pages only is the planned complement |
 | Fixed word windows per page | Heading-based sections, semantic chunking | Headings in these reports are unreliable; windows with overlap are predictable, and the page is the citation unit anyway |
 | Contextual header per chunk | Plain chunk text | A table chunk is numbers and labels; without the header it does not say whose numbers they are |
-| Local `bge-m3` embeddings | OpenAI or Voyage embeddings | Ties the index to one vendor; re-embedding 400 pages on every provider change |
-| Local cross-encoder reranker | Cohere Rerank, LLM reranking | Cohere needs a key and sends report text out; an LLM reranker costs more per query. The local model gives a calibrated abstention score |
+| Hosted `text-embedding-3-large` by default, local `bge-m3` as a profile | One of the two only | Hosted: nothing to download, ingestion 2.4 times faster, chat never blocked behind a model; each report records its embedding model, so a switch is a visible re-embed, not a silent mismatch. Reranked, the two embedders retrieve equally well |
+| No reranker by default, the local cross-encoder in the `local` profile | A hosted rerank API, LLM reranking | The default stays at one key and no `torch`; the evaluation prices that at 20 points of hit@k, so a hosted or LLM reranker is the next change. The local model gives a calibrated abstention score |
 | Hybrid search with RRF | Vector only | Kept for exact terms, although it adds little as implemented; see 5.2 |
 | Query decomposition into sub-queries | Agentic tool loop over a `search_reports` tool | Fixed pipeline first: easier to evaluate and to show in the UI; the loop is the next step for open comparisons |
 | Rely on chunk headers for scoping | Filter each sub-query by company and year | Held back because it fails silently on unknown companies; planned together with a corpus list in the rewrite |
@@ -534,10 +578,12 @@ RAG". Details in [EVAL.md](EVAL.md).
 | Charts and infographics are not read | Stated; only text and tables | Vision step for digit-heavy pages (4.2) |
 | A verified quote can still be misread | Verification badge, page link | Number check on the answer prose (5.3) |
 | Fuzzy matching tolerates a changed digit | Shown in amber | Digit check on fuzzy matches (5.4) |
-| Year leakage wastes up to half of the context | Chunk headers name the year; no wrong answer in the evaluation | Per-sub-query report filter (5.2) |
-| Goal recall at 0.56 | Precision 0.97, so what is shown is right | Page-level extraction (4.5) |
+| No reranker in the default profile | Comparisons and abstention still work; 65% of answerable questions correct against 91% with the local profile | Hosted or LLM reranker (5.2) |
+| gpt-5 assembles some table quotes from non-adjacent cells | Verification rejects them (9 of 93); the answer is withheld rather than shown unsupported | Cell-by-cell verification, one-row quotes (5.4) |
+| Year leakage wastes up to half of the context | Chunk headers name the year; one wrong answer in the default evaluation (a restated prior-year figure) | Per-sub-query report filter (5.2) |
+| Goal recall at 0.66 (0.56 with Claude) | Precision 0.85 to 0.97, so what is shown is mostly right, and a failed quote is shown as such | Page-level extraction (4.5), cell-by-cell quote verification (5.4) |
 | A restart kills an in-process ingestion | Marked failed with a clear message | Resume from the last completed stage, or a job queue |
-| First run downloads 4.5 GB of models | Cached on a volume, stated in the README | Smaller models as an option |
+| The local profile downloads 4.5 GB of models | Hosted models by default; cached on a volume, stated in the README | Smaller models as an option |
 | Embedding on CPU is slow | Hosted embeddings by default; progress after every batch; deleting a report cancels its ingestion; local models, when used, are held one batch at a time with chat queries going first | A GPU for the local option |
 | Cloud APIs see report content | The reports are public | Local model adapter (5.5) |
 | Two providers double the test surface | Shared prompts, Pydantic validation | A fake provider in CI (8) |

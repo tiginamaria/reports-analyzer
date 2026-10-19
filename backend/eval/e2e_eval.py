@@ -10,6 +10,7 @@ stronger model than the generator.
     uv run python -m eval.e2e_eval                                  # the app's settings
     uv run python -m eval.e2e_eval --candidates 40 --top-k 8        # a retrieval experiment
     uv run python -m eval.e2e_eval --model claude-haiku-4-5-20251001 --tag haiku
+    uv run python -m eval.e2e_eval --tag openai                     # keep a profile's result apart
     uv run python -m eval.e2e_eval --limit 10 --workers 4           # a smoke run
 """
 
@@ -34,11 +35,11 @@ from eval.common import (
     Question,
     RetrievalParams,
     add_retrieval_args,
-    anthropic_provider,
     instrument,
     judge_provider,
     load_questions,
     patched_retrieval,
+    provider_for,
     report_keys,
     require_reranker,
     retrieval_params,
@@ -213,7 +214,7 @@ def evaluate(
     params: RetrievalParams, model: str | None, limit: int | None, workers: int
 ) -> dict[str, Any]:
     questions = load_questions(limit)
-    provider = anthropic_provider(model)
+    provider = provider_for(model)
     instrument(provider)
     USAGE.calls.clear()
     with patched_retrieval(params), ThreadPoolExecutor(workers) as pool:
@@ -273,7 +274,9 @@ def print_summary(result: dict[str, Any]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     add_retrieval_args(parser)
-    parser.add_argument("--model", help="answer model instead of the configured one")
+    parser.add_argument(
+        "--model", help="answer model instead of the configured provider's main model"
+    )
     parser.add_argument("--limit", type=int, help="first N questions only (a smoke run)")
     parser.add_argument("--workers", type=int, default=1, help="questions run in parallel")
     parser.add_argument("--tag", help="result file suffix (default: the overridden parameters)")

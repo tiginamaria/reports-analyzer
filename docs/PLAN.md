@@ -43,8 +43,10 @@ How well it works: [EVAL.md](EVAL.md).
 - Extraction:
   - [x] Measure FTE accuracy and goal recall and precision against the gold labels
 - Answers:
-  - [x] Measure answer correctness, abstention, groundedness and verbatim rate (Anthropic)
-  - [ ] Anthropic vs OpenAI vs local model
+  - [x] Measure answer correctness, abstention, groundedness and verbatim rate
+  - [x] OpenAI with hosted embeddings (the default) vs Anthropic with the local retrieval
+    models, plus a reranker ablation on the hosted embeddings
+  - [ ] A local LLM; the same LLM on both retrieval profiles
   - [ ] Human agreement check of the LLM judge
 
 **Ingestion**

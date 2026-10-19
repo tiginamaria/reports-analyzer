@@ -14,15 +14,18 @@ from typing import Any
 from unittest import mock
 
 import yaml
+from anthropic.types import Message
+from openai.types.chat import ChatCompletion
 from sqlalchemy.orm import Session
 
 import app.chat.pipeline as pipeline
 import app.retrieval.search as search
 from app.config import get_settings
-from app.llm import LLMProvider
+from app.llm import LLMProvider, get_provider
 from app.llm.anthropic_provider import AnthropicProvider
+from app.llm.openai_provider import OpenAIProvider
 from app.models import Report
-from app.retrieval.embedder import Reranker, get_reranker
+from app.retrieval.embedder import Embedder, OpenAIEmbedder, Reranker, get_reranker
 
 EVAL_DIR = Path(__file__).parent
 BACKEND_DIR = EVAL_DIR.parent
@@ -33,14 +36,20 @@ CACHE_DIR = EVAL_DIR / "cache"
 # The judge is a different and stronger model than the generator, to limit self-preference.
 JUDGE_MODEL = "claude-opus-5-5"
 
-# USD per million tokens (input, output), for the cost estimate only.
+# USD per million tokens (input, output), for the cost estimate only. A cached input token
+# costs a tenth on both providers; Anthropic charges 1.25x to write the cache, OpenAI nothing.
 PRICES = {
     "claude-sonnet-5-5": (2.0, 10.0),
     "claude-haiku-4-5-20251001": (1.0, 5.0),
     "claude-opus-5-5": (4.0, 20.0),
+    "gpt-5": (1.25, 10.0),
+    "gpt-5-mini": (0.25, 2.0),
 }
+DEFAULT_PRICE = (3.0, 15.0)
 CACHE_READ_FACTOR = 0.1
 CACHE_WRITE_FACTOR = 1.25
+# USD per million tokens of the hosted embedding models; a local model costs nothing per token.
+EMBEDDING_PRICES = {"text-embedding-3-large": 0.13, "text-embedding-3-small": 0.02}
 
 
 # --- corpus and gold files ------------------------------------------------------------------
@@ -109,20 +118,37 @@ def write_json(name: str, data: Any) -> Path:
 # --- LLM usage ------------------------------------------------------------------------------
 
 
+def price(model: str) -> tuple[float, float]:
+    """The price of `model`; a dated snapshot (`gpt-5-2025-08-07`) is priced as its family."""
+    matches = [name for name in PRICES if model == name or model.startswith(name + "-")]
+    return PRICES[max(matches, key=len)] if matches else DEFAULT_PRICE
+
+
 @dataclass
 class Usage:
-    """Token usage of every LLM call made while it is installed, per model."""
+    """Token usage of every LLM call made while a hook is installed, per model."""
 
     calls: list[dict[str, Any]] = field(default_factory=list)
 
-    def record(self, model: str, usage: Any, seconds: float) -> None:
+    def record(
+        self,
+        model: str,
+        *,
+        uncached: int,
+        cache_read: int,
+        cache_write: int,
+        output: int,
+        seconds: float,
+    ) -> None:
+        """One call: the input tokens billed at full price, the cached and cache-writing
+        input tokens apart, the output tokens and the seconds the call took."""
         self.calls.append(
             {
                 "model": model,
-                "input": usage.input_tokens,
-                "cache_read": usage.cache_read_input_tokens or 0,
-                "cache_write": usage.cache_creation_input_tokens or 0,
-                "output": usage.output_tokens,
+                "input": uncached,
+                "cache_read": cache_read,
+                "cache_write": cache_write,
+                "output": output,
                 "seconds": seconds,
             }
         )
@@ -134,7 +160,7 @@ class Usage:
         calls = self.calls[since:]
         cost = 0.0
         for c in calls:
-            price_in, price_out = PRICES.get(c["model"], (3.0, 15.0))
+            price_in, price_out = price(c["model"])
             cost += (
                 c["input"] * price_in
                 + c["cache_read"] * price_in * CACHE_READ_FACTOR
@@ -154,31 +180,108 @@ USAGE = Usage()
 
 
 def instrument(provider: LLMProvider) -> None:
-    """Record the usage of every call the provider makes into `USAGE`. Only the Anthropic
-    adapter reports usage; with another provider the cost figures stay empty."""
+    """Record the usage of every call `provider` makes into `USAGE`, through the adapter's
+    response hook. Anthropic reports cached and cache-writing input apart from the rest;
+    OpenAI counts cached tokens inside `prompt_tokens` and a reasoning model's hidden
+    reasoning inside `completion_tokens`, billed as output."""
     if isinstance(provider, AnthropicProvider):
-        provider.on_response = lambda response, seconds: USAGE.record(
-            response.model, response.usage, seconds
+
+        def on_anthropic(response: Message, seconds: float) -> None:
+            u = response.usage
+            USAGE.record(
+                response.model,
+                uncached=u.input_tokens,
+                cache_read=u.cache_read_input_tokens or 0,
+                cache_write=u.cache_creation_input_tokens or 0,
+                output=u.output_tokens,
+                seconds=seconds,
+            )
+
+        provider.on_response = on_anthropic
+    elif isinstance(provider, OpenAIProvider):
+
+        def on_openai(response: ChatCompletion, seconds: float) -> None:
+            u = response.usage
+            if u is None:
+                return
+            cached = (u.prompt_tokens_details.cached_tokens if u.prompt_tokens_details else 0) or 0
+            USAGE.record(
+                response.model,
+                uncached=u.prompt_tokens - cached,
+                cache_read=cached,
+                cache_write=0,
+                output=u.completion_tokens,
+                seconds=seconds,
+            )
+
+        provider.on_response = on_openai
+
+
+@dataclass
+class EmbeddingUsage:
+    """Tokens of every hosted embedding request made while the hook is installed."""
+
+    model: str = ""
+    requests: list[tuple[int, float]] = field(default_factory=list)  # (tokens, seconds)
+
+    def mark(self) -> int:
+        return len(self.requests)
+
+    def summary(self, since: int = 0) -> dict[str, Any]:
+        requests = self.requests[since:]
+        tokens = sum(t for t, _ in requests)
+        return {
+            "requests": len(requests),
+            "tokens": tokens,
+            "seconds": round(sum(s for _, s in requests), 2),
+            "cost_usd": round(tokens * EMBEDDING_PRICES.get(self.model, 0.0) / 1e6, 4),
+        }
+
+
+EMBED_USAGE = EmbeddingUsage()
+
+
+def instrument_embedder(embedder: Embedder) -> None:
+    """Record the tokens of every request a hosted embedder makes into `EMBED_USAGE`; a
+    local model has no per-token cost and stays unrecorded."""
+    if isinstance(embedder, OpenAIEmbedder):
+        EMBED_USAGE.model = get_settings().embedding_model
+        embedder.on_response = lambda tokens, seconds: EMBED_USAGE.requests.append(
+            (tokens, seconds)
         )
 
 
-def anthropic_provider(model: str | None = None) -> AnthropicProvider:
-    """The Anthropic adapter with the configured main model, or `model` instead."""
+def provider_for(model: str | None = None) -> LLMProvider:
+    """The configured provider (`LLM_PROVIDER`), or the same provider with `model` as its
+    main model instead of the configured one."""
+    if model is None:
+        return get_provider()
     settings = get_settings()
-    if model:
-        settings = settings.model_copy(update={"anthropic_model": model})
-    return AnthropicProvider(settings)
+    if settings.llm_provider == "anthropic":
+        return AnthropicProvider(settings.model_copy(update={"anthropic_model": model}))
+    return OpenAIProvider(settings.model_copy(update={"openai_model": model}))
 
 
 def judge_provider() -> AnthropicProvider:
-    return anthropic_provider(JUDGE_MODEL)
+    """The judge is `claude-opus-5-5` whatever the generator, a different and stronger
+    model; it needs `ANTHROPIC_API_KEY` even when the app answers with OpenAI."""
+    settings = get_settings()
+    if not settings.anthropic_api_key:
+        raise SystemExit(
+            f"The judge is {JUDGE_MODEL}: set ANTHROPIC_API_KEY (and ANTHROPIC_WORKSPACE_ID "
+            "for a user-scoped key)"
+        )
+    return AnthropicProvider(settings.model_copy(update={"anthropic_model": JUDGE_MODEL}))
 
 
 def require_reranker() -> Reranker:
-    """The evals measure the shipped pipeline, which reranks; refuse to run without one."""
+    """A run that reranks needs the reranker loaded; refuse to run without one."""
     reranker = get_reranker()
     if reranker is None:
-        raise SystemExit("The evaluation needs the reranker: set RERANKER_PROVIDER=local")
+        raise SystemExit(
+            "No reranker is configured: set RETRIEVAL_MODELS=local (or RERANKER_PROVIDER=local), "
+            "or pass --no-rerank to evaluate the fused order"
+        )
     return reranker
 
 
@@ -194,17 +297,24 @@ def timer(store: dict[str, float], key: str) -> Iterator[None]:
 # --- retrieval parameters -------------------------------------------------------------------
 
 
+def _reranker_configured() -> bool:
+    return get_settings().reranker_provider == "local"
+
+
 @dataclass(frozen=True)
 class RetrievalParams:
-    """The retrieval settings an experiment can change. The defaults are the app's constants,
-    so a run without overrides evaluates the shipped pipeline."""
+    """The retrieval settings an experiment can change. The defaults are the app's constants
+    and the configured retrieval profile, so a run without overrides evaluates the shipped
+    pipeline: with `RETRIEVAL_MODELS=openai` nothing reranks, with `local` the cross-encoder
+    and its floor run."""
 
     candidates: int = search.RETRIEVAL_CANDIDATES  # chunks per search, kept for reranking
     top_k: int = search.RERANK_TOP_K  # chunks kept per sub-query after reranking
     min_score: float = search.RERANK_MIN_SCORE  # reranker floor; below it nothing is kept
     rrf_k: int = search.RRF_K
     search: str = "hybrid"  # "vector" or "fulltext" runs that search alone
-    rerank: bool = True  # without the reranker the RRF order is kept and no floor applies
+    # without the reranker the RRF order is kept and no floor applies
+    rerank: bool = field(default_factory=_reranker_configured)
     max_subqueries: int = pipeline.MAX_SUBQUERIES  # 0 searches the standalone question only
 
     def tag(self) -> str:
@@ -233,7 +343,11 @@ def add_retrieval_args(parser: argparse.ArgumentParser) -> None:
     group.add_argument("--min-score", type=float, default=d.min_score, help=f"({d.min_score})")
     group.add_argument("--rrf-k", type=int, default=d.rrf_k, help=f"({d.rrf_k})")
     group.add_argument("--search", choices=("hybrid", "vector", "fulltext"), default=d.search)
-    group.add_argument("--no-rerank", action="store_true", help="keep the fused order")
+    group.add_argument(
+        "--no-rerank",
+        action="store_true",
+        help="keep the fused order (what the openai retrieval profile does anyway)",
+    )
     group.add_argument(
         "--max-subqueries",
         type=int,
@@ -249,7 +363,7 @@ def retrieval_params(args: argparse.Namespace) -> RetrievalParams:
         min_score=args.min_score,
         rrf_k=args.rrf_k,
         search=args.search,
-        rerank=not args.no_rerank,
+        rerank=RetrievalParams().rerank and not args.no_rerank,
         max_subqueries=args.max_subqueries,
     )
 

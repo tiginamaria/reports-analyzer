@@ -1,11 +1,17 @@
 """OpenAI adapter."""
 
+import logging
+import time
+from collections.abc import Callable
+
 import openai
-from openai.types.chat import ChatCompletionMessageParam
+from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 from pydantic import BaseModel
 
 from app.config import Settings
 from app.llm.base import ChatTurn, LLMError, LLMProvider, json_schema_for
+
+log = logging.getLogger(__name__)
 
 # Model families whose hidden reasoning tokens count against `max_completion_tokens` and
 # that accept `reasoning_effort`.
@@ -21,6 +27,10 @@ def is_reasoning_model(name: str) -> bool:
 
 class OpenAIProvider(LLMProvider):
     name = "openai"
+
+    # Called with every complete response and the seconds it took; the eval harness records
+    # token usage and cost through it.
+    on_response: Callable[[ChatCompletion, float], None] | None = None
 
     def __init__(self, settings: Settings) -> None:
         self._client = openai.OpenAI(api_key=settings.openai_api_key, timeout=180.0)
@@ -41,6 +51,7 @@ class OpenAIProvider(LLMProvider):
         max_tokens: int,
     ) -> str:
         model = self.model_name(small)
+        start = time.perf_counter()
         try:
             response = self._client.chat.completions.create(
                 model=model,
@@ -63,6 +74,19 @@ class OpenAIProvider(LLMProvider):
             raise LLMError(f"{self.name} API error {exc.status_code}: {exc.message}") from exc
         except openai.APIConnectionError as exc:
             raise LLMError(f"Could not reach {self.name}: {exc}") from exc
+        if self.on_response:
+            self.on_response(response, time.perf_counter() - start)
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            details = usage.prompt_tokens_details
+            log.info(
+                "%s %s: input=%d cached=%d output=%d",
+                self.name,
+                response.model,
+                usage.prompt_tokens,
+                (details.cached_tokens if details else 0) or 0,
+                usage.completion_tokens,
+            )
         choice = response.choices[0]
         content = choice.message.content
         if choice.finish_reason == "length":

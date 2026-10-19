@@ -46,15 +46,16 @@ from eval.common import (
 
 
 def rewrites(questions: list[Question]) -> dict[str, Query]:
-    """The rewrite of every question, as the chat produces it. Cached under a key derived
-    from the rewrite prompt and schema, so a prompt change never replays stale rewrites."""
+    """The rewrite of every question, as the chat produces it. Cached per rewrite model
+    under a key derived from the rewrite prompt and schema, so a prompt or model change
+    never replays stale rewrites."""
+    provider = get_provider()
+    instrument(provider)
     signature = hashlib.sha1(
         (prompts.QUERY_REWRITE + json.dumps(Query.model_json_schema(), sort_keys=True)).encode()
     ).hexdigest()[:10]
-    path = CACHE_DIR / f"rewrites_{signature}.json"
+    path = CACHE_DIR / f"rewrites_{signature}_{provider.model_name(small=True)}.json"
     cache: dict[str, Any] = json.loads(path.read_text()) if path.exists() else {}
-    provider = get_provider()
-    instrument(provider)
     out = {}
     for q in questions:
         key = f"{q.question}|{json.dumps(q.history)}"

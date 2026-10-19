@@ -252,14 +252,15 @@ false tables and reading order all at 1.00.
 
 [docs/EVAL.md](docs/EVAL.md) evaluates every stage on six reports (ABN AMRO, ASML, CM.com,
 fiscal years 2024 and 2025), 57 gold questions and labelled datapoints, with
-`claude-opus-5-5` as judge. Headline results:
+`claude-opus-5-5` as judge, for the default configuration and for the local retrieval
+profile. Headline results:
 
-| Stage | Result |
-|---|---|
-| Answers | 91% of answerable questions correct, 96% correct or partial, 0 incorrect; all 11 unanswerable questions handled, 0 hallucinations; 106/106 citations verified verbatim; 7.5 s median, $0.018 per question |
-| Retrieval | A gold page among the retrieved chunks for 96% of questions; 79% of chunks from the right company and year |
-| Extraction | FTE, revenue, net profit and dividend right or a defensible alternative for every report but one missing revenue, none wrong; sustainability goals recall 0.56, precision 0.97 |
-| Ingestion | Company and year detected 6/6; 2,073 pages in 19 minutes and $1.01 |
+| Stage | Default: gpt-5, hosted embeddings, no reranker | Local retrieval profile with Claude |
+|---|---|---|
+| Answers | 65% of answerable questions correct, 85% correct or partial, 3 incorrect; all 11 unanswerable questions handled, 0 hallucinations; 84/93 citations verified verbatim, 9 rejected; 9.0 s median, $0.014 per question | 91% correct, 96% correct or partial, 0 incorrect; 106/106 citations verified; 7.5 s, $0.018 |
+| Retrieval | A gold page among the retrieved chunks for 72% of questions, in 0.4 s (91% with the local reranker added to the same embeddings) | 96%, in 4.8 s |
+| Extraction | 17 of 24 single values exact, 4 defensible alternatives, 1 missing, none wrong; sustainability goals recall 0.66, precision 0.85 | 19 exact, 2 alternatives, 1 missing, none wrong; recall 0.56, precision 0.97 |
+| Ingestion | Company and year detected 6/6; 2,073 pages in 7.8 minutes and $1.04 | 6/6; 19 minutes and $1.01 on a laptop GPU |
 
 The harness and how to rerun it or run a parameter experiment:
 [backend/eval/README.md](backend/eval/README.md).

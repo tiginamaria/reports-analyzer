@@ -1,0 +1,1826 @@
+{
+  "params": {
+    "candidates": 60,
+    "top_k": 8,
+    "min_score": 0.2,
+    "rrf_k": 60,
+    "search": "hybrid",
+    "rerank": true,
+    "max_subqueries": 10
+  },
+  "chunks": 4625,
+  "summary": {
+    "n": 46,
+    "page_hit": 0.913,
+    "mrr": 0.597,
+    "facts": 0.913,
+    "report_precision": 0.778,
+    "report_recall": 1.0,
+    "by_type": {
+      "comparison": {
+        "n": 8,
+        "page_hit": 1,
+        "mrr": 0.613,
+        "facts": 1,
+        "report_precision": 0.945,
+        "report_recall": 1.0
+      },
+      "factoid": {
+        "n": 30,
+        "page_hit": 0.867,
+        "mrr": 0.601,
+        "facts": 0.867,
+        "report_precision": 0.727,
+        "report_recall": 1.0
+      },
+      "followup": {
+        "n": 3,
+        "page_hit": 1,
+        "mrr": 0.289,
+        "facts": 1,
+        "report_precision": 1.0,
+        "report_recall": 1.0
+      },
+      "multimetric": {
+        "n": 5,
+        "page_hit": 1,
+        "mrr": 0.729,
+        "facts": 1,
+        "report_precision": 0.683,
+        "report_recall": 1.0
+      }
+    },
+    "by_modality": {
+      "mixed": {
+        "n": 5,
+        "page_hit": 1,
+        "mrr": 0.729,
+        "facts": 1,
+        "report_precision": 0.683,
+        "report_recall": 1.0
+      },
+      "table": {
+        "n": 15,
+        "page_hit": 0.867,
+        "mrr": 0.562,
+        "facts": 0.867,
+        "report_precision": 0.754,
+        "report_recall": 1.0
+      },
+      "text": {
+        "n": 26,
+        "page_hit": 0.923,
+        "mrr": 0.591,
+        "facts": 0.923,
+        "report_precision": 0.81,
+        "report_recall": 1.0
+      }
+    },
+    "subqueries_mean": 1.37,
+    "chunks_mean": 10.1,
+    "seconds_p50": 4.39,
+    "seconds_p90": 8.65,
+    "nothing_retrieved": [
+      "ooc-shell-revenue"
+    ],
+    "answerable_min_best_score": 0.963,
+    "unanswerable_nothing_retrieved": 0.091
+  },
+  "questions": [
+    {
+      "id": "abn-2025-cet1",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How strong was ABN AMRO's core capital position (CET1) at year-end 2025?",
+      "searches": [
+        "What was ABN AMRO's Common Equity Tier 1 (CET1) ratio at year-end 2025, and does the 2025 annual report or full-year results report provide any commentary on its strength, changes from prior year, or regulatory targets/requirements?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.45,
+      "page_hit": true,
+      "mrr": 0.25,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.999836802482605,
+      "hits": [
+        "ABN AMRO 2025 p41 1.000",
+        "ABN AMRO 2024 p131 1.000",
+        "ABN AMRO 2025 p20 0.999",
+        "ABN AMRO 2025 p120 0.999",
+        "ABN AMRO 2024 p127 0.998",
+        "ABN AMRO 2025 p120 0.998",
+        "ABN AMRO 2025 p118 0.998",
+        "ABN AMRO 2025 p4 0.997"
+      ]
+    },
+    {
+      "id": "abn-2025-cost-income",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What cost/income ratio did ABN AMRO report for 2025?",
+      "searches": [
+        "What cost/income ratio did ABN AMRO report for 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.44,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9997363686561584,
+      "hits": [
+        "ABN AMRO 2025 p407 1.000",
+        "ABN AMRO 2025 p47 1.000",
+        "ABN AMRO 2025 p4 0.999",
+        "ABN AMRO 2025 p20 0.997",
+        "ABN AMRO 2024 p36 0.996",
+        "ABN AMRO 2025 p40 0.996",
+        "ABN AMRO 2025 p40 0.996",
+        "ABN AMRO 2024 p477 0.995"
+      ]
+    },
+    {
+      "id": "abn-2025-new-ceo",
+      "type": "factoid",
+      "modality": "text",
+      "query": "Who became the new CEO of ABN AMRO in 2025, and whom did she replace?",
+      "searches": [
+        "Who became the new CEO of ABN AMRO in 2025?",
+        "Whom did the new CEO of ABN AMRO in 2025 replace (who was the previous CEO)?"
+      ],
+      "subqueries": 2,
+      "chunks": 8,
+      "seconds": 8.65,
+      "page_hit": true,
+      "mrr": 0.125,
+      "facts": true,
+      "report_precision": 0.5,
+      "report_recall": 1.0,
+      "best_score": 0.9995099306106567,
+      "hits": [
+        "ABN AMRO 2024 p450 1.000",
+        "ABN AMRO 2024 p468 0.999",
+        "ABN AMRO 2024 p192 0.999",
+        "ABN AMRO 2025 p146 0.999",
+        "ABN AMRO 2024 p165 0.999",
+        "ABN AMRO 2025 p6 0.998",
+        "ABN AMRO 2025 p180 0.997",
+        "ABN AMRO 2025 p15 0.997"
+      ]
+    },
+    {
+      "id": "abn-2025-renewable-financing",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How much renewable energy financing had ABN AMRO provided by the end of 2025?",
+      "searches": [
+        "How much renewable energy financing had ABN AMRO provided by the end of 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.38,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.5,
+      "report_recall": 1.0,
+      "best_score": 0.9981673955917358,
+      "hits": [
+        "ABN AMRO 2025 p30 0.998",
+        "ABN AMRO 2024 p14 0.998",
+        "ABN AMRO 2025 p19 0.994",
+        "ABN AMRO 2024 p276 0.990",
+        "ABN AMRO 2025 p247 0.981",
+        "ABN AMRO 2024 p30 0.979",
+        "ABN AMRO 2024 p216 0.976",
+        "ABN AMRO 2025 p247 0.967"
+      ]
+    },
+    {
+      "id": "abn-2025-women-senior-mgmt",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What share (percentage) of ABN AMRO's senior management positions were held by women in 2025?",
+      "searches": [
+        "What percentage of ABN AMRO's senior management positions were held by women in 2025, according to ABN AMRO's 2025 annual report or other 2025 corporate reporting?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.65,
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9995105266571045,
+      "hits": [
+        "ABN AMRO 2024 p302 1.000",
+        "ABN AMRO 2025 p257 0.999",
+        "ABN AMRO 2025 p32 0.999",
+        "ABN AMRO 2024 p33 0.997",
+        "ABN AMRO 2025 p14 0.996",
+        "ABN AMRO 2025 p260 0.996",
+        "ASML 2025 p229 0.993",
+        "ABN AMRO 2025 p32 0.990"
+      ]
+    },
+    {
+      "id": "abn-2024-cfo",
+      "type": "factoid",
+      "modality": "text",
+      "query": "Who was ABN AMRO's Chief Financial Officer during 2024?",
+      "searches": [
+        "Who was ABN AMRO's Chief Financial Officer during 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.06,
+      "page_hit": true,
+      "mrr": 0.2,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9991132616996765,
+      "hits": [
+        "ABN AMRO 2024 p214 0.999",
+        "ABN AMRO 2024 p468 0.998",
+        "ABN AMRO 2024 p450 0.998",
+        "ABN AMRO 2024 p202 0.997",
+        "ABN AMRO 2024 p167 0.995",
+        "ABN AMRO 2025 p180 0.994",
+        "ABN AMRO 2024 p14 0.992",
+        "ABN AMRO 2025 p379 0.991"
+      ]
+    },
+    {
+      "id": "abn-2024-internal-fte",
+      "type": "factoid",
+      "modality": "table",
+      "query": "How many internal employees (in full‑time equivalents, FTEs) did ABN AMRO have at the end of 2024?",
+      "searches": [
+        "How many internal employees (in full‑time equivalents, FTEs) did ABN AMRO have at the end of 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.17,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": false,
+      "report_precision": 0.5,
+      "report_recall": 1.0,
+      "best_score": 0.999372661113739,
+      "hits": [
+        "ABN AMRO 2025 p48 0.999",
+        "ABN AMRO 2025 p48 0.999",
+        "ABN AMRO 2024 p47 0.999",
+        "ABN AMRO 2025 p47 0.999",
+        "ABN AMRO 2024 p48 0.999",
+        "ABN AMRO 2024 p47 0.998",
+        "ABN AMRO 2024 p11 0.998",
+        "ABN AMRO 2025 p14 0.997"
+      ]
+    },
+    {
+      "id": "abn-2024-roe-target",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What return on equity target for 2026 did ABN AMRO set out in its 2024 annual report?",
+      "searches": [
+        "What return on equity (ROE) target for 2026 did ABN AMRO set out in its 2024 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.36,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9997616410255432,
+      "hits": [
+        "ABN AMRO 2024 p36 1.000",
+        "ABN AMRO 2024 p18 0.999",
+        "ABN AMRO 2024 p36 0.998",
+        "ABN AMRO 2024 p46 0.996",
+        "ABN AMRO 2025 p36 0.993",
+        "ABN AMRO 2025 p4 0.990",
+        "ABN AMRO 2024 p40 0.989",
+        "ABN AMRO 2025 p407 0.987"
+      ]
+    },
+    {
+      "id": "abn-2024-sustainable-asset-volume",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?",
+      "searches": [
+        "What percentage of ABN AMRO's assets qualified as sustainability (acceleration) asset volume in 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.31,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9997643828392029,
+      "hits": [
+        "ABN AMRO 2024 p29 1.000",
+        "ABN AMRO 2025 p29 1.000",
+        "ABN AMRO 2025 p407 1.000",
+        "ABN AMRO 2024 p361 1.000",
+        "ABN AMRO 2024 p29 0.999",
+        "ABN AMRO 2024 p18 0.999",
+        "ABN AMRO 2024 p477 0.998",
+        "ABN AMRO 2024 p26 0.998"
+      ]
+    },
+    {
+      "id": "abn-2024-eps",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What were ABN AMRO's earnings per share for 2024?",
+      "searches": [
+        "What were ABN AMRO's earnings per share for 2024 (basic and diluted, as reported in the 2024 annual report)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.23,
+      "page_hit": true,
+      "mrr": 0.16666666666666666,
+      "facts": true,
+      "report_precision": 0.875,
+      "report_recall": 1.0,
+      "best_score": 0.9991627931594849,
+      "hits": [
+        "ABN AMRO 2024 p128 0.999",
+        "ABN AMRO 2024 p363 0.999",
+        "ABN AMRO 2025 p47 0.999",
+        "ABN AMRO 2024 p392 0.998",
+        "ABN AMRO 2024 p46 0.998",
+        "ABN AMRO 2024 p43 0.998",
+        "ABN AMRO 2024 p40 0.998",
+        "ABN AMRO 2024 p40 0.997"
+      ]
+    },
+    {
+      "id": "abn-cmp-net-profit",
+      "type": "comparison",
+      "modality": "table",
+      "query": "How did ABN AMRO's net profit develop between 2024 and 2025?",
+      "searches": [
+        "What was ABN AMRO's net profit (profit for the year) in fiscal year 2024, as reported in the 2024 annual report?",
+        "What was ABN AMRO's net profit (profit for the year) in fiscal year 2025, as reported in the 2025 annual report?"
+      ],
+      "subqueries": 2,
+      "chunks": 14,
+      "seconds": 8.14,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9998825788497925,
+      "hits": [
+        "ABN AMRO 2024 p40 1.000",
+        "ABN AMRO 2025 p40 1.000",
+        "ABN AMRO 2025 p4 0.999",
+        "ABN AMRO 2025 p47 0.999",
+        "ABN AMRO 2024 p42 0.999",
+        "ABN AMRO 2024 p5 0.999",
+        "ABN AMRO 2025 p387 0.999",
+        "ABN AMRO 2024 p363 0.999",
+        "ABN AMRO 2024 p40 0.999",
+        "ABN AMRO 2025 p40 0.998",
+        "ABN AMRO 2024 p46 0.998",
+        "ABN AMRO 2025 p43 0.998",
+        "ABN AMRO 2025 p42 0.997",
+        "ABN AMRO 2025 p43 0.997"
+      ]
+    },
+    {
+      "id": "abn-cmp-dividend",
+      "type": "comparison",
+      "modality": "text",
+      "query": "Did ABN AMRO pay a higher or lower dividend per share for the 2025 fiscal year than for the 2024 fiscal year?",
+      "searches": [
+        "What was the dividend per share that ABN AMRO paid (or proposed) for the 2025 fiscal year?",
+        "What was the dividend per share that ABN AMRO paid (or proposed) for the 2024 fiscal year?"
+      ],
+      "subqueries": 2,
+      "chunks": 11,
+      "seconds": 8.85,
+      "page_hit": true,
+      "mrr": 0.25,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9996252059936523,
+      "hits": [
+        "ABN AMRO 2025 p400 1.000",
+        "ABN AMRO 2024 p128 0.999",
+        "ABN AMRO 2025 p44 0.999",
+        "ABN AMRO 2024 p43 0.999",
+        "ABN AMRO 2025 p121 0.999",
+        "ABN AMRO 2024 p464 0.999",
+        "ABN AMRO 2024 p434 0.998",
+        "ABN AMRO 2024 p40 0.998",
+        "ABN AMRO 2025 p370 0.998",
+        "ABN AMRO 2025 p47 0.998",
+        "ABN AMRO 2025 p121 0.998"
+      ]
+    },
+    {
+      "id": "abn-followup-roe",
+      "type": "followup",
+      "modality": "text",
+      "query": "What return on equity did ABN AMRO achieve in 2024?",
+      "searches": [
+        "What return on equity did ABN AMRO achieve in 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.04,
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9995143413543701,
+      "hits": [
+        "ABN AMRO 2024 p40 1.000",
+        "ABN AMRO 2024 p36 0.999",
+        "ABN AMRO 2025 p47 0.999",
+        "ABN AMRO 2024 p46 0.999",
+        "ABN AMRO 2025 p4 0.998",
+        "ABN AMRO 2025 p40 0.998",
+        "ABN AMRO 2024 p5 0.997",
+        "ABN AMRO 2025 p47 0.997"
+      ]
+    },
+    {
+      "id": "abn-unans-atms",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?",
+      "searches": [
+        "How many ATMs did ABN AMRO operate in the Netherlands at the end of 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.03,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.8664997220039368,
+      "hits": [
+        "ABN AMRO 2025 p26 0.866",
+        "ABN AMRO 2025 p9 0.616",
+        "ABN AMRO 2025 p15 0.602",
+        "ABN AMRO 2025 p11 0.593",
+        "ABN AMRO 2025 p400 0.586",
+        "ABN AMRO 2025 p326 0.578",
+        "ABN AMRO 2025 p325 0.545",
+        "ABN AMRO 2025 p47 0.536"
+      ]
+    },
+    {
+      "id": "abn-unans-app-users",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How many monthly active users did ABN AMRO's mobile banking app have in 2025?",
+      "searches": [
+        "How many monthly active users did ABN AMRO's mobile banking app have in 2025 according to ABN AMRO's 2025 annual report or other official 2025 disclosures?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.66,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9905794262886047,
+      "hits": [
+        "ABN AMRO 2025 p335 0.991",
+        "ABN AMRO 2025 p47 0.983",
+        "ABN AMRO 2025 p26 0.977",
+        "ABN AMRO 2025 p16 0.952",
+        "ABN AMRO 2024 p27 0.938",
+        "ABN AMRO 2025 p390 0.936",
+        "ABN AMRO 2025 p405 0.931",
+        "ABN AMRO 2024 p27 0.930"
+      ]
+    },
+    {
+      "id": "abn-unans-savings-share",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "What was ABN AMRO's market share in Dutch savings deposits in 2024?",
+      "searches": [
+        "What was ABN AMRO's market share in Dutch savings deposits in 2024 according to ABN AMRO's 2024 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.95,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.875,
+      "report_recall": 1.0,
+      "best_score": 0.9985995888710022,
+      "hits": [
+        "ABN AMRO 2024 p40 0.999",
+        "ABN AMRO 2025 p15 0.983",
+        "ABN AMRO 2024 p43 0.980",
+        "ABN AMRO 2024 p391 0.974",
+        "ABN AMRO 2024 p188 0.974",
+        "ABN AMRO 2024 p504 0.967",
+        "ABN AMRO 2024 p334 0.960",
+        "ABN AMRO 2024 p14 0.960"
+      ]
+    },
+    {
+      "id": "asml-2025-net-income",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What was ASML's net profit for 2025?",
+      "searches": [
+        "What was ASML's net profit for 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.44,
+      "page_hit": true,
+      "mrr": 0.16666666666666666,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9991294741630554,
+      "hits": [
+        "ASML 2025 p131 0.999",
+        "ASML 2025 p276 0.999",
+        "ASML 2025 p54 0.999",
+        "ASML 2025 p316 0.998",
+        "ASML 2025 p277 0.997",
+        "ASML 2025 p56 0.997",
+        "ASML 2025 p5 0.994",
+        "ASML 2025 p54 0.990"
+      ]
+    },
+    {
+      "id": "asml-2025-euv-units",
+      "type": "factoid",
+      "modality": "table",
+      "query": "How many EUV machines did ASML recognize as sold in its 2025 annual report?",
+      "searches": [
+        "How many EUV machines did ASML recognize as sold in its 2025 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.88,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": false,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9809949994087219,
+      "hits": [
+        "ASML 2024 p55 0.981",
+        "ASML 2025 p58 0.921",
+        "ASML 2025 p51 0.889",
+        "ASML 2024 p61 0.868",
+        "ASML 2025 p145 0.854",
+        "ASML 2025 p17 0.849",
+        "ASML 2025 p52 0.844",
+        "ASML 2025 p9 0.832"
+      ]
+    },
+    {
+      "id": "asml-2025-backlog",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What was ASML's order backlog going into 2026?",
+      "searches": [
+        "What was ASML's order backlog going into 2026 (the order backlog reported at the end of 2025 / start of 2026)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.42,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": false,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9625812768936157,
+      "hits": [
+        "ASML 2024 p7 0.963",
+        "ASML 2024 p351 0.945",
+        "ASML 2025 p292 0.899",
+        "ASML 2025 p294 0.898",
+        "ASML 2025 p287 0.850",
+        "ASML 2025 p290 0.826",
+        "ASML 2025 p127 0.821",
+        "ASML 2025 p350 0.787"
+      ]
+    },
+    {
+      "id": "asml-2025-china-share",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What percentage of ASML's 2025 sales came from customers in China?",
+      "searches": [
+        "What percentage of ASML's 2025 sales (net sales/revenue) came from customers in China? Include how ASML defines 'China' if the report specifies (e.g., whether Hong Kong and Taiwan are included)."
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.85,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": false,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9670495986938477,
+      "hits": [
+        "ASML 2025 p216 0.967",
+        "ASML 2025 p21 0.965",
+        "ASML 2025 p51 0.964",
+        "ASML 2025 p51 0.959",
+        "ASML 2025 p58 0.951",
+        "ASML 2025 p287 0.945",
+        "ASML 2025 p51 0.943",
+        "ASML 2025 p287 0.942"
+      ]
+    },
+    {
+      "id": "asml-2025-share-buyback",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How much did ASML spend buying back its own shares in the 2025 fiscal year?",
+      "searches": [
+        "How much did ASML spend on share buybacks (repurchases of own shares) in the 2025 fiscal year, according to ASML's 2025 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.9,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9990304708480835,
+      "hits": [
+        "ASML 2025 p315 0.999",
+        "ASML 2025 p334 0.997",
+        "ASML 2025 p334 0.994",
+        "ASML 2024 p372 0.993",
+        "ASML 2024 p391 0.987",
+        "ASML 2025 p305 0.986",
+        "ASML 2025 p278 0.975",
+        "ASML 2025 p280 0.970"
+      ]
+    },
+    {
+      "id": "asml-2024-rd-costs",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How much did ASML invest in research and development (R&D) during 2024?",
+      "searches": [
+        "How much did ASML invest in research and development (R&D) during 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.67,
+      "page_hit": true,
+      "mrr": 0.16666666666666666,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.999131977558136,
+      "hits": [
+        "ASML 2024 p33 0.999",
+        "ASML 2024 p300 0.999",
+        "ASML 2025 p55 0.999",
+        "ASML 2024 p30 0.998",
+        "ASML 2024 p296 0.998",
+        "ASML 2024 p57 0.994",
+        "ASML 2024 p380 0.994",
+        "ASML 2025 p248 0.990"
+      ]
+    },
+    {
+      "id": "asml-2024-new-ceo",
+      "type": "factoid",
+      "modality": "text",
+      "query": "Who became ASML's chief executive in 2024, and whom did they replace?",
+      "searches": [
+        "Who became ASML's chief executive in 2024, and whom did they replace?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.38,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9995734095573425,
+      "hits": [
+        "ASML 2024 p7 1.000",
+        "ASML 2025 p78 0.999",
+        "ASML 2024 p115 0.998",
+        "ASML 2024 p99 0.998",
+        "ASML 2024 p117 0.997",
+        "ASML 2024 p98 0.997",
+        "ASML 2025 p9 0.997",
+        "ASML 2024 p158 0.997"
+      ]
+    },
+    {
+      "id": "asml-2024-scope12-emissions",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What were ASML's combined scope 1 and scope 2 greenhouse gas (GHG) emissions in 2024?",
+      "searches": [
+        "What were ASML's combined scope 1 and scope 2 greenhouse gas (GHG) emissions reported for 2024 (in metric tonnes CO2e, and any breakdown by scope if available)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 5.61,
+      "page_hit": true,
+      "mrr": 0.5,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9939286708831787,
+      "hits": [
+        "ASML 2024 p218 0.994",
+        "ASML 2024 p194 0.993",
+        "ASML 2024 p200 0.992",
+        "ASML 2025 p160 0.988",
+        "ASML 2024 p206 0.988",
+        "ASML 2024 p221 0.987",
+        "ABN AMRO 2024 p271 0.982",
+        "ASML 2024 p221 0.980"
+      ]
+    },
+    {
+      "id": "asml-2024-fte",
+      "type": "factoid",
+      "modality": "table",
+      "query": "How many full-time-equivalent (FTE) staff did ASML have at the end of 2024?",
+      "searches": [
+        "How many full-time-equivalent (FTE) staff did ASML have at the end of 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.63,
+      "page_hit": true,
+      "mrr": 0.5,
+      "facts": true,
+      "report_precision": 0.375,
+      "report_recall": 1.0,
+      "best_score": 0.9973387122154236,
+      "hits": [
+        "ASML 2025 p301 0.997",
+        "ASML 2024 p358 0.996",
+        "ASML 2024 p277 0.995",
+        "ASML 2025 p131 0.987",
+        "ASML 2025 p227 0.984",
+        "ASML 2025 p227 0.983",
+        "ASML 2025 p301 0.972",
+        "ASML 2024 p358 0.962"
+      ]
+    },
+    {
+      "id": "asml-2024-dividend",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What total dividend per share did ASML declare for the financial year 2024?",
+      "searches": [
+        "What total dividend per share did ASML declare for the financial year 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.26,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.5,
+      "report_recall": 1.0,
+      "best_score": 0.9998120665550232,
+      "hits": [
+        "ASML 2024 p372 1.000",
+        "ASML 2024 p381 1.000",
+        "ASML 2024 p391 1.000",
+        "ASML 2025 p315 1.000",
+        "ASML 2025 p334 0.999",
+        "ASML 2024 p138 0.999",
+        "ASML 2025 p324 0.997",
+        "ASML 2025 p315 0.991"
+      ]
+    },
+    {
+      "id": "asml-net-sales-2024-vs-2025",
+      "type": "comparison",
+      "modality": "table",
+      "query": "How did ASML's revenue develop between 2024 and 2025?",
+      "searches": [
+        "What was ASML's total revenue (net sales) for fiscal year 2025?",
+        "What was ASML's total revenue (net sales) for fiscal year 2024?"
+      ],
+      "subqueries": 2,
+      "chunks": 14,
+      "seconds": 7.94,
+      "page_hit": true,
+      "mrr": 0.2,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9992037415504456,
+      "hits": [
+        "ASML 2025 p131 0.999",
+        "ASML 2024 p160 0.999",
+        "ASML 2024 p333 0.999",
+        "ASML 2025 p276 0.999",
+        "ASML 2025 p54 0.999",
+        "ASML 2025 p51 0.999",
+        "ASML 2024 p344 0.998",
+        "ASML 2024 p56 0.998",
+        "ASML 2025 p42 0.998",
+        "ASML 2025 p54 0.998",
+        "ASML 2024 p55 0.997",
+        "ASML 2024 p60 0.997",
+        "ASML 2025 p5 0.996",
+        "ASML 2025 p52 0.995"
+      ]
+    },
+    {
+      "id": "asml-gross-margin-2024-vs-2025",
+      "type": "comparison",
+      "modality": "text",
+      "query": "Did ASML's gross margin improve in fiscal year 2025 compared with fiscal year 2024?",
+      "searches": [
+        "What was ASML's gross margin (percentage) in fiscal year 2025?",
+        "What was ASML's gross margin (percentage) in fiscal year 2024?"
+      ],
+      "subqueries": 2,
+      "chunks": 12,
+      "seconds": 8.29,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9994518160820007,
+      "hits": [
+        "ASML 2024 p7 0.999",
+        "ASML 2025 p5 0.999",
+        "ASML 2025 p58 0.998",
+        "ASML 2024 p60 0.998",
+        "ASML 2025 p51 0.998",
+        "ASML 2025 p52 0.997",
+        "ASML 2025 p8 0.997",
+        "ASML 2025 p58 0.997",
+        "ASML 2024 p6 0.996",
+        "ASML 2025 p52 0.996",
+        "ASML 2024 p54 0.996",
+        "ASML 2025 p131 0.995"
+      ]
+    },
+    {
+      "id": "asml-litho-units-followup",
+      "type": "followup",
+      "modality": "text",
+      "query": "How many lithography systems did ASML sell in 2024 (excluding metrology and inspection systems)?",
+      "searches": [
+        "How many lithography systems did ASML sell in 2024 (excluding metrology and inspection systems)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.0,
+      "page_hit": true,
+      "mrr": 0.3333333333333333,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9952850937843323,
+      "hits": [
+        "ASML 2024 p55 0.995",
+        "ASML 2024 p238 0.989",
+        "ASML 2025 p53 0.986",
+        "ASML 2024 p344 0.982",
+        "ASML 2025 p191 0.981",
+        "ASML 2025 p287 0.980",
+        "ASML 2025 p287 0.978",
+        "ASML 2025 p42 0.968"
+      ]
+    },
+    {
+      "id": "asml-unans-tsmc-share",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "What share of ASML's 2025 revenue came from TSMC?",
+      "searches": [
+        "What share (percentage) of ASML's 2025 revenue came from TSMC according to ASML's 2025 annual report or official investor disclosures?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.48,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9817610383033752,
+      "hits": [
+        "ASML 2025 p131 0.982",
+        "ASML 2025 p58 0.970",
+        "ASML 2025 p52 0.965",
+        "ASML 2025 p287 0.958",
+        "ASML 2025 p58 0.945",
+        "ASML 2025 p51 0.944",
+        "ASML 2025 p58 0.940",
+        "ASML 2025 p54 0.937"
+      ]
+    },
+    {
+      "id": "asml-unans-high-na-2026-shipments",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How many High-NA EUV systems does ASML plan to ship in 2026?",
+      "searches": [
+        "How many High-NA EUV systems does ASML plan to ship in 2026 according to ASML's 2026 annual report, investor presentations, or official 2026 guidance?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.17,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9554855227470398,
+      "hits": [
+        "ASML 2025 p58 0.955",
+        "ASML 2025 p17 0.948",
+        "ASML 2024 p55 0.909",
+        "ASML 2024 p22 0.909",
+        "ASML 2025 p52 0.900",
+        "ASML 2025 p9 0.867",
+        "ASML 2025 p18 0.856",
+        "ASML 2025 p18 0.855"
+      ]
+    },
+    {
+      "id": "asml-unans-china-2030",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How much revenue does ASML expect to generate from China in 2030?",
+      "searches": [
+        "What revenue does ASML expect or forecast to generate from China in 2030 according to ASML's annual reports, investor presentations, or official guidance (mention the source and year of the document)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.99,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9808725118637085,
+      "hits": [
+        "ASML 2025 p52 0.981",
+        "ASML 2025 p58 0.979",
+        "ASML 2024 p61 0.977",
+        "ASML 2024 p54 0.957",
+        "ASML 2025 p58 0.942",
+        "ASML 2024 p4 0.893",
+        "ASML 2025 p4 0.888",
+        "ASML 2024 p4 0.883"
+      ]
+    },
+    {
+      "id": "cm-2025-adjusted-ebitda",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What was CM.com's adjusted EBITDA for 2025?",
+      "searches": [
+        "What was CM.com's adjusted EBITDA for the fiscal year 2025 (amount and currency) as reported in its 2025 annual report or full-year financial statements?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.82,
+      "page_hit": true,
+      "mrr": 0.5,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9955735206604004,
+      "hits": [
+        "CM.com 2024 p63 0.996",
+        "CM.com 2025 p16 0.995",
+        "CM.com 2025 p105 0.993",
+        "CM.com 2025 p2 0.992",
+        "CM.com 2025 p105 0.991",
+        "CM.com 2024 p63 0.989",
+        "CM.com 2025 p100 0.988",
+        "CM.com 2025 p17 0.984"
+      ]
+    },
+    {
+      "id": "cm-2025-new-cfo",
+      "type": "factoid",
+      "modality": "text",
+      "query": "Who is taking over as CFO of CM.com after Jörg de Graaf left in 2025?",
+      "searches": [
+        "Who is taking over as CFO of CM.com after Jörg de Graaf left in 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.56,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.875,
+      "report_recall": 1.0,
+      "best_score": 0.9997451901435852,
+      "hits": [
+        "CM.com 2025 p43 1.000",
+        "CM.com 2025 p5 0.999",
+        "CM.com 2025 p128 0.998",
+        "CM.com 2025 p37 0.996",
+        "CM.com 2025 p57 0.996",
+        "CM.com 2025 p25 0.995",
+        "CM.com 2025 p54 0.992",
+        "CM.com 2024 p65 0.992"
+      ]
+    },
+    {
+      "id": "cm-2025-arr",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How much annual recurring revenue did CM.com have at the end of 2025?",
+      "searches": [
+        "How much annual recurring revenue (ARR) did CM.com report at the end of fiscal year 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.17,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9989309906959534,
+      "hits": [
+        "CM.com 2025 p2 0.999",
+        "CM.com 2025 p4 0.999",
+        "CM.com 2024 p5 0.997",
+        "CM.com 2025 p105 0.992",
+        "CM.com 2025 p16 0.991",
+        "CM.com 2025 p105 0.990",
+        "CM.com 2025 p100 0.989",
+        "CM.com 2024 p62 0.983"
+      ]
+    },
+    {
+      "id": "cm-2025-ghg-market-based",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What were CM.com's total market-based greenhouse gas emissions in 2025?",
+      "searches": [
+        "What were CM.com's total market-based greenhouse gas (GHG) emissions in the fiscal year 2025, reported in CM.com's 2025 annual report or sustainability/ESG report? Include scope breakdown if provided and units (e.g., tonnes CO2e)."
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 5.37,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9989839196205139,
+      "hits": [
+        "CM.com 2025 p73 0.999",
+        "CM.com 2025 p73 0.998",
+        "CM.com 2024 p124 0.997",
+        "CM.com 2025 p73 0.996",
+        "CM.com 2024 p125 0.995",
+        "CM.com 2024 p124 0.993",
+        "CM.com 2025 p71 0.992",
+        "CM.com 2025 p70 0.985"
+      ]
+    },
+    {
+      "id": "cm-2025-women-senior-management",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What share of CM.com's senior management were women in 2025?",
+      "searches": [
+        "What percentage or share of CM.com's senior management were women in 2025, according to CM.com's 2025 annual report (or sustainability/governance report for 2025)? Please provide the figure and the source/page if available."
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.68,
+      "page_hit": true,
+      "mrr": 0.125,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9997044205665588,
+      "hits": [
+        "CM.com 2025 p39 1.000",
+        "CM.com 2025 p83 0.999",
+        "CM.com 2025 p82 0.999",
+        "CM.com 2024 p134 0.999",
+        "CM.com 2025 p52 0.999",
+        "CM.com 2024 p134 0.999",
+        "CM.com 2024 p71 0.998",
+        "CM.com 2025 p38 0.998"
+      ]
+    },
+    {
+      "id": "cm-2024-messages",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How many messages did CM.com process in 2024?",
+      "searches": [
+        "How many messages did CM.com process in 2024, according to CM.com's 2024 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.08,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9930146932601929,
+      "hits": [
+        "CM.com 2024 p62 0.993",
+        "CM.com 2024 p58 0.990",
+        "CM.com 2024 p34 0.969",
+        "CM.com 2024 p60 0.949",
+        "CM.com 2024 p54 0.912",
+        "CM.com 2024 p57 0.904",
+        "CM.com 2024 p63 0.869",
+        "CM.com 2024 p44 0.825"
+      ]
+    },
+    {
+      "id": "cm-2024-free-cash-flow",
+      "type": "factoid",
+      "modality": "text",
+      "query": "Was CM.com's free cash flow positive in 2024, and how much was the free cash flow for CM.com in 2024?",
+      "searches": [
+        "Was CM.com's free cash flow positive in 2024, and what was the amount of CM.com's free cash flow in 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.39,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9998238682746887,
+      "hits": [
+        "CM.com 2024 p63 1.000",
+        "CM.com 2024 p84 0.999",
+        "CM.com 2024 p57 0.999",
+        "CM.com 2024 p55 0.999",
+        "CM.com 2024 p84 0.999",
+        "CM.com 2024 p65 0.987",
+        "CM.com 2024 p5 0.984",
+        "CM.com 2024 p155 0.983"
+      ]
+    },
+    {
+      "id": "cm-2024-offices",
+      "type": "factoid",
+      "modality": "text",
+      "query": "How many offices did CM.com have worldwide in 2024, and in how many countries did CM.com operate those offices in 2024?",
+      "searches": [
+        "How many offices did CM.com have worldwide in 2024 according to CM.com's 2024 annual report or official 2024 corporate disclosures?",
+        "In how many countries did CM.com operate offices in 2024 according to CM.com's 2024 annual report or official 2024 corporate disclosures?"
+      ],
+      "subqueries": 2,
+      "chunks": 10,
+      "seconds": 8.42,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.8,
+      "report_recall": 1.0,
+      "best_score": 0.9984238147735596,
+      "hits": [
+        "CM.com 2024 p5 0.998",
+        "CM.com 2024 p24 0.991",
+        "CM.com 2025 p2 0.973",
+        "CM.com 2025 p81 0.951",
+        "CM.com 2024 p65 0.916",
+        "CM.com 2024 p57 0.895",
+        "CM.com 2024 p64 0.894",
+        "CM.com 2024 p159 0.894",
+        "CM.com 2024 p63 0.861",
+        "CM.com 2024 p184 0.800"
+      ]
+    },
+    {
+      "id": "cm-2024-ghg-total-market-based",
+      "type": "factoid",
+      "modality": "table",
+      "query": "What was CM.com's total carbon footprint (market-based, all scopes) in 2024?",
+      "searches": [
+        "What was CM.com's total carbon footprint (market-based, all scopes) in 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.95,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9875674247741699,
+      "hits": [
+        "CM.com 2024 p125 0.988",
+        "CM.com 2024 p124 0.987",
+        "CM.com 2025 p73 0.985",
+        "CM.com 2024 p124 0.980",
+        "CM.com 2025 p73 0.958",
+        "CM.com 2025 p73 0.953",
+        "CM.com 2024 p122 0.938",
+        "CM.com 2024 p124 0.891"
+      ]
+    },
+    {
+      "id": "cm-2024-employee-engagement",
+      "type": "factoid",
+      "modality": "text",
+      "query": "What employee engagement score did CM.com achieve in 2024?",
+      "searches": [
+        "What employee engagement score did CM.com report for the fiscal year 2024 in its annual report or sustainability/ESG report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.32,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9992269277572632,
+      "hits": [
+        "CM.com 2024 p136 0.999",
+        "CM.com 2025 p84 0.999",
+        "CM.com 2025 p52 0.997",
+        "CM.com 2024 p100 0.997",
+        "CM.com 2024 p100 0.989",
+        "CM.com 2024 p112 0.979",
+        "CM.com 2024 p135 0.968",
+        "CM.com 2024 p79 0.967"
+      ]
+    },
+    {
+      "id": "cm-revenue-change-2024-2025",
+      "type": "comparison",
+      "modality": "table",
+      "query": "How did CM.com's revenue develop between the fiscal years 2024 and 2025?",
+      "searches": [
+        "What was CM.com's revenue in the fiscal year 2025?",
+        "What was CM.com's revenue in the fiscal year 2024?"
+      ],
+      "subqueries": 2,
+      "chunks": 14,
+      "seconds": 8.09,
+      "page_hit": true,
+      "mrr": 0.2,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9994581341743469,
+      "hits": [
+        "CM.com 2025 p105 0.999",
+        "CM.com 2025 p105 0.999",
+        "CM.com 2024 p59 0.999",
+        "CM.com 2024 p158 0.999",
+        "CM.com 2025 p16 0.999",
+        "CM.com 2024 p158 0.999",
+        "CM.com 2024 p5 0.999",
+        "CM.com 2024 p153 0.999",
+        "CM.com 2024 p58 0.999",
+        "CM.com 2025 p100 0.999",
+        "CM.com 2024 p57 0.999",
+        "CM.com 2024 p62 0.999",
+        "CM.com 2025 p2 0.996",
+        "CM.com 2024 p57 0.993"
+      ]
+    },
+    {
+      "id": "cm-fte-change-2024-2025",
+      "type": "comparison",
+      "modality": "text",
+      "query": "How did CM.com's year-end headcount in full-time equivalents (FTE) change from 2024 to 2025?",
+      "searches": [
+        "What was CM.com's year-end headcount in full-time equivalents (FTE) for fiscal year 2024 as reported in its 2024 annual report?",
+        "What was CM.com's year-end headcount in full-time equivalents (FTE) for fiscal year 2025 as reported in its 2025 annual report?"
+      ],
+      "subqueries": 2,
+      "chunks": 11,
+      "seconds": 8.3,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9993366599082947,
+      "hits": [
+        "CM.com 2024 p5 0.999",
+        "CM.com 2024 p133 0.999",
+        "CM.com 2024 p178 0.998",
+        "CM.com 2025 p2 0.998",
+        "CM.com 2025 p141 0.998",
+        "CM.com 2025 p55 0.996",
+        "CM.com 2025 p81 0.995",
+        "CM.com 2024 p57 0.993",
+        "CM.com 2025 p25 0.993",
+        "CM.com 2024 p133 0.992",
+        "CM.com 2025 p81 0.992"
+      ]
+    },
+    {
+      "id": "cm-net-result-followup",
+      "type": "followup",
+      "modality": "table",
+      "query": "What was CM.com's net result in 2024?",
+      "searches": [
+        "What was CM.com's net result (net profit or loss, in EUR) for the fiscal year 2024?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 3.35,
+      "page_hit": true,
+      "mrr": 0.2,
+      "facts": true,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9992443323135376,
+      "hits": [
+        "CM.com 2024 p153 0.999",
+        "CM.com 2024 p57 0.999",
+        "CM.com 2024 p5 0.998",
+        "CM.com 2024 p95 0.997",
+        "CM.com 2024 p59 0.997",
+        "CM.com 2024 p58 0.996",
+        "CM.com 2024 p188 0.996",
+        "CM.com 2025 p16 0.995"
+      ]
+    },
+    {
+      "id": "cm-2025-scope3-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "What were CM.com's Scope 3 emissions in 2025?",
+      "searches": [
+        "What were CM.com's Scope 3 greenhouse gas emissions in the 2025 fiscal year (reported in metric tonnes CO2e), and what breakdown by Scope 3 category (e.g., purchased goods and services, capital goods, fuel- and energy-related activities, upstream transportation and distribution, waste, business travel, employee commuting, downstream transportation, use of sold products, end-of-life treatment, investments) did CM.com provide in its 2025 annual report or sustainability report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 5.86,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.5,
+      "report_recall": 1.0,
+      "best_score": 0.9981536269187927,
+      "hits": [
+        "CM.com 2024 p124 0.998",
+        "CM.com 2025 p70 0.997",
+        "CM.com 2025 p73 0.996",
+        "CM.com 2025 p71 0.996",
+        "CM.com 2024 p125 0.992",
+        "CM.com 2024 p122 0.991",
+        "CM.com 2025 p70 0.991",
+        "CM.com 2024 p124 0.990"
+      ]
+    },
+    {
+      "id": "cm-2024-patents-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How many patents did CM.com hold in 2024?",
+      "searches": [
+        "How many patents did CM.com hold at the end of fiscal year 2024 according to CM.com's 2024 annual report?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.1,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.9703909754753113,
+      "hits": [
+        "CM.com 2024 p5 0.970",
+        "CM.com 2024 p65 0.963",
+        "CM.com 2024 p64 0.956",
+        "CM.com 2024 p57 0.952",
+        "CM.com 2024 p63 0.940",
+        "CM.com 2025 p2 0.924",
+        "CM.com 2024 p2 0.905",
+        "CM.com 2024 p183 0.903"
+      ]
+    },
+    {
+      "id": "cm-2025-water-unanswerable",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How much water did CM.com consume in 2025?",
+      "searches": [
+        "How much water did CM.com consume in 2025 according to its 2025 annual report (total water use, in cubic meters or the units reported)?"
+      ],
+      "subqueries": 1,
+      "chunks": 8,
+      "seconds": 4.47,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 1.0,
+      "report_recall": 1.0,
+      "best_score": 0.883750855922699,
+      "hits": [
+        "CM.com 2025 p2 0.884",
+        "CM.com 2025 p25 0.805",
+        "CM.com 2025 p72 0.777",
+        "CM.com 2024 p5 0.765",
+        "CM.com 2024 p63 0.744",
+        "CM.com 2025 p71 0.733",
+        "CM.com 2024 p64 0.709",
+        "CM.com 2025 p73 0.663"
+      ]
+    },
+    {
+      "id": "xco-fte-2025",
+      "type": "comparison",
+      "modality": "table",
+      "query": "Which company employed more people at the end of fiscal year 2025, ASML or ABN AMRO?",
+      "searches": [
+        "How many employees did ASML have at the end of fiscal year 2025?",
+        "How many employees did ABN AMRO have at the end of fiscal year 2025?"
+      ],
+      "subqueries": 2,
+      "chunks": 16,
+      "seconds": 7.54,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.8125,
+      "report_recall": 1.0,
+      "best_score": 0.9985890984535217,
+      "hits": [
+        "ABN AMRO 2025 p47 0.999",
+        "ASML 2025 p227 0.998",
+        "ASML 2025 p229 0.998",
+        "ASML 2025 p301 0.998",
+        "ASML 2025 p227 0.998",
+        "ABN AMRO 2025 p258 0.997",
+        "ABN AMRO 2025 p48 0.996",
+        "ABN AMRO 2025 p335 0.996",
+        "ABN AMRO 2025 p176 0.996",
+        "ABN AMRO 2025 p47 0.995",
+        "ASML 2024 p277 0.995",
+        "ASML 2025 p131 0.993",
+        "ASML 2025 p301 0.992",
+        "ASML 2024 p358 0.992",
+        "ABN AMRO 2025 p14 0.989",
+        "ABN AMRO 2024 p11 0.988"
+      ]
+    },
+    {
+      "id": "xco-revenue-2025",
+      "type": "comparison",
+      "modality": "text",
+      "query": "Compare the 2025 revenue of ASML and CM.com.",
+      "searches": [
+        "What was ASML's revenue (net sales) in fiscal year 2025?",
+        "What was CM.com's revenue in fiscal year 2025?"
+      ],
+      "subqueries": 2,
+      "chunks": 16,
+      "seconds": 7.49,
+      "page_hit": true,
+      "mrr": 0.25,
+      "facts": true,
+      "report_precision": 0.75,
+      "report_recall": 1.0,
+      "best_score": 0.9993624091148376,
+      "hits": [
+        "CM.com 2025 p105 0.999",
+        "ASML 2025 p131 0.999",
+        "CM.com 2025 p105 0.999",
+        "CM.com 2025 p16 0.999",
+        "CM.com 2025 p100 0.999",
+        "ASML 2025 p276 0.998",
+        "ASML 2025 p54 0.998",
+        "ASML 2025 p51 0.997",
+        "ASML 2025 p54 0.996",
+        "ASML 2024 p60 0.995",
+        "ASML 2025 p5 0.995",
+        "CM.com 2025 p2 0.995",
+        "CM.com 2024 p59 0.994",
+        "ASML 2025 p58 0.993",
+        "CM.com 2024 p57 0.993",
+        "CM.com 2024 p58 0.992"
+      ]
+    },
+    {
+      "id": "ooc-shell-revenue",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "What was Shell's total revenue in 2025?",
+      "searches": [
+        "What was Shell's total revenue in 2025?"
+      ],
+      "subqueries": 1,
+      "chunks": 0,
+      "seconds": 3.67,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.0,
+      "report_recall": null,
+      "best_score": 0.0,
+      "hits": []
+    },
+    {
+      "id": "ooc-heineken-volume",
+      "type": "unanswerable",
+      "modality": "text",
+      "query": "How many hectolitres of beer did Heineken sell in 2024?",
+      "searches": [
+        "How many hectolitres of beer did Heineken sell in 2024 according to Heineken's 2024 annual report or official 2024 results?"
+      ],
+      "subqueries": 1,
+      "chunks": 7,
+      "seconds": 3.54,
+      "page_hit": false,
+      "mrr": 0.0,
+      "facts": null,
+      "report_precision": 0.0,
+      "report_recall": null,
+      "best_score": 0.5174179077148438,
+      "hits": [
+        "ASML 2024 p7 0.517",
+        "ASML 2024 p333 0.295",
+        "ASML 2024 p56 0.266",
+        "ASML 2024 p55 0.218",
+        "ASML 2024 p6 0.213",
+        "ASML 2025 p276 0.204",
+        "ASML 2025 p294 0.201"
+      ]
+    },
+    {
+      "id": "abn-2025-multi-cet1-ci-women",
+      "type": "multimetric",
+      "modality": "mixed",
+      "query": "For 2025, what were ABN AMRO's Common Equity Tier 1 (CET1) ratio, its cost/income ratio, and the share of women in senior management?",
+      "searches": [
+        "What was ABN AMRO's Common Equity Tier 1 (CET1) ratio for fiscal year 2025?",
+        "What was ABN AMRO's cost/income ratio for fiscal year 2025?",
+        "What was the share (percentage) of women in senior management at ABN AMRO in fiscal year 2025?"
+      ],
+      "subqueries": 3,
+      "chunks": 23,
+      "seconds": 13.14,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.7391304347826086,
+      "report_recall": 1.0,
+      "best_score": 0.9998237490653992,
+      "hits": [
+        "ABN AMRO 2025 p47 1.000",
+        "ABN AMRO 2025 p407 1.000",
+        "ABN AMRO 2024 p131 1.000",
+        "ABN AMRO 2025 p118 0.999",
+        "ABN AMRO 2024 p127 0.999",
+        "ABN AMRO 2025 p20 0.999",
+        "ABN AMRO 2025 p4 0.999",
+        "ABN AMRO 2025 p119 0.999",
+        "ABN AMRO 2025 p120 0.998",
+        "ABN AMRO 2025 p32 0.997",
+        "ABN AMRO 2025 p40 0.997",
+        "ABN AMRO 2024 p477 0.996",
+        "ABN AMRO 2025 p120 0.996",
+        "ABN AMRO 2025 p257 0.996",
+        "ABN AMRO 2024 p33 0.996",
+        "ABN AMRO 2024 p56 0.996",
+        "ABN AMRO 2024 p302 0.995",
+        "ABN AMRO 2025 p40 0.994",
+        "ABN AMRO 2025 p314 0.994",
+        "ABN AMRO 2025 p260 0.991",
+        "ABN AMRO 2025 p32 0.989",
+        "ABN AMRO 2025 p14 0.985",
+        "ABN AMRO 2025 p253 0.960"
+      ]
+    },
+    {
+      "id": "abn-2024-multi-fte-eps-sustainable",
+      "type": "multimetric",
+      "modality": "mixed",
+      "query": "How many internal FTEs did ABN AMRO have at the end of 2024, what were ABN AMRO's earnings per share for 2024, and what share of ABN AMRO's assets were counted as sustainability asset volume in 2024?",
+      "searches": [
+        "How many internal FTEs (full-time equivalents) did ABN AMRO report at the end of 2024 in its 2024 annual report?",
+        "What were ABN AMRO's earnings per share (basic and/or diluted, as reported) for the year 2024 according to its 2024 annual report?",
+        "What share or percentage of ABN AMRO's assets was reported as 'sustainability asset volume' (or equivalent term) in 2024 in the 2024 annual report?"
+      ],
+      "subqueries": 3,
+      "chunks": 24,
+      "seconds": 12.86,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.6666666666666666,
+      "report_recall": 1.0,
+      "best_score": 0.9991926550865173,
+      "hits": [
+        "ABN AMRO 2024 p29 0.999",
+        "ABN AMRO 2024 p128 0.999",
+        "ABN AMRO 2025 p29 0.999",
+        "ABN AMRO 2025 p47 0.999",
+        "ABN AMRO 2025 p4 0.999",
+        "ABN AMRO 2024 p40 0.999",
+        "ABN AMRO 2024 p40 0.998",
+        "ABN AMRO 2024 p43 0.998",
+        "ABN AMRO 2024 p392 0.998",
+        "ABN AMRO 2024 p46 0.998",
+        "ABN AMRO 2024 p18 0.998",
+        "ABN AMRO 2024 p48 0.998",
+        "ABN AMRO 2025 p48 0.997",
+        "ABN AMRO 2024 p361 0.996",
+        "ABN AMRO 2024 p47 0.996",
+        "ABN AMRO 2024 p47 0.995",
+        "ABN AMRO 2025 p407 0.995",
+        "ABN AMRO 2024 p477 0.994",
+        "ABN AMRO 2024 p11 0.994",
+        "ABN AMRO 2025 p47 0.993",
+        "ABN AMRO 2024 p29 0.993",
+        "ABN AMRO 2024 p334 0.992",
+        "ABN AMRO 2025 p176 0.991",
+        "ABN AMRO 2025 p129 0.991"
+      ]
+    },
+    {
+      "id": "asml-2025-multi-income-euv-backlog",
+      "type": "multimetric",
+      "modality": "mixed",
+      "query": "For ASML in fiscal year 2025, what was the company's net income, how many EUV systems did ASML recognize as sold (i.e., systems for which revenue was recognized) during 2025, and what was ASML's order backlog at the end of 2025?",
+      "searches": [
+        "What was ASML's net income for fiscal year 2025?",
+        "How many EUV systems did ASML recognize in sales (number of EUV systems for which revenue was recognized) during fiscal year 2025?",
+        "What was ASML's order backlog at the end of fiscal year 2025 (value and, if available, units)?"
+      ],
+      "subqueries": 3,
+      "chunks": 23,
+      "seconds": 11.45,
+      "page_hit": true,
+      "mrr": 0.5,
+      "facts": true,
+      "report_precision": 0.782608695652174,
+      "report_recall": 1.0,
+      "best_score": 0.9989644289016724,
+      "hits": [
+        "ASML 2025 p131 0.999",
+        "ASML 2025 p56 0.999",
+        "ASML 2025 p316 0.999",
+        "ASML 2025 p277 0.998",
+        "ASML 2025 p276 0.998",
+        "ASML 2025 p280 0.997",
+        "ASML 2025 p54 0.997",
+        "ASML 2025 p21 0.994",
+        "ASML 2024 p373 0.993",
+        "ASML 2024 p55 0.989",
+        "ASML 2024 p7 0.978",
+        "ASML 2025 p287 0.971",
+        "ASML 2025 p292 0.961",
+        "ASML 2025 p53 0.958",
+        "ASML 2025 p191 0.940",
+        "ASML 2025 p51 0.928",
+        "ASML 2025 p290 0.917",
+        "ASML 2024 p344 0.908",
+        "ASML 2025 p319 0.905",
+        "ASML 2025 p287 0.901",
+        "ASML 2025 p292 0.886",
+        "ASML 2025 p286 0.873",
+        "ASML 2024 p346 0.864"
+      ]
+    },
+    {
+      "id": "asml-2024-multi-rd-emissions-fte",
+      "type": "multimetric",
+      "modality": "mixed",
+      "query": "In 2024, how much did ASML spend on research and development (R&D), what were ASML's Scope 1 and Scope 2 greenhouse gas emissions in 2024, and how many full-time equivalent employees (FTEs) did ASML have at year-end 2024?",
+      "searches": [
+        "How much did ASML spend on research and development (R&D) in 2024?",
+        "What were ASML's Scope 1 greenhouse gas emissions for 2024 (in tonnes CO2e)?",
+        "What were ASML's Scope 2 greenhouse gas emissions for 2024 (in tonnes CO2e), and whether they report location-based or market-based figures?",
+        "How many full-time equivalent employees (FTEs) did ASML have at year-end 2024?"
+      ],
+      "subqueries": 4,
+      "chunks": 32,
+      "seconds": 17.79,
+      "page_hit": true,
+      "mrr": 0.14285714285714285,
+      "facts": true,
+      "report_precision": 0.625,
+      "report_recall": 1.0,
+      "best_score": 0.9993197917938232,
+      "hits": [
+        "ASML 2025 p55 0.999",
+        "ASML 2024 p33 0.999",
+        "ASML 2024 p300 0.999",
+        "ASML 2024 p218 0.999",
+        "ASML 2024 p296 0.999",
+        "ASML 2025 p301 0.998",
+        "ASML 2024 p358 0.998",
+        "ASML 2024 p57 0.997",
+        "ASML 2025 p131 0.997",
+        "ASML 2024 p380 0.995",
+        "ASML 2024 p277 0.995",
+        "ASML 2024 p200 0.994",
+        "ASML 2024 p160 0.994",
+        "ASML 2024 p218 0.993",
+        "ASML 2025 p58 0.992",
+        "ASML 2024 p194 0.991",
+        "ASML 2024 p353 0.990",
+        "ASML 2025 p227 0.989",
+        "ASML 2025 p160 0.988",
+        "ASML 2024 p206 0.987",
+        "ASML 2024 p358 0.987",
+        "ASML 2024 p219 0.987",
+        "ASML 2025 p175 0.987",
+        "ASML 2025 p153 0.986",
+        "ASML 2024 p221 0.985",
+        "ASML 2024 p206 0.985",
+        "CM.com 2025 p73 0.985",
+        "ASML 2025 p227 0.984",
+        "ASML 2024 p222 0.984",
+        "ASML 2025 p175 0.984",
+        "ASML 2024 p221 0.984",
+        "ASML 2025 p179 0.983"
+      ]
+    },
+    {
+      "id": "cm-2025-multi-ebitda-arr-ghg",
+      "type": "multimetric",
+      "modality": "mixed",
+      "query": "What were CM.com's adjusted EBITDA, its annual recurring revenue (ARR), and its market-based greenhouse gas (GHG) emissions for the 2025 fiscal year?",
+      "searches": [
+        "What was CM.com's adjusted EBITDA for the 2025 fiscal year (stated value, and any reconciliation or definition provided in the 2025 annual report)?",
+        "What was CM.com's annual recurring revenue (ARR) for the 2025 fiscal year (reported ARR value and how the company defines/measures ARR in the 2025 annual report)?",
+        "What were CM.com's market-based greenhouse gas (GHG) emissions for the 2025 fiscal year (scope breakdown if provided, and the reported metric, e.g., tonnes CO2e, in the 2025 annual or sustainability report)?"
+      ],
+      "subqueries": 3,
+      "chunks": 20,
+      "seconds": 13.18,
+      "page_hit": true,
+      "mrr": 1.0,
+      "facts": true,
+      "report_precision": 0.6,
+      "report_recall": 1.0,
+      "best_score": 0.9996399879455566,
+      "hits": [
+        "CM.com 2025 p2 1.000",
+        "CM.com 2024 p5 0.999",
+        "CM.com 2025 p73 0.999",
+        "CM.com 2025 p4 0.997",
+        "CM.com 2025 p16 0.997",
+        "CM.com 2024 p63 0.995",
+        "CM.com 2025 p155 0.994",
+        "CM.com 2025 p73 0.994",
+        "CM.com 2025 p105 0.993",
+        "CM.com 2025 p73 0.992",
+        "CM.com 2025 p105 0.992",
+        "CM.com 2024 p59 0.991",
+        "CM.com 2025 p100 0.990",
+        "CM.com 2024 p124 0.990",
+        "CM.com 2024 p125 0.990",
+        "CM.com 2024 p63 0.988",
+        "CM.com 2024 p54 0.984",
+        "CM.com 2024 p124 0.980",
+        "CM.com 2025 p70 0.970",
+        "CM.com 2025 p71 0.955"
+      ]
+    }
+  ]
+}

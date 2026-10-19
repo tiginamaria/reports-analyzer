@@ -2,22 +2,49 @@
 
 The evaluation report of the annual reports analysis application described in [DESIGN.md](DESIGN.md).
 
-* Run on 2026-10-18 on an Apple M-series laptop (MPS)
-* The harness and how to rerun or run an experiment: [backend/eval/README.md](../backend/eval/README.md).
-* Raw results by stage in `backend/eval/results/{ingestion,retrieval,extraction,e2e}.json`
+* Run on 2026-10-19 with the application's default configuration: **OpenAI for the LLM and
+  for embeddings, no reranker**. Only PDF parsing runs on the machine (an Apple M-series
+  laptop); every model call is hosted.
+* The harness and how to rerun it or run an experiment: [backend/eval/README.md](../backend/eval/README.md).
+* Raw results by stage in `backend/eval/results/{ingestion,retrieval,extraction,e2e}_openai.json`;
+  the retrieval ablations in `retrieval_openai_vector.json` and `retrieval_openai_rerank.json`.
+* The optional local retrieval profile (bge-m3 and a cross-encoder reranker in-process,
+  with Claude as the LLM) was evaluated on 2026-10-18; its results are summarised in
+  [What to expect from the local retrieval profile](#what-to-expect-from-the-local-retrieval-profile)
+  and kept in the untagged result files.
 
 ## TL;DR
 
-The evaluation was performed for `ingestion` pipeline (including separate for `extraction` phase) and `answering` pipeline (including separate `retrieval` phase). 
+The evaluation covers the `ingestion` pipeline (with the `extraction` phase on its own) and
+the `answering` pipeline (with the `retrieval` phase on its own).
 
 | Stage | Result | Improvements |
 |---|---|---|
-| Extraction | FTE 5/6 exact, revenue 4/6, net profit 6/6, dividend 4/6 exact and 2/2 correctly none; no figure wrong, every quote verified. Goals: recall 0.56 (core 0.73), precision 0.97 | Send whole sustainability pages to the model instead of 32 chunks; read infographics with a vision model |
-| Ingestion | Company and year detected 6/6; a report of 345 pages on average becomes 770 chunks in 3.2 min for $0.17 | Run the six extraction calls per report in parallel; strip repeated page furniture before chunking |
-| Retrieval | A gold page retrieved for 95.7% of questions, MRR 0.61, all key facts for 93.5% | Filter each sub-query by its company and year; keep 12 chunks instead of 8 |
-| Answers | 91.3% correct, 95.7% correct or partial, 0 incorrect; 11/11 unanswerable handled, 0 hallucinations; 106/106 citations verified; 7.5 s and $0.018 per question | The two retrieval changes; warn when a figure in the answer is in no cited quote |
+| Extraction | FTE 3/6 exact and 3 acceptable alternatives, revenue 4/6, net profit 6/6, dividend 4/6 exact and 2/2 correctly none; no figure wrong, every extracted quote verified. Goals: recall 0.66 (core 0.68), precision 0.85 | Send whole sustainability pages to the model instead of 32 chunks; read infographics with a vision model |
+| Ingestion | Company and year detected 6/6; a report of 345 pages on average becomes 770 chunks in 1.3 min for $0.17 ($0.14 LLM, $0.04 embeddings); 2.4 times faster than with local models at the same cost | Parse pages in parallel (parsing is now 42% of the time); strip repeated page furniture before chunking |
+| Retrieval | A gold page retrieved for 71.7% of questions, MRR 0.41, all key facts for 65.2%; 0.4 s per question. With the local reranker added on top of the same embeddings: 91.3%, 0.60, 91.3% | A reranker in the default profile (hosted or LLM-based); filter each sub-query by its company and year |
+| Answers | 65.2% correct, 84.8% correct or partial, 6.5% incorrect; 11/11 unanswerable handled, 0 hallucinations; 84/93 citations verified, 9 failed (quotes stitched from table cells), which withheld 2 correct answers; 9.0 s and $0.014 per question | The reranker; verify table quotes cell by cell; check figures and units in the prose |
 
-## Setup 
+The gap to the local profile (91.3% correct, see the last section) is mostly the missing
+reranker: 9 of the 16 answers that were not correct never had the evidence retrieved, and
+the reranker ablation recovers 9 of the 13 retrieval misses.
+
+## Setup
+
+### Configuration under test
+
+| Component | Default (this report) | Local retrieval profile (last section) |
+|---|---|---|
+| Main model | `gpt-5`, reasoning effort `low` | `claude-sonnet-5-5` |
+| Small model (metadata detection, query rewriting) | `gpt-5-mini` | `claude-haiku-4-5` |
+| Embeddings | `text-embedding-3-large`, hosted, 3,072 dimensions | `BAAI/bge-m3` in-process, 1,024 dimensions |
+| Reranker | None: the fused hybrid order is kept, no score floor | `BAAI/bge-reranker-v2-m3` in-process, floor 0.2 |
+| Needs | One OpenAI API key | `torch`, 4.5 GB of models, a GPU for acceptable speed |
+| Judge | `claude-opus-5-5` | `claude-opus-5-5` |
+
+Costs are estimated from list prices (gpt-5 $1.25 per million input tokens, $0.125 cached,
+$10 output; gpt-5-mini $0.25 / $0.025 / $2; text-embedding-3-large $0.13 per million
+tokens). A reasoning model's hidden reasoning tokens are billed as output and included.
 
 ### Corpus
 
@@ -97,8 +124,8 @@ and 11 unanswerable**.
 
 - For every registry entry ([registry.yaml](../backend/app/extraction/registry.yaml)) and
   every report, the eval runs **the same two functions ingestion runs**: candidate retrieval
-  (the entry's queries through hybrid search and reranker, cut to `top_k`) and the model
-  call with quote verification.
+  (the entry's queries through hybrid search, restricted to the report, cut to `top_k`) and
+  the model call with quote verification.
 - Each entry is **scored and costed on its own**; nothing is written to the database.
 
 | Datapoint (registry key) | Kind | Retrieval queries | Chunks to the model | Model calls per report |
@@ -131,122 +158,142 @@ Each single-value extraction gets one of six outcomes:
 | `missing` | Nothing extracted where the report states a figure | no |
 | `spurious` | A figure extracted where the report states none | no |
 
-| Datapoint | Outcomes | Gold page among candidates | Quote verified exactly | Chunks to model | Cost, 6 reports |
-|---|---|---|---|---|---|
-| FTE | 5 exact, 1 alternative | 4/6 | 6/6 | 7 | $0.10 |
-| Revenue | 4 exact, 1 alternative, 1 missing | 4/6 | 5/5 | 10 | $0.11 |
-| Net profit | 6 exact | 1/6 | 6/6 | 10 | $0.10 |
-| Dividend per share | 4 exact, 2 correctly none | 6/6 | 4/4 | 9 | $0.10 |
+| Datapoint | Outcomes | Gold page among candidates | Quote verified exactly | Chunks to model | Seconds per call | Cost, 6 reports |
+|---|---|---|---|---|---|---|
+| FTE | 3 exact, 3 alternative | 2/6 | 6/6 | 7 | 13 | $0.09 |
+| Revenue | 4 exact, 1 alternative, 1 missing | 4/6 | 5/5 | 10 | 9 | $0.08 |
+| Net profit | 6 exact | 6/6 | 6/6 | 10 | 11 | $0.08 |
+| Dividend per share | 4 exact, 2 correctly none | 5/6 | 4/4 | 9 | 9 | $0.06 |
 
-- **No figure is wrong and every quote verified.**
-- Net profit is **6/6 exact** although the gold page was a candidate only once: the figure is
-  restated on many pages. The column measures agreement with the labeller's page, not
-  success.
+- **No figure is wrong and every extracted quote verified**: 17 exact, 4 acceptable
+  alternatives, 2 correctly empty, 1 missing.
+- The **gold page among the candidates** column measures agreement with the labeller's page,
+  not success: net profit is 6/6 exact with the income statement among the candidates every
+  time, FTE is right or acceptable with the labeller's page found only twice.
 
 **Why the alternatives and the miss**
 
-- **CM.com 2025 FTE and revenue**: the exact figures are on the key-figures infographic
-  (p. 2) and the income statement (p. 100); **neither page was retrieved**. The infographic
-  comes out as numbers without labels, the statement's chunk is outside the 10 candidates.
-  The model fell back to the headcount (646) and said so; for revenue it **returned nothing
-  rather than guess**.
-- **CM.com 2024 revenue**: the income statement was not retrieved either, so the model took
-  the rounded **274.2 million** from the key-figures page.
+- **ABN AMRO FTE, both years**: the FTE table (p. 46 and 47) was not among the candidates
+  without a reranker, so the model took the **headcount** from the workforce pages (23,299
+  and 24,632) and said so. With the local profile the same table was found and the figure
+  exact.
+- **CM.com 2025 FTE and revenue**: the exact figures sit on the key-figures infographic
+  (p. 2) and the income statement (p. 100), neither retrieved; the model used the
+  workforce page's 648 FTE and the rounded **EUR 259.4 million** from p. 73.
+- **CM.com 2024 revenue**: the income statement (p. 153) was not retrieved and the model
+  **returned nothing rather than guess** (with the local profile it took the rounded
+  274.2 million from the key-figures page).
 
 **Sustainability goals**
 
 | Report | Gold goals (core) | Extracted | Recall | Core recall | Precision | Gold pages among candidates | Cost |
 |---|---|---|---|---|---|---|---|
-| ABN AMRO 2025 | 22 (8) | 18 | 0.55 | 0.63 | 0.89 | 0.59 | $0.11 |
-| ABN AMRO 2024 | 24 (7) | 22 | 0.54 | 0.86 | 1.00 | 0.67 | $0.12 |
-| ASML 2025 | 21 (8) | 15 | 0.52 | 0.88 | 0.93 | 0.33 | $0.10 |
-| ASML 2024 | 30 (8) | 18 | 0.57 | 0.63 | 1.00 | 0.43 | $0.10 |
-| CM.com 2025 | 10 (5) | 7 | 0.70 | 0.80 | 1.00 | 1.00 | $0.08 |
-| CM.com 2024 | 14 (5) | 7 | 0.50 | 0.60 | 1.00 | 0.93 | $0.07 |
-| **All** | 121 (41) | 87 | **0.56** | **0.73** | **0.97** | 0.66 | $0.58 |
+| ABN AMRO 2025 | 22 (8) | 22 | 0.77 | 0.63 | 0.50 | 0.77 | $0.04 |
+| ABN AMRO 2024 | 24 (7) | 24 | 0.79 | 0.71 | 0.96 | 0.54 | $0.07 |
+| ASML 2025 | 21 (8) | 14 | 0.48 | 0.88 | 0.93 | 0.43 | $0.06 |
+| ASML 2024 | 30 (8) | 28 | 0.80 | 0.88 | 0.96 | 0.47 | $0.06 |
+| CM.com 2025 | 10 (5) | 8 | 0.70 | 0.60 | 1.00 | 1.00 | $0.03 |
+| CM.com 2024 | 14 (5) | 8 | 0.43 | 0.40 | 0.75 | 0.93 | $0.04 |
+| **All** | 121 (41) | 104 | **0.66** | **0.68** | **0.85** | 0.69 | $0.30 |
 
-Each report: **6 queries, 32 chunks, one model call** (about 27k input tokens, 35 to 62 s).
+Each report: **6 queries, 32 chunks, one model call** (about 17k input and 4.5k output
+tokens, 24 to 42 s).
 
-- **Precision 0.97**: almost everything extracted is a real goal with a verified quote.
-- **Recall 0.56**, two causes:
-  - **37 of 54 missed goals were on pages not among the 32 chunks**, so retrieval caps recall
-    at 0.69. All ASML misses are of this kind: its goals (energy per wafer, waste, safety,
-    suppliers) sit on pages the six queries do not describe.
-  - **17 were in the chunks but skipped**: one call over 32 chunks lists the main goals and
-    skims the rest.
+- **Recall 0.66**, up from 0.56 with Claude: gpt-5 lists more of what is in front of it
+  (104 items for 121 gold goals, against 87), from the same chunks (gold pages among the
+  candidates 0.69, about the same as before). **Retrieval still caps recall**: 31% of the
+  gold goals were on no candidate page, and all of ASML's misses are of this kind.
+- **Precision 0.85**, down from 0.97, for two reasons:
+  - **ABN AMRO 2025, 0.50**: the judge accepted all 22 items as goals, so 11 quotes
+    failed verification in that call. The ingestion run of the same report, minutes
+    earlier, wrote 23 goals with every quote verified; **verbatim quoting varies from call
+    to call** with gpt-5 (see the end-to-end section for what the failed quotes look like).
+  - **CM.com 2024, 0.75**: two items the judge did not accept as goals ("reduce the
+    proportion of flights in business travel", "energy efficiency actions"), policy
+    statements without a target.
+- **Cost $0.61 for six reports** ($0.10 per report), against $0.99 with Claude.
 
 **Improvements**
 
 1. **Full-page expansion for goals**: use the retrieved chunks only to find the
    sustainability pages, then send those whole pages to the model, so the targets next to a
    found chunk are read too.
-2. **Read infographics with a vision model**: CM.com's key figures come out as numbers
-   without labels; a vision call on such pages fixes the two CM.com extraction misses and
-   one chat failure.
+2. **A reranker for candidate retrieval** (see Retrieval): the FTE table and the income
+   statement are the kind of chunk the fused order misses and a cross-encoder finds.
+3. **Read infographics with a vision model**: CM.com's key figures come out as numbers
+   without labels; a vision call on such pages fixes the CM.com extraction misses and one
+   chat failure.
 
 ## Ingestion
 
 **What is evaluated**: ingestion from scratch.
 
 - The six PDFs go into an **empty database through the app's own stages**, a timer around
-  each stage, every LLM call's tokens and cost recorded.
-- Measured: **seconds per stage, LLM usage, metadata against the corpus, chunks, datapoints
-  written, and whether the report reached `ready`**.
-- Apple M-series (MPS), models warm, one report at a time.
+  each stage, every LLM call's and every embedding request's tokens and cost recorded.
+- Measured: **seconds per stage, LLM and embedding usage, metadata against the corpus,
+  chunks, datapoints written, and whether the report reached `ready`**.
+- One report at a time; parsing on the laptop, everything else hosted.
 
-| Report | Pages | Chunks (tables) | Total | Parse | Metadata | Chunk + store | Embed | Extract | LLM calls | Tokens in / out | LLM cost | Outcome |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| ABN AMRO 2025 | 434 | 928 (197) | 220 s | 37 s | 1 s | 0.1 s | 64 s | 119 s | 6 | 61.5k / 7.0k | $0.18 | ready |
-| ABN AMRO 2024 | 508 | 1,134 (215) | 258 s | 45 s | 1 s | 0.1 s | 81 s | 131 s | 6 | 63.5k / 9.1k | $0.21 | ready |
-| ASML 2025 | 350 | 838 (158) | 201 s | 43 s | 1 s | 0.1 s | 49 s | 108 s | 6 | 55.9k / 6.5k | $0.16 | ready |
-| ASML 2024 | 410 | 960 (231) | 216 s | 47 s | 1 s | 0.1 s | 54 s | 114 s | 6 | 55.4k / 7.0k | $0.17 | ready |
-| CM.com 2025 | 159 | 343 (81) | 117 s | 12 s | 1 s | 0.0 s | 17 s | 87 s | 6 | 56.4k / 3.9k | $0.14 | ready |
-| CM.com 2024 | 212 | 422 (69) | 128 s | 15 s | 1 s | 0.0 s | 22 s | 91 s | 6 | 58.2k / 4.6k | $0.15 | ready |
-| **Total** | 2,073 | 4,625 (951) | **19.0 min** | 199 s (17%) | 6 s (1%) | 0.4 s | 287 s (25%) | 649 s (57%) | 36 | 351k / 38k | **$1.01** | 6 of 6 ready |
+| Report | Pages | Chunks (tables) | Total | Parse | Metadata | Chunk + store | Embed | Extract | LLM tokens in / out | LLM cost | Embedding tokens | Embedding cost | Outcome |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ABN AMRO 2025 | 434 | 928 (197) | 91 s | 36 s | 2.6 s | 0.1 s | 6.7 s | 46 s | 40.2k / 11.3k | $0.16 | 361k | $0.05 | ready |
+| ABN AMRO 2024 | 508 | 1,134 (215) | 96 s | 44 s | 1.7 s | 0.1 s | 7.1 s | 44 s | 38.6k / 10.8k | $0.16 | 450k | $0.06 | ready |
+| ASML 2025 | 350 | 838 (158) | 79 s | 42 s | 1.5 s | 0.1 s | 5.0 s | 30 s | 38.4k / 8.3k | $0.13 | 307k | $0.04 | ready |
+| ASML 2024 | 410 | 960 (231) | 94 s | 45 s | 2.4 s | 0.1 s | 6.0 s | 41 s | 35.9k / 9.1k | $0.13 | 330k | $0.04 | ready |
+| CM.com 2025 | 159 | 343 (81) | 47 s | 13 s | 1.8 s | 0.0 s | 2.5 s | 30 s | 34.6k / 8.0k | $0.12 | 114k | $0.01 | ready |
+| CM.com 2024 | 212 | 422 (69) | 59 s | 15 s | 1.5 s | 0.0 s | 3.4 s | 40 s | 33.2k / 7.9k | $0.12 | 142k | $0.02 | ready |
+| **Total** | 2,073 | 4,625 (951) | **7.8 min** | 194 s (42%) | 12 s (2%) | 0.4 s | 31 s (7%) | 230 s (49%) | 221k / 55k | $0.82 | 1.70M | $0.22 | 6 of 6 ready |
 
-- **Company and fiscal year detected for 6/6 reports** (one Haiku call over the first three
-  pages).
+- **Company and fiscal year detected for 6/6 reports** (one gpt-5-mini call over the first
+  three pages).
+- **Chunks are identical** to the local run (same parser and chunker); only the vectors
+  differ.
 - Datapoints written (what the Extracted data page shows):
 
 | Report | FTE | Revenue | Net profit | Dividend per share | Sustainability goals |
 |---|---|---|---|---|---|
-| ABN AMRO 2025 | 1 | 1 | 1 | 1 | 18 |
-| ABN AMRO 2024 | 1 | 1 | 1 | 1 | 28 |
-| ASML 2025 | 1 | 1 | 1 | 1 | 15 |
-| ASML 2024 | 1 | 1 | 1 | 1 | 18 |
-| CM.com 2025 | 1 | 0 (not found) | 1 | 0 (pays none, correct) | 7 |
-| CM.com 2024 | 1 | 1 | 1 | 0 (pays none, correct) | 7 |
-| **Total** | 6 | 5 | 6 | 4 | 93 |
+| ABN AMRO 2025 | 1 | 1 | 1 | 1 | 23 |
+| ABN AMRO 2024 | 1 | 1 | 1 | 1 | 24 |
+| ASML 2025 | 1 | 1 | 1 | 1 | 17 |
+| ASML 2024 | 1 | 1 | 1 | 1 | 28 |
+| CM.com 2025 | 1 | 1 | 1 | 0 (pays none, correct) | 7 |
+| CM.com 2024 | 1 | 0 (not found) | 1 | 0 (pays none, correct) | 11 |
+| **Total** | 6 | 5 | 6 | 4 | 110 |
 
 **Where the time goes**
 
-- **Extraction, 57%** (87 to 131 s per report): 30 to 53 s waiting for the model (six calls,
-  the goals call the longest) and the rest retrieving candidates for 18 queries, each with
-  60 reranker pairs on the GPU. Also **95% of the cost** ($0.14 to $0.21 per report).
-- **Embedding, 25%** (17 to 81 s): about 14 chunks per second, in slices of 512.
-- **Parsing, 17%** (12 to 47 s): PyMuPDF text and table detection, slowest on ASML's
-  table-dense pages.
+- **Extraction, 49%** (30 to 46 s per report): almost all of it waiting for gpt-5. The six
+  calls run concurrently and add up to 60 to 94 s of model time per report; candidate
+  retrieval is now a few seconds (18 queries, no reranker pairs). Also **79% of the cost**
+  ($0.12 to $0.16 per report).
+- **Parsing, 42%** (13 to 45 s): PyMuPDF text and table detection, unchanged in absolute
+  terms and now the largest local cost.
+- **Embedding, 7%** (2.5 to 7 s): 24 to 36 requests of 64 chunks, four in flight, about
+  150 chunks per second against 14 with the local model; $0.01 to $0.06 per report.
+
+**Against the local profile**: 7.8 minutes instead of 19.0 for the same six reports, at
+the same total cost ($1.04 against $1.01: the embeddings cost $0.22 and gpt-5 is cheaper
+than Sonnet, although it writes more output tokens, reasoning included).
 
 **Improvements**
 
-1. **Fewer reranker pairs for extraction**: 18 queries times 60 candidates is about 1,080
-   pairs per report, around 60 s on the GPU; 20 candidates per query would cut most of it.
-   Running the six model calls concurrently (now done) saves only about 10 s, because the
-   goals call dominates the wait.
+1. **Parse pages in parallel**: parsing is now the largest fixed cost; PyMuPDF releases
+   the GIL poorly, so a process pool over page ranges, or skipping table detection on
+   pages without ruled lines, is the fix.
 2. **Strip lines repeated on 20% or more of a report's pages before chunking**: removes
    CM.com's navigation bar from half its chunks; needs a re-ingest.
 3. **Read infographic pages with a vision model** when a page has little text and many
-   numbers: fixes the two CM.com extraction misses and one chat failure.
+   numbers: fixes the CM.com extraction misses and one chat failure.
 
 ## Retrieval
 
 **What is evaluated**: the chat's own retrieval, live.
 
-- The small model rewrites each question into **a standalone question and one sub-query per
-  company, year and topic**.
-- Each sub-query runs **vector + full-text search over all six reports**, fused with RRF;
-  the best **60 are reranked**, chunks under **0.2** dropped, **top 8** kept; the
-  sub-queries' chunks are merged.
+- The small model (`gpt-5-mini`) rewrites each question into **a standalone question and
+  one sub-query per company, year and topic**.
+- Each sub-query runs **vector + full-text search over all six reports**, **60 candidates
+  each**, fused with Reciprocal Rank Fusion; **the top 8 of the fused order are kept**, no
+  reranker and no score floor; the sub-queries' chunks are merged.
 
 Metrics, against the gold evidence pages:
 
@@ -261,58 +308,83 @@ Metrics, against the gold evidence pages:
 
 | Questions | n | hit@k | MRR | facts | report precision | report recall |
 |---|---|---|---|---|---|---|
-| **All answerable** | 46 | **0.957** | **0.608** | **0.935** | **0.794** | 0.989 |
-| Factoid | 30 | 0.933 | 0.607 | 0.900 | 0.744 | 1.000 |
-| Comparison | 8 | 1.000 | 0.562 | 1.000 | 0.953 | 1.000 |
-| Multi-metric | 5 | 1.000 | 0.587 | 1.000 | 0.722 | 1.000 |
-| Follow-up | 3 | 1.000 | 0.778 | 1.000 | 1.000 | 0.833 |
-| Text questions | 26 | 0.962 | 0.652 | 0.962 | 0.815 | 1.000 |
-| Table questions | 15 | 0.933 | 0.541 | 0.867 | 0.783 | 0.967 |
+| **All answerable** | 46 | **0.717** | **0.407** | **0.652** | **0.609** | 1.000 |
+| Factoid | 30 | 0.633 | 0.395 | 0.667 | 0.533 | 1.000 |
+| Comparison | 8 | 1.000 | 0.473 | 0.875 | 0.856 | 1.000 |
+| Multi-metric | 5 | 1.000 | 0.590 | 0.200 | 0.509 | 1.000 |
+| Follow-up | 3 | 0.333 | 0.042 | 0.667 | 0.875 | 1.000 |
+| Text questions | 26 | 0.731 | 0.396 | 0.846 | 0.645 | 1.000 |
+| Table questions | 15 | 0.600 | 0.363 | 0.467 | 0.579 | 1.000 |
 
-- **First gold chunk at rank 1 for 21 questions**, rank 2 to 3 for 12, rank 4 to 8 for 8,
-  rank 9 to 12 for 3 (chunks from a second sub-query); **2 misses**.
+- **First gold chunk at rank 1 for 12 questions**, rank 2 to 3 for 9, rank 4 to 8 for 12;
+  **13 misses**.
 
 | Sub-queries per question | Questions | Chunks retrieved | Median seconds |
 |---|---|---|---|
-| 1 | 41 | 8 | 4.6 |
-| 2 | 11 | 10 to 16 | 9.1 |
-| 3 | 5 | 20 to 24 | 13.5 |
+| 1 | 42 | 8 | 0.40 |
+| 2 | 10 | 9 to 16 | 0.71 |
+| 3 | 4 | 18 to 23 | 1.18 |
+| 4 | 1 | 29 | 1.53 |
 
-- **Median 4.8 s, p90 9.7 s**; time is linear in sub-queries (one embedding, two searches
-  and 60 reranker pairs each).
+- **Median 0.42 s, p90 0.88 s**: one hosted embedding call and two SQL searches per
+  sub-query, against 4.8 s with the reranker on a laptop GPU.
 
-**The two misses**
+**Why the fused order is weak without a reranker**
 
-| Question | What was retrieved | Cause |
-|---|---|---|
-| ASML EUV systems recognised in 2025 (gold: 48, a table on p. 66) | Eight chunks of EUV prose from both years, none from the sales-by-system table | The table row does not say "EUV"; vector search prefers prose and the table chunk never reaches the reranker |
-| ABN AMRO CET1 at year-end 2025 (gold: 15.4%) | 2025 capital pages, but three of eight chunks are from 2024 and the headline chunk fell out | Year leakage, see below; `facts` passes because 15.4% is on another retrieved page |
+- With RRF (k = 60) a chunk at rank r in one search scores 1/(60 + r) and a chunk in both
+  searches about twice that. The two searches rarely agree, so most top-8 lists are chunks
+  from one search only, in strict alternation: **ranks 1, 3, 5 and 7 go to the vector
+  ranking, ranks 2, 4, 6 and 8 to the full-text ranking**. Full-text search matches any
+  word of a whole sentence, ranked by `ts_rank_cd`, and its top four rarely hold the
+  answer. The reranker used to read all 60 and put the right chunk first.
+- **No score floor**: every question, answerable or not, gets 8 chunks (the abstention gate
+  in the pipeline never fires); the model has to recognise an unanswerable question from
+  the chunks alone, which it did for all 11.
+- **Year leakage is worse**: 41 of 46 questions got chunks from the other year of the same
+  company (report precision 0.61 against 0.79 with the reranker, which demoted them).
 
-**Year leakage is the main weakness**
+**Comparisons still work**: all 8 retrieved both sides, one sub-query per year or company.
 
-- **33 of 46 questions got chunks from the other year** of the same company (report
-  precision 0.79): the year is only a word in the search text, not a filter, and a 2025 page
-  quoting the 2024 figure reranks as high as the 2024 page.
-- **No wrong answer resulted**, but on four questions half the context was the wrong year.
+**Ablations** (same database, same cached rewrites):
 
-**Comparisons work**: all 8 retrieved both sides, one sub-query per year or company.
+| Run | hit@k | MRR | facts | report precision | Median seconds |
+|---|---|---|---|---|---|
+| **Default: hybrid, no reranker** | 0.717 | 0.407 | 0.652 | 0.609 | 0.42 |
+| Vector search alone, no reranker | 0.739 | 0.426 | 0.761 | 0.641 | 0.32 |
+| Hybrid + the local reranker (`bge-reranker-v2-m3`) on the same hosted embeddings | **0.913** | **0.597** | **0.913** | 0.778 | 4.39 |
+| Local profile, 2026-10-18 (bge-m3 + reranker, Haiku rewrites) | 0.957 | 0.608 | 0.935 | 0.794 | 4.81 |
+
+- **The embedding model is not the problem**: hosted embeddings with the reranker land
+  within two questions of the local profile. **The missing reranker is**: it recovers 9 of
+  the 13 misses, and 22 questions get the gold chunk at rank 1 instead of 12.
+- **Dropping full-text search** gains one question and 11 points of facts, not enough on
+  its own.
+- The four misses that remain with the reranker: ASML's EUV system count (a sales table
+  whose row does not say "EUV"), ASML's backlog (the 2024 report's backlog page outranks
+  the 2025 one) and China share (the segment table on p. 67 is never a candidate), ABN
+  AMRO's internal FTE 2024 (the workforce pages next to the labeller's, from both years,
+  fill the eight slots).
 
 **Improvements**
 
-1. **Filter each sub-query by its company and fiscal year**: the rewrite already outputs
-   both; a report filter should take report precision from 0.79 to about 1.0, recover the
-   CET1 miss and free half the context on year-specific questions.
-2. **12 chunks per sub-query instead of 8**: three gold chunks landed at rank 9 to 12.
-   Testable with `--top-k 12` on both evals.
-3. **Full-text search contributes little**: meant for exact terms (FTE, Scope 3) but given
-   whole sentences; build it from the sub-query's key terms, or drop it.
+1. **A reranker in the default profile.** The measured gain is 20 points of hit@k and 26
+   points of facts. Options, in order of effort: a hosted rerank API (no local model, a
+   second key); an LLM rerank with `gpt-5-mini` over the 60 candidates (one cheap call per
+   sub-query); the local cross-encoder whenever the `local-models` group is installed
+   (what the ablation ran, 4 s per question on a laptop GPU).
+2. **Until then, tune the fused order**: vector search alone or a lower weight for
+   full-text in RRF, and **12 to 16 chunks per sub-query**, which is cheap without a
+   reranker and gives the model the rank 9 to 16 chunks.
+3. **Filter each sub-query by its company and fiscal year**: the rewrite already outputs
+   both; a report filter should take report precision from 0.61 to about 1.0 and free 40%
+   of the context on year-specific questions.
 
 ## End to end
 
 **What is evaluated**: the whole chat pipeline (`run_chat`).
 
-- Rewrite and decomposition, retrieval and reranking per sub-query, the structured answer
-  with the conversation as earlier turns, quote verification.
+- Rewrite and decomposition, retrieval per sub-query, the structured answer with the
+  conversation as earlier turns, quote verification.
 - Each gold question asked **once, one at a time** (honest latency), with its history for
   follow-ups and no report filter.
 
@@ -338,58 +410,112 @@ one call per question, not counted in the cost.
 
 | Metric | Result |
 |---|---|
-| Correct (answerable, 46) | **91.3%** (42) |
-| Correct or partial | 95.7% (44) |
-| Incorrect | **0%** |
-| False abstention | 4.3% (2) |
-| Unanswerable handled correctly (11) | **100%**; 10 "not found", 1 "partial" that clearly says the figure is not disclosed |
+| Correct (answerable, 46) | **65.2%** (30) |
+| Correct or partial | 84.8% (39) |
+| Incorrect | **6.5%** (3) |
+| Abstained (judge) | 8.7% (4), of which 2 with status "not found" |
+| Unanswerable handled correctly (11) | **100%**; 6 "not found", 5 "partial" that clearly say the figure is not disclosed |
 | Hallucinated on unanswerable | 0% |
-| Retrieval reached a gold page | 95.7% |
-| A verified citation on a gold page | 87.0% |
-| Citations per answer | 1.86 (106 in all); 9 answers cite nothing, all abstentions |
-| Citations verified verbatim / fuzzy / failed | **100%** / 0% / 0% |
-| Grounded (every figure in a cited quote) | 84.2% |
-| Latency p50 / p90 | 7.5 s / 15.4 s (rewrite 1.1 s, retrieval 3.8 s, generation 2.4 s at p50) |
-| Cost | $1.03 for 57 questions, $0.018 each (497k input tokens, 22k output; the judge not counted) |
+| Retrieval reached a gold page | 69.6% |
+| A verified citation on a gold page | 52.2% |
+| Citations per answer | 1.63 (93 in all); 6 answers cite nothing, all abstentions |
+| Citations verified verbatim / fuzzy / failed | **90.3%** / 0% / **9.7%** (84 / 0 / 9) |
+| Grounded (every figure in a cited quote) | 87.7% |
+| Latency p50 / p90 | 9.0 s / 17.3 s (rewrite 2.5 s, retrieval 0.4 s, generation 5.6 s at p50) |
+| Cost | $0.81 for 57 questions, $0.014 each (336k input tokens, 51k output; the judge not counted) |
 
 | Type | n | Correct | Correct or partial | Median latency |
 |---|---|---|---|---|
-| Factoid | 30 | 90% | 93% | 7.4 s |
-| Comparison | 8 | **100%** | 100% | 11.4 s |
-| Multi-metric | 5 | 80% | 100% | 16.4 s |
-| Follow-up | 3 | 100% | 100% | 6.5 s |
-| Unanswerable | 11 | 100% | | 6.3 s |
-| Text questions | 26 | 96% | 96% | |
-| Table questions | 15 | 87% | 93% | |
+| Factoid | 30 | 67% | 80% | 8.1 s |
+| Comparison | 8 | 88% | 100% | 10.8 s |
+| Multi-metric | 5 | 40% | 100% | 18.6 s |
+| Follow-up | 3 | 33% | 67% | 10.7 s |
+| Unanswerable | 11 | 100% | | 6.1 s |
+| Text questions | 26 | 81% | 88% | |
+| Table questions | 15 | 47% | 73% | |
 
-**What fails**
+**What fails**: 16 answerable questions were not judged correct.
+
+| Cause | Questions | What happened |
+|---|---|---|
+| **Retrieval**: no gold page among the chunks | 9 | ABN AMRO's renewable financing, women in senior management and internal FTE, ASML's EUV count, backlog and China share, CM.com's adjusted EBITDA, offices and net result follow-up. In 3 the model said what it could not find; in 3 it answered from another page and came close (China's share computed from the segment table, the net result from the income statement without its unit, the EUV split without the total); in 3 it answered wrongly (below) |
+| **Verification**: the right figure, a quote that failed | 2 | ASML's 2024 FTE (44,027) and 2024 lithography units (418) were retrieved and answered, but the quotes were stitched from table cells, failed verification, and the pipeline withheld the answers as "not stated" |
+| **Generation**: gold page retrieved, figure missed | 5 | CM.com's market-based emissions (the table chunk was in the context, the model abstained); three multi-metric questions each missing one or two of three figures (the EBITDA trap, the EUV total, remaining performance obligations given as backlog); headcount instead of FTE in the cross-company comparison |
 
 | Question | Verdict | What happened | Cause |
 |---|---|---|---|
-| ASML EUV systems recognised in 2025 (gold 48) | Partial | Says the total is not stated; gives the 4 High NA systems | Retrieval: the sales table never retrieved |
-| ASML share of 2025 sales from China (gold 29.1%) | Abstained | Gives South Korea's 25.0%, says China is not stated | Retrieval: the gold page is retrieved but the chunk with China is outside the top 8 |
-| CM.com total market-based footprint 2024 (gold 4,676 tCO2e) | Abstained | Says the emission tables are not included | Generation: the table chunk with 4,676 was retrieved but not read |
-| ASML 2024 R&D, scope 1 and 2 emissions, year-end FTE | Partial | R&D and emissions right; FTE given as "more than 44,000" | Generation: 44,027 was retrieved (a table chunk); the model used the prose figure |
+| ABN AMRO internal FTE at end-2024 (gold 21,976) | Incorrect | 19,916, the 2025 report's restated 2024 figure excluding an acquisition | Year leakage: only 2025 chunks were retrieved; the quote also failed verification |
+| CM.com adjusted EBITDA 2025 (gold EUR 19.8 million) | Incorrect | Says adjusted EBITDA is not stated and gives reported EBITDA, EUR 18.4 million | Retrieval: the page with the adjusted figure was not retrieved; the labeller's trap |
+| CM.com offices and countries 2024 (gold 23 offices in 15 countries) | Incorrect | "15 offices in 24 countries" | The key-figures infographic parses to numbers without labels ("15 1 1 24 1"); the model guessed the labels |
+| CM.com net result 2024, follow-up (gold EUR -19.8 million) | Partial | "a net loss of EUR 19,813": the right figure without its "thousand" | Unit dropped from a table in thousands |
 
-- **Two retrieval failures, two generation failures**; in all four the model said what it
-  could not find rather than inventing it.
-- **Groundedness 84%, and all 9 ungrounded answers are correct**: each gives the right figure
-  with a verified quote and adds a side figure (a baseline, a one-off) read in a chunk but
-  not quoted. Quote verification checks quotes, not the prose, so the UI does not show it.
+- **The failed quotes** (9 of 93, all from tables or key-figure pages) are not invented:
+  gpt-5 **assembles a label and a figure from non-adjacent cells**, joined with line breaks
+  or "...", for example `Year ended December 31 (in FTE) 2022 2023 2024 ... Total 39,086
+  42,416 44,027`, where the page has the heading and the row far apart. Claude copied
+  contiguous rows (0 failures of 106). The verifier is right to reject them; the cost is
+  two correct answers withheld and three correct answers shown with a failed badge.
+- **No hallucination**: the 11 unanswerable questions were handled, and in 6 of the 9
+  retrieval failures the model either said what it could not find or answered from
+  another page of the right report.
+- **Groundedness 87.7%**: 7 ungrounded answers, 3 of them correct (a side figure read in a
+  chunk but not quoted).
+- **Latency 9.0 s**, 1.5 s more than the local profile although retrieval is 3.4 s faster:
+  gpt-5-mini's rewrite (2.5 s) and gpt-5's generation (5.6 s) are slower than Haiku's and
+  Sonnet's. **Cost $0.014 per question**, 20% less.
 
 **Improvements**
 
-1. **The two retrieval changes above** (year filter, top 12) address three of the four
-   failures, for about 1 s and $0.005 per question.
-2. **Warn on unsupported figures**: check in code that every number in the answer is in a
-   verified quote (with scale normalisation) and flag the rest as "figure not quoted".
+1. **The reranker** (Retrieval above): 9 of the 16 failures are retrieval failures, and the
+   ablation recovers 9 of the 13 retrieval misses, so it is the one change that moves
+   correctness towards the local profile's 91%.
+2. **Verify table quotes cell by cell**: when a quote fails, split it on line breaks and
+   "..." and verify each segment with a figure on the page; accept as `fuzzy` when all
+   segments are found. Saves the two withheld answers. The prompt should also ask for one
+   contiguous span, a whole table row rather than a heading plus a cell.
+3. **Check figures and units in the prose**: every number in the answer should be in a
+   verified quote with its scale word (19,813 against "in thousands"); flag the rest as
+   "figure not quoted".
+4. **Filter each sub-query by its company and year**: the one incorrect answer that came
+   from the wrong year would not have happened.
+
+## What to expect from the local retrieval profile
+
+`RETRIEVAL_MODELS=local` runs `bge-m3` and the `bge-reranker-v2-m3` cross-encoder in the
+backend process instead of calling a hosted embedding endpoint. It was evaluated on
+2026-10-18 with Claude as the LLM (`claude-sonnet-5-5`, `claude-haiku-4-5`), on the same
+corpus and gold set; the full results are in the untagged files under
+`backend/eval/results/` and the earlier version of this report is in the git history.
+
+| | Default: gpt-5, hosted embeddings, no reranker | Local profile: claude-sonnet-5-5, bge-m3, bge reranker |
+|---|---|---|
+| Ingestion, six reports | 7.8 min, $1.04 | 19.0 min, $1.01 (embeddings free, on a laptop GPU; 10 to 15 min per report on CPU in Docker) |
+| Extraction, 24 single values | 17 exact, 4 alternative, 2 correctly none, 1 missing, 0 wrong | 19 exact, 2 alternative, 2 correctly none, 1 missing, 0 wrong |
+| Goals recall / core recall / precision | 0.66 / 0.68 / 0.85 | 0.56 / 0.73 / 0.97 |
+| Retrieval hit@k / MRR / facts | 0.72 / 0.41 / 0.65 in 0.4 s | 0.96 / 0.61 / 0.94 in 4.8 s |
+| Answers correct / correct or partial / incorrect | 65% / 85% / 6.5% | 91% / 96% / 0% |
+| Unanswerable handled, hallucinations | 11/11, 0 | 11/11, 0 |
+| Citations verified | 90% (9 of 93 failed) | 100% (106 of 106) |
+| Latency / cost per question | 9.0 s / $0.014 | 7.5 s / $0.018 |
+
+What the local profile buys is **the reranker**: the cross-encoder reads the 60 fused
+candidates and puts the right chunk first, its probability gives a calibrated **abstention
+floor** (answerable questions score 0.96 or more, out-of-corpus questions below 0.2), and
+year leakage is lower. The ablation above shows the same gain with the hosted embeddings,
+so the embedding model itself is a wash. What it costs is `torch`, 4.5 GB of models, and a
+GPU: on CPU every query waits for 60 reranker pairs and a report takes 10 to 15 minutes to
+ingest. The rest of the answer gap is the LLM's handling of tables: Claude copied table
+rows verbatim and read them more carefully, where gpt-5 stitched cells and dropped a unit;
+on the other hand gpt-5 extracted more goals and cost less.
 
 ## Limits of this evaluation
 
 - **57 questions over three companies**: enough to rank changes with large effects, not to
   separate ones within about 5 points; 8 comparisons and 5 multi-metric questions are thin.
+- **The two profiles differ in more than one component** (LLM, embeddings, reranker,
+  rewrite model, and a day between the runs). Only the reranker ablation isolates one
+  component; the rest of the comparison is between whole stacks.
 - **One labeller's choice** of "the" answer (internal vs total FTE, ordinary vs total
   dividend), mitigated by the acceptable alternatives.
 - **One LLM judge**, no human agreement study.
-- **Latency on one machine**, models warm, one question at a time.
-- Only the Anthropic provider was evaluated.
+- **Latency on one machine and one evening**, hosted endpoints, one question at a time.
