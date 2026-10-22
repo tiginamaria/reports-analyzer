@@ -9,6 +9,9 @@ import app.chat.pipeline as pipeline
 from app.chat.pipeline import SMALL_TALK, Library
 from app.chat.schemas import Query
 from app.config import get_settings
+from tests.helpers import as_async, collect
+
+pytestmark = pytest.mark.anyio
 
 
 class NoCalls:
@@ -27,9 +30,11 @@ def nothing_runs(monkeypatch):
         monkeypatch.setattr(pipeline, name, NoCalls())
 
 
-def ask(monkeypatch, library: Library, question: str = "How many FTEs did ASML have?", ids=None):
-    monkeypatch.setattr(pipeline, "_library", lambda db, report_ids: library)
-    events = list(pipeline.run_chat(None, NoCalls(), question, [], ids))
+async def ask(
+    monkeypatch, library: Library, question: str = "How many FTEs did ASML have?", ids=None
+):
+    monkeypatch.setattr(pipeline, "_library", as_async(lambda db, report_ids: library))
+    events = await collect(pipeline.run_chat(None, NoCalls(), question, [], ids))
     assert [e.type for e in events] == ["answer"], "no stage runs, only the answer"
     return events[0].data
 
@@ -58,8 +63,10 @@ def ask(monkeypatch, library: Library, question: str = "How many FTEs did ASML h
         ),
     ],
 )
-def test_nothing_to_search_is_answered_without_llm_or_models(monkeypatch, library, reason, text):
-    answer = ask(monkeypatch, library)
+async def test_nothing_to_search_is_answered_without_llm_or_models(
+    monkeypatch, library, reason, text
+):
+    answer = await ask(monkeypatch, library)
     assert answer["status"] == "not_found"
     assert answer["answer"].startswith(text)
     assert answer["meta"]["reason"] == reason
@@ -70,15 +77,15 @@ def test_nothing_to_search_is_answered_without_llm_or_models(monkeypatch, librar
 @pytest.mark.parametrize(
     "greeting", ["hi", "Hello!", "hey there", "Good morning", "thanks a lot", "Thank you."]
 )
-def test_small_talk_gets_a_reply_without_llm_or_retrieval(monkeypatch, greeting):
-    answer = ask(monkeypatch, Library(searchable=["ASML 2025", "Shell 2025"]), greeting)
+async def test_small_talk_gets_a_reply_without_llm_or_retrieval(monkeypatch, greeting):
+    answer = await ask(monkeypatch, Library(searchable=["ASML 2025", "Shell 2025"]), greeting)
     assert answer["status"] == "answered"
     assert answer["meta"]["reason"] == "greeting"
     assert "ASML 2025, Shell 2025" in answer["answer"]
 
 
-def test_a_greeting_with_an_empty_library_points_to_the_upload(monkeypatch):
-    answer = ask(monkeypatch, Library(), "hi")
+async def test_a_greeting_with_an_empty_library_points_to_the_upload(monkeypatch):
+    answer = await ask(monkeypatch, Library(), "hi")
     assert (
         answer["answer"]
         == "Hello! Upload an annual report on the Reports page, then ask me about it."
@@ -104,7 +111,7 @@ def test_real_questions_are_not_small_talk(question):
 def searchable(monkeypatch, pending: list[str]):
     calls: list[str] = []
     monkeypatch.setattr(
-        pipeline, "_library", lambda db, report_ids: Library(searchable=["ASML 2025"])
+        pipeline, "_library", as_async(lambda db, report_ids: Library(searchable=["ASML 2025"]))
     )
     monkeypatch.setattr(pipeline, "models_to_load", lambda: pending)
     monkeypatch.setattr(pipeline, "get_embedder", lambda: calls.append("embedder"))
@@ -116,13 +123,15 @@ def searchable(monkeypatch, pending: list[str]):
             calls.append("rewrite") or Query(standalone_question=q, subqueries=[])
         ),
     )
-    monkeypatch.setattr(pipeline, "retrieve", lambda db, q, ids: calls.append("retrieve") or [])
+    monkeypatch.setattr(
+        pipeline, "retrieve", as_async(lambda db, q, ids: calls.append("retrieve") or [])
+    )
     return calls
 
 
-def test_models_still_to_load_are_a_stage_before_the_rewrite(monkeypatch):
+async def test_models_still_to_load_are_a_stage_before_the_rewrite(monkeypatch):
     calls = searchable(monkeypatch, ["BAAI/bge-m3", "BAAI/bge-reranker-v2-m3"])
-    events = list(pipeline.run_chat(None, None, "FTEs?", [], None))
+    events = await collect(pipeline.run_chat(None, None, "FTEs?", [], None))
     assert [e.type for e in events] == ["stage", "stage", "stage", "answer"]
     assert events[0].data == {
         "name": "loading_models",
@@ -134,40 +143,37 @@ def test_models_still_to_load_are_a_stage_before_the_rewrite(monkeypatch):
     assert events[-1].data["answer"].startswith("The ingested reports do not appear to cover this.")
 
 
-def test_loaded_models_add_no_stage(monkeypatch):
+async def test_loaded_models_add_no_stage(monkeypatch):
     calls = searchable(monkeypatch, [])
-    events = list(pipeline.run_chat(None, None, "FTEs?", [], None))
+    events = await collect(pipeline.run_chat(None, None, "FTEs?", [], None))
     assert [e.data.get("name") for e in events[:-1]] == ["analyzing", "retrieving"]
     assert calls == ["rewrite", "retrieve"]
 
 
-def test_no_evidence_mentions_reports_still_processing(monkeypatch):
+async def test_no_evidence_mentions_reports_still_processing(monkeypatch):
     searchable(monkeypatch, [])
     monkeypatch.setattr(
         pipeline,
         "_library",
-        lambda db, ids: Library(
-            searchable=["ASML 2025"], processing=["Shell 2025 (embedding, 40%)"]
+        as_async(
+            lambda db, ids: Library(
+                searchable=["ASML 2025"], processing=["Shell 2025 (embedding, 40%)"]
+            )
         ),
     )
-    answer = list(pipeline.run_chat(None, None, "FTEs?", [], None))[-1].data
+    answer = (await collect(pipeline.run_chat(None, None, "FTEs?", [], None)))[-1].data
     assert answer["answer"].endswith("1 report still being processed: Shell 2025 (embedding, 40%).")
 
 
 # --- the library query ------------------------------------------------------------------
 
 
-def test_library_sorts_reports_by_what_can_be_searched():
+async def test_library_sorts_reports_by_what_can_be_searched():
     signature = get_settings().embedding_signature
 
     class Rows:
         def __init__(self, rows):
             self.rows = rows
-            self.filtered = None
-
-        def filter(self, clause):
-            self.filtered = clause
-            return self
 
         def all(self):
             return self.rows
@@ -184,15 +190,20 @@ def test_library_sorts_reports_by_what_can_be_searched():
     )
 
     class DB:
-        def query(self, *columns):
+        def __init__(self):
+            self.statements = []
+
+        async def execute(self, statement):
+            self.statements.append(str(statement))
             return rows
 
-    library = pipeline._library(DB(), None)
+    db = DB()
+    library = await pipeline._library(db, None)
     assert library.searchable == ["ASML 2025", "Shell 2025"]
     assert library.processing == ["ABN AMRO 2025 (embedding, 59%)", "a report (parsing, 3%)"]
     assert library.stale == ["CM.com 2024"]
     assert library.failed == ["Heineken 2025"]
-    assert library.filtered is False and rows.filtered is None
+    assert library.filtered is False and "reports.id IN" not in db.statements[-1]
 
-    assert pipeline._library(DB(), ["x"]).filtered is True
-    assert rows.filtered is not None
+    assert (await pipeline._library(db, ["x"])).filtered is True
+    assert "reports.id IN" in db.statements[-1]

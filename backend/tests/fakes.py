@@ -1,5 +1,6 @@
-"""Fakes shared by the unit tests of ingestion and chat: a report row, a session that counts
-commits and snapshots the report at each one, and an embedder that never loads a model."""
+"""Fakes shared by the unit tests of ingestion and chat: a report row, an async session that
+counts commits and snapshots the report at each one, and an embedder that never loads a
+model."""
 
 from __future__ import annotations
 
@@ -28,8 +29,9 @@ class FakeReport:
 
 
 class FakeSession:
-    """Counts commits and rollbacks; `get` serves `reports` by id; each commit snapshots the
-    report's progress fields, so a test can see what the UI would have polled."""
+    """An `AsyncSession` stand-in. Counts commits and rollbacks; `get` serves `reports` by
+    id; each commit snapshots the report's progress fields, so a test can see what the UI
+    would have polled."""
 
     def __init__(self, *reports: FakeReport) -> None:
         self.reports = {r.id: r for r in reports}
@@ -37,16 +39,22 @@ class FakeSession:
         self.rollbacks = 0
         self.snapshots: list[dict[str, Any]] = []
 
-    def __enter__(self) -> FakeSession:
+    async def __aenter__(self) -> FakeSession:
         return self
 
-    def __exit__(self, *exc: object) -> None:
+    async def __aexit__(self, *exc: object) -> None:
         return None
 
-    def get(self, model: type, report_id: str) -> FakeReport | None:
+    async def get(self, model: type, report_id: str, **options: Any) -> FakeReport | None:
         return self.reports.get(report_id)
 
-    def commit(self) -> None:
+    async def refresh(self, obj: Any, attribute_names: list[str] | None = None) -> None:
+        return None
+
+    async def execute(self, statement: Any) -> Any:
+        return None
+
+    async def commit(self) -> None:
         self.commits += 1
         for report in self.reports.values():
             self.snapshots.append(
@@ -59,7 +67,7 @@ class FakeSession:
                 }
             )
 
-    def rollback(self) -> None:
+    async def rollback(self) -> None:
         self.rollbacks += 1
 
 

@@ -21,6 +21,7 @@ Nothing is written to the database: each report's extraction is rolled back.
 """
 
 import argparse
+import asyncio
 import dataclasses
 import re
 import statistics
@@ -29,7 +30,8 @@ from collections.abc import Callable
 from typing import Any
 
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import SessionLocal
 from app.extraction.extractor import (
@@ -78,17 +80,18 @@ def as_dict(dp: Datapoint) -> dict[str, Any]:
     }
 
 
-def run_entry(
-    db: Session, report: Report, spec: DatapointSpec, provider: LLMProvider
+async def run_entry(
+    db: AsyncSession, report: Report, spec: DatapointSpec, provider: LLMProvider
 ) -> tuple[list[dict], dict[str, Any]]:
     """One registry entry on one report, as ingestion runs it: candidate retrieval, the
     model call, quote verification. Returns the datapoints and the run's accounting."""
     start = time.perf_counter()
-    hits = _candidate_hits(db, report, spec)
+    hits = await _candidate_hits(db, report, spec)
     mark = USAGE.mark()
     error = None
     try:
-        items = [as_dict(dp) for dp in _extract_datapoints(db, report, spec, provider, hits)]
+        datapoints = await _extract_datapoints(db, report, spec, provider, hits)
+        items = [as_dict(dp) for dp in datapoints]
     except LLMError as exc:  # a failed call is a recorded miss, not a silent one
         items, error = [], str(exc)
         print(f"{report.company} {report.fiscal_year} {spec.key}: FAILED {exc}", flush=True)
@@ -107,12 +110,16 @@ def run_entry(
     }
 
 
-def stored_entry(
-    db: Session, report: Report, spec: DatapointSpec
+async def stored_entry(
+    db: AsyncSession, report: Report, spec: DatapointSpec
 ) -> tuple[list[dict], dict[str, Any]]:
     """What ingestion wrote for one entry, with today's candidates for the page check."""
-    hits = _candidate_hits(db, report, spec)
-    rows = db.query(Datapoint).filter(Datapoint.report_id == report.id, Datapoint.key == spec.key)
+    hits = await _candidate_hits(db, report, spec)
+    rows = (
+        await db.execute(
+            select(Datapoint).where(Datapoint.report_id == report.id, Datapoint.key == spec.key)
+        )
+    ).scalars()
     return [as_dict(dp) for dp in rows], {
         "chunks": len(hits),
         "candidate_pages": sorted({hit.chunk.page for hit in hits}),
@@ -286,7 +293,9 @@ def score_goals(
 # --- the run --------------------------------------------------------------------------------
 
 
-def evaluate(stored: bool, keys: list[str] | None, overrides: dict[str, Any]) -> dict[str, Any]:
+async def evaluate(
+    stored: bool, keys: list[str] | None, overrides: dict[str, Any]
+) -> dict[str, Any]:
     specs = [
         dataclasses.replace(spec, **overrides)
         for spec in load_registry()
@@ -306,20 +315,17 @@ def evaluate(stored: bool, keys: list[str] | None, overrides: dict[str, Any]) ->
     get_reranker()
 
     per_report: dict[str, dict[str, Any]] = {}
-    with SessionLocal() as db:
-        reports = [
-            r
-            for r in db.query(Report).order_by(Report.company, Report.fiscal_year)
-            if r.filename in corpus
-        ]
+    async with SessionLocal() as db:
+        ordered = select(Report).order_by(Report.company, Report.fiscal_year)
+        reports = [r for r in (await db.execute(ordered)).scalars() if r.filename in corpus]
         for report in reports:
             doc = corpus[report.filename]
             runs: dict[str, dict[str, Any]] = {}
             for spec in specs:
                 items, run = (
-                    stored_entry(db, report, spec)
+                    await stored_entry(db, report, spec)
                     if stored
-                    else run_entry(db, report, spec, provider)
+                    else await run_entry(db, report, spec, provider)
                 )
                 runs[spec.key] = {**run, "items": items}
                 if not stored:
@@ -330,7 +336,7 @@ def evaluate(stored: bool, keys: list[str] | None, overrides: dict[str, Any]) ->
                         f"{run['seconds']} s",
                         flush=True,
                     )
-            db.rollback()  # the fresh extraction never replaces what ingestion wrote
+            await db.rollback()  # the fresh extraction never replaces what ingestion wrote
             scored = {
                 k: {
                     **score_single(
@@ -479,7 +485,7 @@ def main() -> None:
     parser.add_argument("--tag", help="result file suffix (default: the overridden fields)")
     args = parser.parse_args()
     overrides = {f: getattr(args, f) for f in OVERRIDABLE if getattr(args, f) is not None}
-    result = evaluate(args.stored, args.keys, overrides)
+    result = asyncio.run(evaluate(args.stored, args.keys, overrides))
     print_summary(result)
     # an experiment never overwrites the result of the registry as it is
     tag = args.tag or "_".join(f"{f}{v}" for f, v in overrides.items())

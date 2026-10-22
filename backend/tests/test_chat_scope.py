@@ -8,6 +8,9 @@ import pytest
 import app.chat.pipeline as pipeline
 from app.chat.pipeline import MAX_SUBQUERIES, _retrieve_all
 from app.chat.schemas import Query, SubQuery
+from tests.helpers import as_async, collect
+
+pytestmark = pytest.mark.anyio
 
 
 def analysis(*questions) -> Query:
@@ -59,43 +62,45 @@ def hit(chunk_id, score):
 def recording(calls: list[str]):
     """A `retrieve` stand-in that records what is searched and finds nothing."""
 
-    def retrieve(db, question, report_ids):
+    async def retrieve(db, question, report_ids):
         calls.append(question)
         return []
 
     return retrieve
 
 
-def test_each_sub_query_is_retrieved_and_merged(monkeypatch):
+async def test_each_sub_query_is_retrieved_and_merged(monkeypatch):
     calls = []
 
-    def fake_retrieve(db, question, report_ids):
+    async def fake_retrieve(db, question, report_ids):
         calls.append((question, report_ids))
         if question == "shell?":
             return [hit("shell", 0.99), hit("both", 0.5)]
         return [hit("asml", 0.2), hit("both", 0.9)]
 
     monkeypatch.setattr(pipeline, "retrieve", fake_retrieve)
-    hits = _retrieve_all(None, analysis("shell?", "asml?"), ["r1"])
+    hits = await _retrieve_all(None, analysis("shell?", "asml?"), ["r1"])
     assert [h.chunk.id for h in hits] == ["shell", "both", "asml"]  # duplicate kept once
     assert calls == [("shell?", ["r1"]), ("asml?", ["r1"])]  # the user's filter on each
 
 
-def test_without_sub_queries_the_standalone_question_is_searched(monkeypatch):
+async def test_without_sub_queries_the_standalone_question_is_searched(monkeypatch):
     calls: list[str] = []
     monkeypatch.setattr(pipeline, "retrieve", recording(calls))
-    _retrieve_all(None, analysis(), None)
+    await _retrieve_all(None, analysis(), None)
     assert calls == ["whole?"]
 
 
-def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch):
+async def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch):
     monkeypatch.setattr(pipeline, "_rewrite_query", lambda provider, q, history: analysis("q?"))
-    monkeypatch.setattr(pipeline, "retrieve", lambda db, question, report_ids: [])
+    monkeypatch.setattr(pipeline, "retrieve", as_async(lambda db, question, report_ids: []))
     monkeypatch.setattr(pipeline, "models_to_load", lambda: [])
     monkeypatch.setattr(
-        pipeline, "_library", lambda db, report_ids: pipeline.Library(searchable=["ASML 2025"])
+        pipeline,
+        "_library",
+        as_async(lambda db, report_ids: pipeline.Library(searchable=["ASML 2025"])),
     )
-    events = list(pipeline.run_chat(None, None, "q?", [], None))
+    events = await collect(pipeline.run_chat(None, None, "q?", [], None))
     answer = events[-1]
     assert answer.type == "answer"
     assert answer.data["status"] == "not_found"
@@ -104,33 +109,35 @@ def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch):
     assert answer.data["meta"]["reason"] == "no_evidence"
 
 
-def test_sub_queries_are_searched_by_their_search_text(monkeypatch):
+async def test_sub_queries_are_searched_by_their_search_text(monkeypatch):
     calls: list[str] = []
     monkeypatch.setattr(pipeline, "retrieve", recording(calls))
     sub = SubQuery(company="ASML", fiscal_year=2025, question="How many FTEs?")
-    _retrieve_all(None, Query(standalone_question="whole?", subqueries=[sub]), None)
+    await _retrieve_all(None, Query(standalone_question="whole?", subqueries=[sub]), None)
     assert calls == ["How many FTEs? ASML annual report 2025"]
 
 
-def test_only_the_first_max_subqueries_are_searched(monkeypatch):
+async def test_only_the_first_max_subqueries_are_searched(monkeypatch):
     calls: list[str] = []
     monkeypatch.setattr(pipeline, "retrieve", recording(calls))
     questions = [f"q{i}?" for i in range(MAX_SUBQUERIES + 5)]
-    _retrieve_all(None, analysis(*questions), None)
+    await _retrieve_all(None, analysis(*questions), None)
     assert calls == questions[:MAX_SUBQUERIES]
 
 
-def test_every_sub_query_keeps_its_chunks_and_the_merge_is_sorted(monkeypatch):
+async def test_every_sub_query_keeps_its_chunks_and_the_merge_is_sorted(monkeypatch):
     # a sub-query with low scores is not crowded out by one with high scores
     scores = {"high?": [0.99, 0.98, 0.97], "low?": [0.6, 0.5, 0.4]}
     monkeypatch.setattr(
         pipeline,
         "retrieve",
-        lambda db, question, report_ids: [
-            hit(f"{question}-{i}", s) for i, s in enumerate(scores[question])
-        ],
+        as_async(
+            lambda db, question, report_ids: [
+                hit(f"{question}-{i}", s) for i, s in enumerate(scores[question])
+            ]
+        ),
     )
-    hits = _retrieve_all(None, analysis("high?", "low?"), None)
+    hits = await _retrieve_all(None, analysis("high?", "low?"), None)
     assert len(hits) == 6
     assert [h.score for h in hits] == sorted((h.score for h in hits), reverse=True)
     assert [h.chunk.id for h in hits][-3:] == ["low?-0", "low?-1", "low?-2"]

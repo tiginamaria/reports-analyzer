@@ -1,15 +1,15 @@
 /**
- * Types of the HTTP API. They mirror the Pydantic schemas in backend/app/schemas.py and the
- * server-sent events of backend/app/api/chat.py; keep the two in sync.
+ * Types of the HTTP API. They mirror the Pydantic schemas in backend/app/schemas/ and the
+ * server-sent events of backend/app/api/routers/chat.py; keep the two in sync.
  */
 
 /**
- * Mirrors `ReportStatus` in backend/app/models.py. The status tracks the report's index:
+ * Mirrors `ReportStatus` in backend/app/models/report.py. The status tracks the report's index:
  * `ready` means it can be searched. How each datapoint's extraction went is in `extractions`.
  */
 export type ReportStatus = "pending" | "parsing" | "chunking" | "embedding" | "extracting" | "ready" | "failed";
 
-/** Mirrors `ExtractionStatus` in backend/app/models.py. */
+/** Mirrors `ExtractionStatus` in backend/app/models/report.py. */
 export type ExtractionStatus = "pending" | "extracted" | "not_found" | "error";
 
 /** Outcome of one registry entry on a report. */

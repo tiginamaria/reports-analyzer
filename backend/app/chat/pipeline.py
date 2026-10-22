@@ -8,13 +8,15 @@ carry only question and answer text, never their chunks, so each answer is groun
 verified against this turn's evidence alone.
 """
 
+import asyncio
 import logging
 import re
-from collections.abc import Iterator
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any, Literal, cast
 
-from sqlalchemy.orm import Session
+from sqlalchemy import Select, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.chat import prompts
 from app.chat.schemas import ChatAnswer, Citation, Query
@@ -68,21 +70,24 @@ class ChatEvent:
     data: dict[str, Any] = field(default_factory=dict)
 
 
-def run_chat(
-    db: Session,
+async def run_chat(
+    db: AsyncSession,
     provider: LLMProvider,
     question: str,
     history: list[Message],
     report_ids: list[str] | None,
-) -> Iterator[ChatEvent]:
+) -> AsyncIterator[ChatEvent]:
     """Yield `stage` events as the pipeline progresses, then exactly one `answer` or `error`.
+
+    Database work awaits the session; the model calls (loading local models, the rewrite,
+    the answer) are blocking and run in worker threads.
 
     Before anything costly runs, small talk gets a canned reply and the library is checked:
     with nothing to search the answer says what is missing (no report, reports still
     processing, failed, or embedded with another model) without calling the model or
     loading any local model. Local models that still have to load are reported as their
     own stage, so a first question after a start does not look stuck."""
-    library = _library(db, report_ids)
+    library = await _library(db, report_ids)
     if SMALL_TALK.match(question):
         yield ChatEvent(
             "answer", _quick_answer(question, "greeting", _greeting(library), "answered")
@@ -95,28 +100,30 @@ def run_chat(
 
     if pending := models_to_load():
         yield ChatEvent("stage", {"name": "loading_models", "models": pending})
-        get_embedder()
-        get_reranker()
+        await asyncio.to_thread(get_embedder)
+        await asyncio.to_thread(get_reranker)
 
     yield ChatEvent("stage", {"name": "analyzing"})
-    query = _rewrite_query(provider, question, history)
+    query = await asyncio.to_thread(_rewrite_query, provider, question, history)
     yield ChatEvent("stage", {"name": "retrieving", "query": query.standalone_question})
 
-    hits = _retrieve_all(db, query, report_ids)
+    hits = await _retrieve_all(db, query, report_ids)
     if not hits:  # every chunk scored below the floor
         text = "The ingested reports do not appear to cover this. Not stated in the report."
         if library.processing:
             text += f" {library.describe_processing()}"
-        yield ChatEvent("answer", _abstain(db, text, query, "no_evidence"))
+        yield ChatEvent("answer", await _abstain(db, text, query, "no_evidence"))
         return
 
     yield ChatEvent("stage", {"name": "generating", "chunks": len(hits)})
     try:
-        answer = _generate_answer(provider, query.standalone_question, hits, history)
+        answer = await asyncio.to_thread(
+            _generate_answer, provider, query.standalone_question, hits, history
+        )
     except LLMError as exc:
         yield ChatEvent("error", {"message": str(exc)})
         return
-    yield ChatEvent("answer", _finalize(db, answer, hits, query))
+    yield ChatEvent("answer", await _finalize(db, answer, hits, query))
 
 
 @dataclass
@@ -163,14 +170,20 @@ class Library:
         return f"{_count(len(self.processing), 'report')} still being processed: {_names(self.processing)}."
 
 
-def _library(db: Session, report_ids: list[str] | None) -> Library:
-    """One query over the reports (within the user's filter) sorted into the `Library`."""
-    signature = get_settings().embedding_signature
-    rows = db.query(
+def _library_statement(report_ids: list[str] | None) -> Select:
+    """The reports within the user's filter (all without one), by what the `Library` sorts on."""
+    stmt = select(
         Report.company, Report.fiscal_year, Report.status, Report.progress, Report.embedding_model
     )
     if report_ids:
-        rows = rows.filter(Report.id.in_(report_ids))
+        stmt = stmt.where(Report.id.in_(report_ids))
+    return stmt
+
+
+async def _library(db: AsyncSession, report_ids: list[str] | None) -> Library:
+    """One query over the reports (within the user's filter) sorted into the `Library`."""
+    signature = get_settings().embedding_signature
+    rows = await db.execute(_library_statement(report_ids))
     library = Library(filtered=bool(report_ids))
     for company, year, status, progress, embedding in rows.all():
         label = " ".join(part for part in (company, str(year or "")) if part) or "a report"
@@ -244,7 +257,8 @@ def _rewrite_turns(
 def _rewrite_query(provider: LLMProvider, question: str, history: list[Message]) -> Query:
     """The small model rewrites the question to stand alone and splits it into subqueries,
     one per company, year and topic. Falls back to the raw question when the call fails, so
-    the chat still works. It sees the part of the conversation `_rewrite_turns` selects."""
+    the chat still works. It sees the part of the conversation `_rewrite_turns` selects.
+    Blocking: run it in a worker thread."""
     turns = _rewrite_turns(history)
     transcript = "\n".join(f"{turn.role}: {turn.content}" for turn in turns)
     user = f"Conversation so far:\n{transcript or '(none)'}\n\nQuestion: {question}"
@@ -260,8 +274,8 @@ def _rewrite_query(provider: LLMProvider, question: str, history: list[Message])
         return Query(standalone_question=question, subqueries=[])
 
 
-def _retrieve_all(
-    db: Session,
+async def _retrieve_all(
+    db: AsyncSession,
     query: Query,
     report_ids: list[str] | None,
     max_subqueries: int = MAX_SUBQUERIES,
@@ -277,7 +291,7 @@ def _retrieve_all(
     searches = [subquery.search_text for subquery in subqueries] or [query.standalone_question]
     best: dict[str, Hit] = {}
     for search in searches:
-        for hit in retrieve(db, search, report_ids):
+        for hit in await retrieve(db, search, report_ids):
             if hit.chunk.id not in best or best[hit.chunk.id].score < hit.score:
                 best[hit.chunk.id] = hit
     return sorted(best.values(), key=lambda hit: hit.score, reverse=True)
@@ -293,7 +307,7 @@ def _generate_answer(
 ) -> ChatAnswer:
     """The main model's structured answer. The conversation goes as earlier turns; the final
     user turn holds this question's chunks, then the standalone question. Raises `LLMError`
-    when the call fails."""
+    when the call fails. Blocking: run it in a worker thread."""
     return provider.complete_json(
         system=prompts.ANSWER,
         user=_answer_prompt(question, hits),
@@ -303,10 +317,10 @@ def _generate_answer(
     )
 
 
-def _abstain(db: Session, text: str, query: Query, reason: Reason) -> dict[str, Any]:
+async def _abstain(db: AsyncSession, text: str, query: Query, reason: Reason) -> dict[str, Any]:
     """A `not_found` answer produced after retrieval but without calling the main model."""
     answer = ChatAnswer(status="not_found", answer=text, citations=[])
-    return _finalize(db, answer, [], query, reason)
+    return await _finalize(db, answer, [], query, reason)
 
 
 def _quick_answer(
@@ -329,8 +343,8 @@ def _quick_answer(
     }
 
 
-def _finalize(
-    db: Session,
+async def _finalize(
+    db: AsyncSession,
     answer: ChatAnswer,
     hits: list[Hit],
     query: Query,
@@ -341,7 +355,9 @@ def _finalize(
     is replaced: it states figures nothing in the report supports. The original text is kept
     in `meta` for debugging."""
     hits_by_chunk = {hit.chunk.id: hit for hit in hits}
-    citations = [_verify_citation(db, c, hits_by_chunk.get(c.chunk_id)) for c in answer.citations]
+    citations = [
+        await _verify_citation(db, c, hits_by_chunk.get(c.chunk_id)) for c in answer.citations
+    ]
     trusted = [c for c in citations if c["verification"] in ("verified", "fuzzy")]
 
     meta: dict[str, Any] = {}
@@ -369,12 +385,12 @@ def _finalize(
     }
 
 
-def _verify_citation(db: Session, citation: Citation, hit: Hit | None) -> dict[str, Any]:
+async def _verify_citation(db: AsyncSession, citation: Citation, hit: Hit | None) -> dict[str, Any]:
     """The citation as stored and shown, with its verification status and page. `hit` is
     None when the model cited a chunk it was never given."""
     if hit is None:
         return {"chunk_id": citation.chunk_id, "quote": citation.quote, "verification": "failed"}
-    status = verify_against_chunk(db, hit.chunk, citation.quote)
+    status = await verify_against_chunk(db, hit.chunk, citation.quote)
     return {
         "chunk_id": citation.chunk_id,
         "quote": citation.quote,

@@ -17,6 +17,7 @@ from sqlalchemy import text
 
 from app.extraction.schemas import ExtractedItem, ExtractionResult, ReportMetadata
 from app.llm.base import ChatTurn, LLMError, LLMProvider
+from tests.helpers import require_postgres, sync_engine
 
 pytestmark = pytest.mark.integration
 
@@ -84,13 +85,7 @@ def client(tmp_path_factory):
     from app.config import get_settings
 
     get_settings.cache_clear()
-    from app.db import engine
-
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("select 1 from extractions limit 1"))
-    except Exception as exc:  # pragma: no cover
-        pytest.skip(f"Postgres migrated to head not available: {exc}")
+    require_postgres("select 1 from extractions limit 1")
     from app.ingestion import pipeline
 
     with pytest.MonkeyPatch.context() as mp:
@@ -143,8 +138,11 @@ def test_failed_entries_are_recorded_and_retried_without_reingesting(client, tmp
     from app.db import SessionLocal
     from app.retrieval.search import retrieve
 
-    with SessionLocal() as db:
-        assert retrieve(db, "number of FTEs", report_ids=[report_id], top_k=3)
+    async def search() -> list:
+        async with SessionLocal() as db:
+            return await retrieve(db, "number of FTEs", report_ids=[report_id], top_k=3)
+
+    assert client.portal.call(search)  # on the app's loop, where the async pool lives
 
     # ...and the entries whose call failed say so instead of looking like "nothing found".
     outcomes = _outcomes(report)
@@ -189,18 +187,17 @@ def test_failed_entries_are_recorded_and_retried_without_reingesting(client, tmp
     assert r.status_code == 422
 
     # A restart during extraction keeps the index and marks the interrupted entry failed.
-    from app.main import _recover_interrupted_ingestions
+    from app.services.maintenance import recover_interrupted_ingestions
 
-    with SessionLocal() as db:
-        db.execute(
+    with sync_engine().begin() as conn:
+        conn.execute(
             text("update reports set status = 'extracting' where id = :id"), {"id": report_id}
         )
-        db.execute(
+        conn.execute(
             text("update extractions set status = 'pending' where report_id = :id and key = 'fte'"),
             {"id": report_id},
         )
-        db.commit()
-    _recover_interrupted_ingestions()
+    client.portal.call(recover_interrupted_ingestions)
     report = client.get(f"/api/reports/{report_id}").json()
     assert report["status"] == "ready" and report["error"] is None
     assert _outcomes(report)["fte"]["status"] == "error"

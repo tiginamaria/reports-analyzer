@@ -10,9 +10,8 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import text
 
-from tests.helpers import require_api_key
+from tests.helpers import require_api_key, require_postgres
 
 pytestmark = pytest.mark.integration
 
@@ -25,13 +24,7 @@ def client(tmp_path_factory):
 
     get_settings.cache_clear()
     require_api_key(get_settings())
-    from app.db import engine
-
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("select 1"))
-    except Exception as exc:  # pragma: no cover
-        pytest.skip(f"Postgres not available: {exc}")
+    require_postgres()
     from app.main import app
 
     with TestClient(app) as c:

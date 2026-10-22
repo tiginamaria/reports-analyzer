@@ -60,10 +60,18 @@ flowchart LR
   polls every 2.5 s while anything is ingesting.
 - **Chat**: the browser posts the question and receives server-sent events: `conversation`
   (the id), `stage` events (`analyzing`, `retrieving`, `generating`) that drive the status
-  line, then exactly one `answer` or `error`. The pipeline is blocking, so it runs in a
-  worker thread and hands events to the event loop through a queue. **The answer is stored
+  line, then exactly one `answer` or `error`. The pipeline is an async generator: database
+  calls await the async session and the events stream straight into the response, while the
+  blocking parts (model calls, local models) run in worker threads. **The answer is stored
   before it is sent**, in the shape the UI reloads, so what the user saw live is what they
   see later.
+- **Layering**: `api/routers` (thin async handlers) call `services` (use cases, own the
+  transaction, raise `services.errors`, mapped to HTTP in `api/errors`), which use
+  `repositories` (every SQL query, on `AsyncSession`); `schemas` are the Pydantic API
+  types, `models` the SQLAlchemy tables. Ingestion and chat pipelines take the same async
+  session; PyMuPDF, the embedders and the LLM SDKs are synchronous and run through
+  `asyncio.to_thread`, with their progress and cancellation callbacks bridged back to the
+  loop (`concurrency.sync_callback`).
 
 ## 3. Tech stack
 
@@ -566,7 +574,8 @@ RAG". Details in [EVAL.md](EVAL.md).
 | Server-rendered page images | `react-pdf` / pdf.js in the browser | A 400-page PDF per citation is slow; one PNG per cited page is not |
 | Server-sent events for the chat | WebSocket, polling | One-directional and plain HTTP; works through nginx with buffering off |
 | Polling for ingestion progress | SSE or WebSocket | A progress bar every 2.5 s only while something ingests is enough and simpler |
-| In-process background task | Celery + Redis, arq | An extra service to run and explain, while worker threads already ingest several reports in parallel; the cost is no resumption after a restart |
+| In-process background task | Celery + Redis, arq | An extra service to run and explain, while async background tasks already ingest several reports in parallel on the event loop (blocking model and PDF work in worker threads); the cost is no resumption after a restart |
+| Async SQLAlchemy (psycopg 3) everywhere | Sync sessions in a threadpool | One session type for the request path, the pipelines and the eval scripts; request handlers never block the loop on the database. The cost is `asyncio.to_thread` plus a callback bridge around the synchronous PDF and model code |
 | React + Vite | Streamlit, Next.js | Streamlit is faster to write but weak at citation and PDF control; Next.js adds a server the app does not need |
 | Chunk RAG | Whole report in the context window, GraphRAG | Slow and costly on 400 pages, no page-level citations; GraphRAG out of scope |
 | LLM judge with a stronger model | Human grading only | 57 questions times many configurations; the judge is checked by reading every non-correct verdict, a human agreement study is open |

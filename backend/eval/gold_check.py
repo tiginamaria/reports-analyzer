@@ -7,8 +7,11 @@ is what keeps an invented quote or a wrong page number out of the gold set.
     uv run python -m eval.gold_check
 """
 
+import asyncio
 import sys
 from collections import Counter
+
+from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.extraction.extractor import load_registry
@@ -19,16 +22,19 @@ from eval.common import load_corpus, load_yaml, report_keys
 QA_TYPES = {"factoid", "comparison", "multimetric", "followup", "unanswerable"}
 
 
+async def _load_pages() -> tuple[dict[str, str], dict[tuple[str, int], str]]:
+    async with SessionLocal() as db:
+        ids = await report_keys(db)
+        pages = (await db.execute(select(Page))).scalars()
+        return ids, {(page.report_id, page.page_no): normalize(page.text) for page in pages}
+
+
 def main() -> int:
     qa = load_yaml("qa.yaml")["qa"]
     extraction = load_yaml("extraction.yaml")
     keys = {doc.key for doc in load_corpus()}
     errors: list[str] = []
-    with SessionLocal() as db:
-        ids = report_keys(db)
-        pages = {
-            (page.report_id, page.page_no): normalize(page.text) for page in db.query(Page).all()
-        }
+    ids, pages = asyncio.run(_load_pages())
 
     def check(where: str, report: str, page: int, quote: str) -> None:
         if report not in ids:

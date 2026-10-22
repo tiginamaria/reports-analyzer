@@ -20,11 +20,11 @@ Evaluation of every stage, with results and improvements: [docs/EVAL.md](docs/EV
    [chunker.py](backend/app/ingestion/chunker.py)
 3. Embed with a hosted embedding model (`text-embedding-3-large` by default; local `bge-m3`
    is an option), index vectors and full text in Postgres + pgvector:
-   [embedder.py](backend/app/retrieval/embedder.py), [models.py](backend/app/models.py)
+   [embedder.py](backend/app/retrieval/embedder.py), [models/](backend/app/models/)
 4. Pre-extract datapoints from the config registry and verify every quote:
    [extractor.py](backend/app/extraction/extractor.py), [registry.yaml](backend/app/extraction/registry.yaml)
 
-**Chat** ([pipeline.py](backend/app/chat/pipeline.py), SSE endpoint in [chat.py](backend/app/api/chat.py))
+**Chat** ([pipeline.py](backend/app/chat/pipeline.py), SSE endpoint in [chat.py](backend/app/api/routers/chat.py))
 
 1. Query rewriting: the small model turns the question and the conversation into a
    standalone question and one sub-query per company, fiscal year and topic, so a
@@ -44,13 +44,13 @@ Evaluation of every stage, with results and improvements: [docs/EVAL.md](docs/EV
 
 **Extracted data**: FTE, revenue, net profit, dividend per share and sustainability goals
 per report with quote, page link and
-verification badge: [datapoints.py](backend/app/api/datapoints.py),
+verification badge: [datapoints.py](backend/app/services/datapoints.py),
 [DataPage.tsx](frontend/src/pages/data/DataPage.tsx). New fields go in
 [registry.yaml](backend/app/extraction/registry.yaml).
 
 **Persistence**: Postgres on a named docker volume, PDFs on a bind mount stored as
 `<sha256>.pdf` with the original name kept in the database, restart safe:
-[docker-compose.yml](docker-compose.yml), [reports.py](backend/app/api/reports.py).
+[docker-compose.yml](docker-compose.yml), [storage.py](backend/app/services/storage.py).
 
 **LLM providers**: OpenAI (default) or Anthropic behind one interface with JSON-schema
 structured output and a Pydantic repair retry: [base.py](backend/app/llm/base.py),
@@ -269,7 +269,10 @@ The harness and how to rerun it or run a parameter experiment:
 
 ```
 backend/app
-  api/          FastAPI routers: reports, datapoints, chat + conversations
+  api/          async FastAPI routers (reports, datapoints, chat, system), deps, error mapping
+  services/     use cases: upload/storage, extraction retry, deletion, chat persistence, startup
+  repositories/ every SQL query, on the async session
+  schemas/      Pydantic API types      models/   SQLAlchemy tables
   ingestion/    parser (PyMuPDF), chunker, pipeline, cancellation
   retrieval/    hosted/local embedders + optional reranker, hybrid search with RRF
   extraction/   registry.yaml, extractor, metadata detection

@@ -50,7 +50,7 @@ export const api = {
 export async function* chatStream(body: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatStreamEvent> {
   const stream = await requestStream("/chat", body, signal);
   for await (const { event, data } of parseSse(stream)) {
-    // The event shapes are defined by the backend (app/api/chat.py, app/chat/pipeline.py).
+    // The event shapes are defined by the backend (app/api/routers/chat.py, app/chat/pipeline.py).
     yield { event, data: JSON.parse(data) as unknown } as ChatStreamEvent;
   }
 }

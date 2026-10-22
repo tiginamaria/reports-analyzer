@@ -1,8 +1,7 @@
-"""SQLAlchemy models. See docs/MVP_DESIGN.md, section "Data model"."""
+"""A report, its pages, chunks, datapoints and per-entry extraction outcomes."""
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
@@ -19,15 +18,9 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-def _uuid() -> str:
-    return str(uuid.uuid4())
+from app.models.base import Base, new_uuid
 
 
 class ReportStatus(StrEnum):
@@ -66,8 +59,11 @@ class ExtractionStatus(StrEnum):
 
 class Report(Base):
     __tablename__ = "reports"
+    # `updated_at` is set by the database on every update; fetch it in the same statement
+    # (RETURNING), since an async session cannot load an expired attribute lazily later.
+    __mapper_args__ = {"eager_defaults": True}
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     company: Mapped[str] = mapped_column(String(200), index=True)
     fiscal_year: Mapped[int] = mapped_column(Integer, index=True)
     title: Mapped[str | None] = mapped_column(String(300))
@@ -144,7 +140,7 @@ class Chunk(Base):
 class Datapoint(Base):
     __tablename__ = "datapoints"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     report_id: Mapped[str] = mapped_column(ForeignKey("reports.id", ondelete="CASCADE"), index=True)
     key: Mapped[str] = mapped_column(String(60), index=True)
     label: Mapped[str] = mapped_column(String(300))
@@ -170,6 +166,7 @@ class Extraction(Base):
 
     __tablename__ = "extractions"
     __table_args__ = (UniqueConstraint("report_id", "key"),)
+    __mapper_args__ = {"eager_defaults": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     report_id: Mapped[str] = mapped_column(ForeignKey("reports.id", ondelete="CASCADE"), index=True)
@@ -182,38 +179,3 @@ class Extraction(Base):
     )
 
     report: Mapped[Report] = relationship(back_populates="extractions")
-
-
-class Conversation(Base):
-    __tablename__ = "conversations"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    title: Mapped[str] = mapped_column(String(300), default="New conversation")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    messages: Mapped[list[Message]] = relationship(
-        back_populates="conversation",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-        order_by="Message.created_at",
-    )
-
-
-class Message(Base):
-    __tablename__ = "messages"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    conversation_id: Mapped[str] = mapped_column(
-        ForeignKey("conversations.id", ondelete="CASCADE"), index=True
-    )
-    role: Mapped[str] = mapped_column(String(20))
-    content: Mapped[str] = mapped_column(Text)
-    status: Mapped[str | None] = mapped_column(String(20))
-    citations: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
-    meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    conversation: Mapped[Conversation] = relationship(back_populates="messages")

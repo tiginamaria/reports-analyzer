@@ -1,13 +1,14 @@
 """Run the datapoint registry against an ingested report."""
 
+import asyncio
 import logging
-from collections.abc import Callable, Iterable, Iterator
-from concurrent.futures import Future, ThreadPoolExecutor
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.extraction import prompts
 from app.extraction.numbers import parse_number
@@ -73,13 +74,17 @@ def registry_entries(keys: Iterable[str] | None = None) -> list[DatapointSpec]:
     return [spec for spec in specs if spec.key in wanted]
 
 
-def extract_report(
-    db: Session,
+Check = Callable[[], Awaitable[None]]
+Progress = Callable[[int, int, str], Awaitable[None]]
+
+
+async def extract_report(
+    db: AsyncSession,
     report: Report,
     provider: LLMProvider,
     keys: Iterable[str] | None = None,
-    check: Callable[[], None] | None = None,
-    on_progress: Callable[[int, int, str], None] | None = None,
+    check: Check | None = None,
+    on_progress: Progress | None = None,
 ) -> list[Datapoint]:
     """Extract every registry entry (or only `keys`) of the report, replacing the entries'
     datapoints, and record an outcome per entry in `extractions`: `extracted`, `not_found`
@@ -92,99 +97,118 @@ def extract_report(
 
     Candidate retrieval runs entry by entry (the reranker runs on one GPU behind a lock and
     the session is not thread-safe); the model calls, which are independent and spend their
-    time waiting on the provider, run concurrently; verification and storage run in this
-    thread again. A failed model call is recorded on its entry and the rest of the registry
-    still runs. A failure outside one entry's call (the database, the reranker) marks every
-    entry still pending as failed and propagates."""
+    time waiting on the provider, run in worker threads, `EXTRACTION_WORKERS` at a time;
+    verification and storage run on the event loop again. A failed model call is recorded
+    on its entry and the rest of the registry still runs. A failure outside one entry's
+    call (the database, the reranker) marks every entry still pending as failed and
+    propagates."""
     specs = registry_entries(keys)
     total = len(specs)
 
-    def stop_check() -> None:
+    async def stop_check() -> None:
         if check is not None:
-            check()
+            await check()
 
-    def progress(done: int, activity: str) -> None:
+    async def progress(done: int, activity: str) -> None:
         if on_progress is not None:
-            on_progress(done, total, activity)
+            await on_progress(done, total, activity)
 
-    stop_check()
-    outcomes = start_extraction(db, report, [spec.key for spec in specs])
+    await stop_check()
+    outcomes = await start_extraction(db, report, [spec.key for spec in specs])
     try:
-        db.query(Datapoint).filter(
-            Datapoint.report_id == report.id, Datapoint.key.in_(outcomes)
-        ).delete(synchronize_session=False)
+        await db.execute(
+            delete(Datapoint).where(Datapoint.report_id == report.id, Datapoint.key.in_(outcomes))
+        )
         hits: dict[str, list[Hit]] = {}
         for number, spec in enumerate(specs):
-            stop_check()
-            progress(0, f"Finding passages for {spec.label} ({number + 1} of {total})")
-            hits[spec.key] = _candidate_hits(db, report, spec)
-        stop_check()
-        progress(0, f"Asking the model for {total} datapoint(s)")
-        with ThreadPoolExecutor(EXTRACTION_WORKERS) as pool:
-            futures = {
-                spec.key: pool.submit(_ask_model, report, spec, provider, hits[spec.key])
-                for spec in specs
-            }
+            await stop_check()
+            await progress(0, f"Finding passages for {spec.label} ({number + 1} of {total})")
+            hits[spec.key] = await _candidate_hits(db, report, spec)
+        await stop_check()
+        await progress(0, f"Asking the model for {total} datapoint(s)")
+        answers = await _ask_model_for_all(report, specs, provider, hits)
         created: list[Datapoint] = []
         for number, spec in enumerate(specs):
-            stop_check()
+            await stop_check()
             created.extend(
-                _finish_entry(
+                await _finish_entry(
                     db,
                     report,
                     spec,
                     outcomes[spec.key],
-                    futures[spec.key],
+                    answers[spec.key],
                     hits[spec.key],
                     provider,
                 )
             )
-            progress(number + 1, f"Stored {spec.label} ({number + 1} of {total})")
-        stop_check()
-        db.commit()
+            await progress(number + 1, f"Stored {spec.label} ({number + 1} of {total})")
+        await stop_check()
+        await db.commit()
         return created
     except IngestionCancelled:
-        db.rollback()  # the report is gone; nothing to record
+        await db.rollback()  # the report is gone; nothing to record
         raise
     except Exception as exc:
-        db.rollback()
-        record_failure(db, report, exc, keys=list(outcomes))
+        await db.rollback()
+        await record_failure(db, report, exc, keys=list(outcomes))
         raise
 
 
-def start_extraction(db: Session, report: Report, keys: Iterable[str]) -> dict[str, Extraction]:
+async def _ask_model_for_all(
+    report: Report, specs: list[DatapointSpec], provider: LLMProvider, hits: dict[str, list[Hit]]
+) -> dict[str, list[ExtractedItem] | Exception]:
+    """Every entry's model call, `EXTRACTION_WORKERS` in flight at once in worker threads.
+    Returns each entry's items, or the exception its call raised, so one failure never
+    hides the other entries' results."""
+    limit = asyncio.Semaphore(EXTRACTION_WORKERS)
+
+    async def ask(spec: DatapointSpec) -> list[ExtractedItem]:
+        async with limit:
+            return await asyncio.to_thread(_ask_model, report, spec, provider, hits[spec.key])
+
+    results = await asyncio.gather(*(ask(spec) for spec in specs), return_exceptions=True)
+    answers: dict[str, list[ExtractedItem] | Exception] = {}
+    for spec, result in zip(specs, results, strict=True):
+        if isinstance(result, BaseException) and not isinstance(result, Exception):
+            raise result  # cancellation and the like are not an entry's failure
+        answers[spec.key] = result
+    return answers
+
+
+async def _extraction_rows(
+    db: AsyncSession, report: Report, keys: list[str]
+) -> dict[str, Extraction]:
+    result = await db.execute(
+        select(Extraction).where(Extraction.report_id == report.id, Extraction.key.in_(keys))
+    )
+    return {row.key: row for row in result.scalars()}
+
+
+async def start_extraction(
+    db: AsyncSession, report: Report, keys: Iterable[str]
+) -> dict[str, Extraction]:
     """Set the entries to `pending` (creating their rows the first time) and commit, so the
     UI shows them running before the first model call returns."""
     keys = list(keys)
-    rows = {
-        row.key: row
-        for row in db.query(Extraction).filter(
-            Extraction.report_id == report.id, Extraction.key.in_(keys)
-        )
-    }
+    rows = await _extraction_rows(db, report, keys)
     for key in keys:
         if key not in rows:
             rows[key] = Extraction(report_id=report.id, key=key)
             db.add(rows[key])
         rows[key].status = ExtractionStatus.PENDING
         rows[key].message = None
-    db.commit()
+    await db.commit()
     return rows
 
 
-def record_failure(
-    db: Session, report: Report, exc: Exception, keys: Iterable[str] | None = None
+async def record_failure(
+    db: AsyncSession, report: Report, exc: Exception, keys: Iterable[str] | None = None
 ) -> None:
     """Mark every entry of the report (or of `keys`) that has no outcome yet, or is still
     pending, as failed with the error, and commit. Entries that already finished are kept."""
     message = _error_text(exc)
     keys = list(keys) if keys is not None else [spec.key for spec in load_registry()]
-    rows = {
-        row.key: row
-        for row in db.query(Extraction).filter(
-            Extraction.report_id == report.id, Extraction.key.in_(keys)
-        )
-    }
+    rows = await _extraction_rows(db, report, keys)
     for key in keys:
         row = rows.get(key)
         if row is None:
@@ -194,35 +218,33 @@ def record_failure(
             continue
         row.status = ExtractionStatus.ERROR
         row.message = message
-    db.commit()
+    await db.commit()
 
 
-def _finish_entry(
-    db: Session,
+async def _finish_entry(
+    db: AsyncSession,
     report: Report,
     spec: DatapointSpec,
     outcome: Extraction,
-    future: Future[list[ExtractedItem]],
+    answer: list[ExtractedItem] | Exception,
     hits: list[Hit],
     provider: LLMProvider,
 ) -> list[Datapoint]:
     """Store what the model returned for one entry and set the entry's outcome; a failed
     call becomes `error` with its message, so it is never mistaken for "nothing found"."""
     outcome.model = provider.model_name()
-    try:
-        items = future.result()
-    except Exception as exc:
+    if isinstance(answer, Exception):
         log.error(
             "Extraction of %s failed for %s %s",
             spec.key,
             report.company,
             report.fiscal_year,
-            exc_info=exc,
+            exc_info=answer,
         )
         outcome.status = ExtractionStatus.ERROR
-        outcome.message = _error_text(exc)
+        outcome.message = _error_text(answer)
         return []
-    datapoints = _store(db, report, spec, items, hits, provider)
+    datapoints = await _store(db, report, spec, answer, hits, provider)
     outcome.status = ExtractionStatus.EXTRACTED if datapoints else ExtractionStatus.NOT_FOUND
     outcome.message = None
     return datapoints
@@ -232,8 +254,8 @@ def _error_text(exc: Exception) -> str:
     return f"{type(exc).__name__}: {exc}"[:MAX_MESSAGE_LENGTH]
 
 
-def _extract_datapoints(
-    db: Session,
+async def _extract_datapoints(
+    db: AsyncSession,
     report: Report,
     spec: DatapointSpec,
     provider: LLMProvider,
@@ -243,15 +265,16 @@ def _extract_datapoints(
     (unless `hits` is given), ask the model, verify every quote and add the datapoints to the
     session. A failed model call raises. Used by the evaluation scripts."""
     if hits is None:
-        hits = _candidate_hits(db, report, spec)
-    return _store(db, report, spec, _ask_model(report, spec, provider, hits), hits, provider)
+        hits = await _candidate_hits(db, report, spec)
+    items = await asyncio.to_thread(_ask_model, report, spec, provider, hits)
+    return await _store(db, report, spec, items, hits, provider)
 
 
 def _ask_model(
     report: Report, spec: DatapointSpec, provider: LLMProvider, hits: list[Hit]
 ) -> list[ExtractedItem]:
-    """The model call for one entry over its candidate chunks. Needs no database, so it can
-    run in a worker thread. A failed call raises (an `LLMError` from the provider); the
+    """The model call for one entry over its candidate chunks. Blocking, and needs no
+    database, so it runs in a worker thread. A failed call raises (an `LLMError` from the provider); the
     caller records it on the entry instead of treating it as "nothing found"."""
     if not hits:
         return []
@@ -267,8 +290,8 @@ def _ask_model(
     return list(_unique(items))
 
 
-def _store(
-    db: Session,
+async def _store(
+    db: AsyncSession,
     report: Report,
     spec: DatapointSpec,
     items: list[ExtractedItem],
@@ -278,7 +301,7 @@ def _store(
     """Verify every item's quote against its chunk and add the datapoints to the session."""
     chunks_by_id = {hit.chunk.id: hit.chunk for hit in hits}
     datapoints = [
-        _build_datapoint(db, report, spec, item, chunks_by_id.get(item.chunk_id), provider)
+        await _build_datapoint(db, report, spec, item, chunks_by_id.get(item.chunk_id), provider)
         for item in items
     ]
     db.add_all(datapoints)
@@ -304,8 +327,8 @@ def _unique(items: list[ExtractedItem]) -> Iterator[ExtractedItem]:
             yield item
 
 
-def _build_datapoint(
-    db: Session,
+async def _build_datapoint(
+    db: AsyncSession,
     report: Report,
     spec: DatapointSpec,
     item: ExtractedItem,
@@ -317,7 +340,7 @@ def _build_datapoint(
     if chunk is None:
         status = "failed"
     else:
-        status = verify_against_chunk(db, chunk, item.quote)
+        status = await verify_against_chunk(db, chunk, item.quote)
     return Datapoint(
         report_id=report.id,
         key=spec.key,
@@ -355,7 +378,7 @@ def _unit_without_repeated_percent(value: str | None, unit: str | None) -> str |
     return rest[1:].strip() or None
 
 
-def _candidate_hits(db: Session, report: Report, spec: DatapointSpec) -> list[Hit]:
+async def _candidate_hits(db: AsyncSession, report: Report, spec: DatapointSpec) -> list[Hit]:
     """Union of the best hits of every query, each chunk once with its highest score, cut to
     `top_k` and returned in page order so the model reads the report front to back."""
     per_query = spec.per_query or max(
@@ -363,7 +386,7 @@ def _candidate_hits(db: Session, report: Report, spec: DatapointSpec) -> list[Hi
     )
     best_by_chunk: dict[str, Hit] = {}
     for query in spec.queries:
-        hits = retrieve(
+        hits = await retrieve(
             db,
             query,
             report_ids=[report.id],
@@ -387,7 +410,7 @@ def detect_metadata(
     chars_per_page: int = METADATA_CHARS_PER_PAGE,
 ) -> ReportMetadata:
     """Company, fiscal year and title, read by the small model from the first `first_pages`
-    pages, `chars_per_page` characters of each."""
+    pages, `chars_per_page` characters of each. Blocking: run it in a worker thread."""
     sample = "\n\n".join(page[:chars_per_page] for page in pages[:first_pages])
     user = f"Filename: {filename}\n\nFirst pages:\n{sample}"
     return provider.complete_json(

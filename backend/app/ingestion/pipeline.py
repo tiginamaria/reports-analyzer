@@ -9,10 +9,16 @@ complete and the report can be searched. How each registry entry's extraction we
 recorded separately, per entry, in `extractions` (see `extractor.extract_report`); a failed
 entry never fails the report and can be extracted again with `rerun_extraction`.
 
-Deleting the report cancels its ingestion: the worker checks `cancellation.check` between
+The pipeline is async: database writes await the session, while the blocking work (PyMuPDF,
+the embedding model or endpoint, the LLM) runs in worker threads. Callbacks those threads
+need (progress after every page, cancellation before every batch) are bridged back to the
+loop with `concurrency.sync_callback`, so they still write progress and check the database.
+
+Deleting the report cancels its ingestion: the task checks `cancellation.check` between
 inference batches and before every write and stops without touching the database.
 """
 
+import asyncio
 import logging
 import re
 import time
@@ -20,8 +26,9 @@ from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.concurrency import sync_callback
 from app.db import SessionLocal
 from app.extraction.extractor import (
     detect_metadata,
@@ -62,106 +69,108 @@ RETRY_ACTION = "Delete the report and upload it again."
 MAX_ERROR_LENGTH = 2000
 
 
-def ingest_report(report_id: str, path: Path) -> None:
+async def ingest_report(report_id: str, path: Path) -> None:
     """Background-task entry point. Any failure is recorded on the report, never raised;
     a report deleted meanwhile stops its ingestion quietly."""
-    with SessionLocal() as db:
-        report = db.get(Report, report_id)
+    async with SessionLocal() as db:
+        report = await db.get(Report, report_id)
         if report is None:
             return
         cancellation.begin(report_id)
         try:
-            _run_stages(db, report, path)
+            await _run_stages(db, report, path)
         except IngestionCancelled:
-            db.rollback()
+            await db.rollback()
             log.info("Report %s was deleted during ingestion; stopping", report_id)
         except Exception as exc:  # any failure is shown in the UI
             stage = ReportStatus(report.status) if report.status in STAGE_LABELS else None
-            db.rollback()
-            _mark_failed(db, report_id, exc, stage)
+            await db.rollback()
+            await _mark_failed(db, report_id, exc, stage)
         finally:
             cancellation.clear(report_id)
 
 
-def _run_stages(db: Session, report: Report, path: Path) -> None:
+async def _run_stages(db: AsyncSession, report: Report, path: Path) -> None:
     check = partial(cancellation.check, db, report.id)
     report.started_at = datetime.now(UTC)
 
-    doc = _parse(db, report, path)
-    check()
-    _detect_metadata(db, report, doc)
-    check()
+    doc = await _parse(db, report, path)
+    await check()
+    await _detect_metadata(db, report, doc)
+    await check()
 
-    _set_progress(db, report, ReportStatus.CHUNKING, activity="Storing pages")
+    await _set_progress(db, report, ReportStatus.CHUNKING, activity="Storing pages")
     _store_pages(db, report, doc)
     chunks = _chunk(db, report, doc)
-    check()
+    await check()
 
-    _set_progress(db, report, ReportStatus.EMBEDDING, total=len(chunks))
-    _embed(db, report, chunks)
+    await _set_progress(db, report, ReportStatus.EMBEDDING, total=len(chunks))
+    await _embed(db, report, chunks)
 
-    _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
-    _extract(db, report)
+    await _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
+    await _extract(db, report)
 
-    _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+    await _set_progress(db, report, ReportStatus.READY, fraction=1.0)
     log.info("Ingested %s (%d pages, %d chunks)", report.filename, doc.page_count, len(chunks))
 
 
-def _extract(db: Session, report: Report, keys: list[str] | None = None) -> None:
+async def _extract(db: AsyncSession, report: Report, keys: list[str] | None = None) -> None:
     """The extraction stage. The index is complete by now, so a failure here (no provider
     configured, the reranker, the database) does not fail the report: every entry without
     an outcome is recorded as failed, which the UI shows next to a retry."""
     check = partial(cancellation.check, db, report.id)
 
-    def on_progress(done: int, total: int, activity: str) -> None:
-        _set_progress(
+    async def on_progress(done: int, total: int, activity: str) -> None:
+        await _set_progress(
             db, report, ReportStatus.EXTRACTING, done=done, total=total, activity=activity
         )
 
     try:
-        extract_report(db, report, get_provider(), keys=keys, check=check, on_progress=on_progress)
+        await extract_report(
+            db, report, get_provider(), keys=keys, check=check, on_progress=on_progress
+        )
     except IngestionCancelled:
         raise
     except Exception as exc:
-        db.rollback()
+        await db.rollback()
         log.error("Extraction failed for %s", report.filename, exc_info=exc)
-        record_failure(db, report, exc, keys=keys)
+        await record_failure(db, report, exc, keys=keys)
 
 
-def begin_reextraction(db: Session, report: Report, keys: list[str]) -> None:
+async def begin_reextraction(db: AsyncSession, report: Report, keys: list[str]) -> None:
     """What the retry endpoint does before scheduling `rerun_extraction`: the entries become
     `pending` and the report `extracting`, so the response already shows the retry running."""
-    start_extraction(db, report, keys)
-    _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
-    db.expire(report, ["extractions"])  # the response reloads the rows just set to pending
+    await start_extraction(db, report, keys)
+    await _set_progress(db, report, ReportStatus.EXTRACTING, activity="Starting extraction")
+    await db.refresh(report, ["extractions"])  # the response shows the rows just set to pending
 
 
-def rerun_extraction(report_id: str, keys: list[str]) -> None:
+async def rerun_extraction(report_id: str, keys: list[str]) -> None:
     """Background-task entry point of the retry endpoint: extract `keys` again on an indexed
     report. Its pages, chunks and embeddings are untouched; only the entries' datapoints are
     replaced. The report is `ready` again afterwards whatever the entries' outcomes."""
-    with SessionLocal() as db:
-        report = db.get(Report, report_id)
+    async with SessionLocal() as db:
+        report = await db.get(Report, report_id)
         if report is None:
             return
         cancellation.begin(report_id)
         try:
-            _extract(db, report, keys)
-            _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+            await _extract(db, report, keys)
+            await _set_progress(db, report, ReportStatus.READY, fraction=1.0)
         except IngestionCancelled:
-            db.rollback()
+            await db.rollback()
             log.info("Report %s was deleted during re-extraction; stopping", report_id)
         except Exception as exc:  # the database itself; the entries stay pending
-            db.rollback()
+            await db.rollback()
             log.error("Re-extraction of %s failed for %s", keys, report_id, exc_info=exc)
         finally:
             cancellation.clear(report_id)
 
 
-def _mark_failed(
-    db: Session, report_id: str, exc: Exception, stage: ReportStatus | None = None
+async def _mark_failed(
+    db: AsyncSession, report_id: str, exc: Exception, stage: ReportStatus | None = None
 ) -> None:
-    report = db.get(Report, report_id)
+    report = await db.get(Report, report_id)
     if report is None:
         log.info("Report %s was deleted during ingestion; stopping", report_id)
         return
@@ -170,7 +179,7 @@ def _mark_failed(
     report.progress = 0
     report.activity = None
     report.error = failure_message(exc, stage)
-    db.commit()
+    await db.commit()
 
 
 def failure_message(exc: Exception, stage: ReportStatus | None) -> str:
@@ -184,8 +193,8 @@ def failure_message(exc: Exception, stage: ReportStatus | None) -> str:
     return f"{label} failed: {cause.rstrip('.')}. {RETRY_ACTION}"[:MAX_ERROR_LENGTH]
 
 
-def _set_progress(
-    db: Session,
+async def _set_progress(
+    db: AsyncSession,
     report: Report,
     stage: ReportStatus,
     fraction: float = 0.0,
@@ -204,16 +213,18 @@ def _set_progress(
     report.done = done
     report.total = total
     report.activity = activity
-    db.commit()
+    await db.commit()
 
 
-def _parse(db: Session, report: Report, path: Path) -> ParsedDocument:
-    _set_progress(db, report, ReportStatus.PARSING, activity="Opening the PDF")
+async def _parse(db: AsyncSession, report: Report, path: Path) -> ParsedDocument:
+    """Parse the PDF in a worker thread. After every page the thread reports back to the
+    loop, which checks for cancellation and records the progress before the next page."""
+    await _set_progress(db, report, ReportStatus.PARSING, activity="Opening the PDF")
     started = time.perf_counter()
 
-    def on_progress(pages_done: int, total_pages: int) -> None:
-        cancellation.check(db, report.id)
-        _set_progress(
+    async def on_progress(pages_done: int, total_pages: int) -> None:
+        await cancellation.check(db, report.id)
+        await _set_progress(
             db,
             report,
             ReportStatus.PARSING,
@@ -222,17 +233,17 @@ def _parse(db: Session, report: Report, path: Path) -> ParsedDocument:
             activity=f"Parsed page {pages_done} of {total_pages} ({_elapsed(started)})",
         )
 
-    return parse_pdf(path, on_progress)
+    return await asyncio.to_thread(parse_pdf, path, sync_callback(on_progress))
 
 
-def _detect_metadata(db: Session, report: Report, doc: ParsedDocument) -> None:
+async def _detect_metadata(db: AsyncSession, report: Report, doc: ParsedDocument) -> None:
     """Ask the LLM for company, fiscal year and title from the first pages. If that fails
     the report keeps year 0 and gets the file name as its company, so it stays visible."""
-    _set_progress(
+    await _set_progress(
         db, report, ReportStatus.PARSING, fraction=1.0, activity="Detecting company and year"
     )
     try:
-        meta = detect_metadata(get_provider(), doc.pages, report.filename)
+        meta = await asyncio.to_thread(detect_metadata, get_provider(), doc.pages, report.filename)
     except Exception as exc:  # detection is best effort
         log.warning("Metadata detection failed for %s: %s", report.filename, exc)
         report.company = Path(report.filename).stem
@@ -242,7 +253,7 @@ def _detect_metadata(db: Session, report: Report, doc: ParsedDocument) -> None:
     report.title = meta.title
 
 
-def _store_pages(db: Session, report: Report, doc: ParsedDocument) -> None:
+def _store_pages(db: AsyncSession, report: Report, doc: ParsedDocument) -> None:
     """Page texts are the source of truth for verbatim checks and page-level citations."""
     report.page_count = doc.page_count
     db.add_all(
@@ -251,7 +262,7 @@ def _store_pages(db: Session, report: Report, doc: ParsedDocument) -> None:
     )
 
 
-def _chunk(db: Session, report: Report, doc: ParsedDocument) -> list[Chunk]:
+def _chunk(db: AsyncSession, report: Report, doc: ParsedDocument) -> list[Chunk]:
     drafts = chunk_document(doc)
     prefix = _chunk_id_prefix(report)
     chunks = [
@@ -276,33 +287,36 @@ def _chunk_id_prefix(report: Report) -> str:
     return f"{slug}-{report.fiscal_year}-{report.id[:6]}"
 
 
-def _embed(db: Session, report: Report, chunks: list[Chunk], slice_size: int | None = None) -> None:
+async def _embed(
+    db: AsyncSession, report: Report, chunks: list[Chunk], slice_size: int | None = None
+) -> None:
     """Embed the chunks in slices of `slice_size` (the embedder's own by default: one model
-    batch locally, one window of concurrent requests hosted). After every slice the vectors
-    are persisted and the progress updated; before every slice, and before every batch
-    inside it, the cancellation check runs, so a deleted report stops within one batch."""
+    batch locally, one window of concurrent requests hosted). Each slice is embedded in a
+    worker thread; after every slice the vectors are persisted and the progress updated.
+    Before every slice, and before every batch inside it, the cancellation check runs (the
+    embedder gets it bridged to the loop), so a deleted report stops within one batch."""
     check = partial(cancellation.check, db, report.id)
     total = len(chunks)
     pending = models_to_load()
     if pending:
-        _set_progress(
+        await _set_progress(
             db, report, ReportStatus.EMBEDDING, total=total, activity=f"Loading {pending[0]}"
         )
-    embedder = get_embedder()
+    embedder = await asyncio.to_thread(get_embedder)
     slice_size = slice_size or embedder.slice_size
     started = time.perf_counter()
     report.embedding_model = None  # not searchable until every vector is written
     for start in range(0, total, slice_size):
-        check()
+        await check()
         batch = chunks[start : start + slice_size]
         texts = [_embedding_input(report, chunk) for chunk in batch]
         batch_started = time.perf_counter()
-        vectors = embedder.embed_documents(texts, check=check)
+        vectors = await asyncio.to_thread(embedder.embed_documents, texts, sync_callback(check))
         for chunk, vector in zip(batch, vectors, strict=True):
             chunk.embedding = vector
-        check()  # before persisting: the report may have gone while the batch ran
+        await check()  # before persisting: the report may have gone while the batch ran
         done = start + len(batch)
-        _set_progress(
+        await _set_progress(
             db,
             report,
             ReportStatus.EMBEDDING,

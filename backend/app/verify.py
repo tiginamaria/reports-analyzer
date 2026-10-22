@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 from rapidfuzz import fuzz
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Chunk, Page
 from app.textutil import normalize
@@ -43,15 +44,14 @@ def verify_quote(quote: str, sources: list[str]) -> VerifyResult:
     return VerifyResult("failed", best)
 
 
-def verify_against_chunk(db: Session, chunk: Chunk, quote: str) -> Status:
+async def verify_against_chunk(db: AsyncSession, chunk: Chunk, quote: str) -> Status:
     """Verify a quote cited from a chunk against the stored text of the chunk's page, the
     source of truth, and against the chunk itself: a table chunk is text clipped to the table
     region, which can read differently from the page's block text."""
-    page = (
-        db.query(Page)
-        .filter(Page.report_id == chunk.report_id, Page.page_no == chunk.page)
-        .one_or_none()
+    result = await db.execute(
+        select(Page).where(Page.report_id == chunk.report_id, Page.page_no == chunk.page)
     )
+    page = result.scalar_one_or_none()
     sources = [page.text, chunk.content] if page else [chunk.content]
     return verify_quote(quote, sources).status
 

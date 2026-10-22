@@ -1,16 +1,20 @@
 """Cancellation of background ingestion.
 
-Deleting a report removes its rows and PDF at once, but its ingestion keeps running in a
-worker thread with the report's text in memory. The worker checks here between inference
+Deleting a report removes its rows and PDF at once, but its ingestion keeps running as a
+background task with the report's text in memory. The task checks here between inference
 batches and before every write: an in-process flag set by the delete endpoint, and a fresh
 query for the report row (the flag is lost on a restart, and a deletion made through
 another process or directly in the database has no flag at all).
+
+The flag functions are synchronous and thread-safe, so blocking code running in a worker
+thread (a model batch) can test `check_flag`; the database check is `check`, which is
+async and is what the pipeline calls between its steps.
 """
 
 import threading
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Report
 
@@ -55,14 +59,22 @@ def clear(report_id: str) -> None:
         _cancelled.discard(report_id)
 
 
-def report_exists(db: Session, report_id: str) -> bool:
+def check_flag(report_id: str) -> None:
+    """Raise `IngestionCancelled` when the delete endpoint has flagged the report. Needs no
+    database, so blocking code in a worker thread can call it."""
+    if is_cancelled(report_id):
+        raise IngestionCancelled(report_id)
+
+
+async def report_exists(db: AsyncSession, report_id: str) -> bool:
     """A fresh query, never the session's identity map, so a deletion committed by another
     session is seen."""
-    return db.execute(select(Report.id).where(Report.id == report_id)).first() is not None
+    result = await db.execute(select(Report.id).where(Report.id == report_id))
+    return result.first() is not None
 
 
-def check(db: Session, report_id: str) -> None:
+async def check(db: AsyncSession, report_id: str) -> None:
     """Raise `IngestionCancelled` when the report was deleted. Called between batches and
     before every persistence step of the pipeline."""
-    if is_cancelled(report_id) or not report_exists(db, report_id):
+    if is_cancelled(report_id) or not await report_exists(db, report_id):
         raise IngestionCancelled(report_id)

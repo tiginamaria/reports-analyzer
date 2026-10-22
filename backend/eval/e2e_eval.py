@@ -15,6 +15,7 @@ stronger model than the generator.
 """
 
 import argparse
+import asyncio
 import dataclasses
 import statistics
 import time
@@ -23,7 +24,8 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Literal
 
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.chat.pipeline import run_chat
 from app.db import SessionLocal
@@ -52,14 +54,14 @@ JUDGE_WORKERS = 4  # judge calls; the chat runs use --workers (1 for honest late
 # --- running the chat -----------------------------------------------------------------------
 
 
-def run_question(q: Question, provider: LLMProvider) -> dict[str, Any]:
+async def run_question(q: Question, provider: LLMProvider) -> dict[str, Any]:
     history = [Message(role=t["role"], content=t["content"]) for t in q.history]
     stages: dict[str, float] = {}
     answer: dict[str, Any] = {}
     start = last = time.perf_counter()
     current = "start"
-    with SessionLocal() as db:
-        for event in run_chat(db, provider, q.question, history, None):
+    async with SessionLocal() as db:
+        async for event in run_chat(db, provider, q.question, history, None):
             now = time.perf_counter()
             stages[current] = round(now - last, 2)
             last = now
@@ -69,8 +71,8 @@ def run_question(q: Question, provider: LLMProvider) -> dict[str, Any]:
                 answer = event.data
             elif event.type == "error":
                 answer = {"status": "error", "answer": event.data["message"], "citations": []}
-        ids = report_keys(db)
-        retrieved = _chunks(db, answer.get("meta", {}).get("retrieved_chunks", []))
+        ids = await report_keys(db)
+        retrieved = await _chunks(db, answer.get("meta", {}).get("retrieved_chunks", []))
     stages["total"] = round(time.perf_counter() - start, 2)
     return {
         "answer": answer,
@@ -80,8 +82,9 @@ def run_question(q: Question, provider: LLMProvider) -> dict[str, Any]:
     }
 
 
-def _chunks(db: Session, chunk_ids: list[str]) -> list[Chunk]:
-    by_id = {c.id: c for c in db.query(Chunk).filter(Chunk.id.in_(chunk_ids)).all()}
+async def _chunks(db: AsyncSession, chunk_ids: list[str]) -> list[Chunk]:
+    rows = (await db.execute(select(Chunk).where(Chunk.id.in_(chunk_ids)))).scalars()
+    by_id = {c.id: c for c in rows}
     return [by_id[cid] for cid in chunk_ids if cid in by_id]
 
 
@@ -210,15 +213,21 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
 # --- the run --------------------------------------------------------------------------------
 
 
-def evaluate(
+async def evaluate(
     params: RetrievalParams, model: str | None, limit: int | None, workers: int
 ) -> dict[str, Any]:
     questions = load_questions(limit)
     provider = provider_for(model)
     instrument(provider)
     USAGE.calls.clear()
-    with patched_retrieval(params), ThreadPoolExecutor(workers) as pool:
-        runs = list(pool.map(lambda q: run_question(q, provider), questions))
+    limit_runs = asyncio.Semaphore(workers)  # questions answered at the same time
+
+    async def run(q: Question) -> dict[str, Any]:
+        async with limit_runs:
+            return await run_question(q, provider)
+
+    with patched_retrieval(params):
+        runs = list(await asyncio.gather(*(run(q) for q in questions)))
     usage = USAGE.summary()  # the judge is not instrumented and not counted
     judge_llm = judge_provider()
     with ThreadPoolExecutor(JUDGE_WORKERS) as pool:
@@ -285,7 +294,7 @@ def main() -> None:
     if params.rerank:
         require_reranker().score("warm-up", ["warm-up"])  # load the models outside the timings
     get_embedder().embed_query("warm-up")
-    result = evaluate(params, args.model, args.limit, args.workers)
+    result = asyncio.run(evaluate(params, args.model, args.limit, args.workers))
     print_summary(result)
     # an experiment or a partial run never overwrites the result of the app's settings
     tag = args.tag or "_".join(filter(None, [params.tag(), args.model]))

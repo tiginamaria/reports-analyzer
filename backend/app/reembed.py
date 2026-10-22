@@ -14,9 +14,12 @@ signature is cleared) until a later run completes it; it is reported at the end.
 """
 
 import argparse
+import asyncio
 import logging
 import sys
 import time
+
+from sqlalchemy import select
 
 from app.config import get_settings
 from app.db import SessionLocal
@@ -28,34 +31,52 @@ from app.models import INDEXED_STATUSES, Chunk, Report, ReportStatus
 log = logging.getLogger("reembed")
 
 
-def reembed_report(report_id: str) -> int:
+async def reembed_report(report_id: str) -> int:
     """Re-embed one report's chunks; returns how many. On failure the report is `ready`
     again but without an embedding signature: some chunks already hold new vectors, so it
     must not be searched until a later run finishes it."""
-    with SessionLocal() as db:
-        report = db.get(Report, report_id)
+    async with SessionLocal() as db:
+        report = await db.get(Report, report_id)
         if report is None:
             raise IngestionCancelled(report_id)
         cancellation.begin(report_id)
-        chunks = db.query(Chunk).filter(Chunk.report_id == report.id).order_by(Chunk.id).all()
+        result = await db.execute(
+            select(Chunk).where(Chunk.report_id == report.id).order_by(Chunk.id)
+        )
+        chunks = list(result.scalars())
         try:
-            _set_progress(db, report, ReportStatus.EMBEDDING, total=len(chunks))
-            _embed(db, report, chunks)
-            _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+            await _set_progress(db, report, ReportStatus.EMBEDDING, total=len(chunks))
+            await _embed(db, report, chunks)
+            await _set_progress(db, report, ReportStatus.READY, fraction=1.0)
         except IngestionCancelled:
-            db.rollback()
+            await db.rollback()
             raise
         except Exception:
-            db.rollback()
+            await db.rollback()
             report.embedding_model = None
-            _set_progress(db, report, ReportStatus.READY, fraction=1.0)
+            await _set_progress(db, report, ReportStatus.READY, fraction=1.0)
             raise
         finally:
             cancellation.clear(report_id)
         return len(chunks)
 
 
+async def _targets(include_all: bool, signature: str) -> list[tuple[str, str, str | None]]:
+    async with SessionLocal() as db:
+        stmt = select(Report).where(Report.status.in_(INDEXED_STATUSES))
+        if not include_all:
+            stmt = stmt.where(
+                (Report.embedding_model != signature) | (Report.embedding_model.is_(None))
+            )
+        reports = (await db.execute(stmt)).scalars()
+        return [(r.id, f"{r.company} {r.fiscal_year}", r.embedding_model) for r in reports]
+
+
 def main(argv: list[str] | None = None) -> int:
+    return asyncio.run(_main(argv))
+
+
+async def _main(argv: list[str] | None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--all", action="store_true", help="also reports already on this model")
     parser.add_argument("--dry-run", action="store_true", help="list the reports, change nothing")
@@ -63,13 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     signature = get_settings().embedding_signature
-    with SessionLocal() as db:
-        query = db.query(Report).filter(Report.status.in_(INDEXED_STATUSES))
-        if not args.all:
-            query = query.filter(
-                (Report.embedding_model != signature) | (Report.embedding_model.is_(None))
-            )
-        targets = [(r.id, f"{r.company} {r.fiscal_year}", r.embedding_model) for r in query.all()]
+    targets = await _targets(args.all, signature)
 
     if not targets:
         print(f"Every indexed report already has {signature} vectors.")
@@ -84,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
     for report_id, label, _ in targets:
         started = time.perf_counter()
         try:
-            count = reembed_report(report_id)
+            count = await reembed_report(report_id)
         except IngestionCancelled:
             print(f"  {label}: deleted meanwhile, skipped")
         except Exception as exc:

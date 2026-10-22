@@ -14,12 +14,15 @@ else runs live.
 """
 
 import argparse
+import asyncio
 import dataclasses
 import hashlib
 import json
 import statistics
 import time
 from typing import Any
+
+from sqlalchemy import func, select
 
 import app.chat.pipeline as pipeline
 from app.chat import prompts
@@ -150,20 +153,21 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 # --- the run --------------------------------------------------------------------------------
 
 
-def evaluate(params: RetrievalParams, limit: int | None = None) -> dict[str, Any]:
+async def evaluate(params: RetrievalParams, limit: int | None = None) -> dict[str, Any]:
     questions = load_questions(limit)
     queries = rewrites(questions)
     get_embedder()  # load the models before timing; the app loads them at startup too
     if params.rerank:
         require_reranker()
     rows = []
-    with SessionLocal() as db, patched_retrieval(params):
-        ids = report_keys(db)
-        chunks = db.query(Chunk).count()
+    async with SessionLocal() as db:
+        ids = await report_keys(db)
+        chunks = (await db.execute(select(func.count(Chunk.id)))).scalar() or 0
         for q in questions:
             query = queries[q.id]
             start = time.perf_counter()
-            hits = pipeline._retrieve_all(db, query, None)
+            with patched_retrieval(params):
+                hits = await pipeline._retrieve_all(db, query, None)
             seconds = round(time.perf_counter() - start, 2)
             metrics = score_hits(q, hits, ids)
             print(
@@ -232,7 +236,7 @@ def main() -> None:
     parser.add_argument("--tag", help="result file suffix (default: the overridden parameters)")
     args = parser.parse_args()
     params = retrieval_params(args)
-    result = evaluate(params, args.limit)
+    result = asyncio.run(evaluate(params, args.limit))
     print_summary(result)
     # an experiment or a partial run never overwrites the result of the app's settings
     suffix = "_" + (args.tag or params.tag()) if args.tag or params.tag() else ""

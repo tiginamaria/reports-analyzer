@@ -16,7 +16,8 @@ from unittest import mock
 import yaml
 from anthropic.types import Message
 from openai.types.chat import ChatCompletion
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.chat.pipeline as pipeline
 import app.retrieval.search as search
@@ -102,10 +103,11 @@ def load_questions(limit: int | None = None) -> list[Question]:
     return questions[:limit]
 
 
-def report_keys(db: Session) -> dict[str, str]:
+async def report_keys(db: AsyncSession) -> dict[str, str]:
     """Corpus key -> report id in the eval database, matched on the stored file name."""
     by_name = {Path(doc.path).name: doc.key for doc in load_corpus()}
-    return {by_name[r.filename]: r.id for r in db.query(Report).all() if r.filename in by_name}
+    reports = (await db.execute(select(Report))).scalars()
+    return {by_name[r.filename]: r.id for r in reports if r.filename in by_name}
 
 
 def write_json(name: str, data: Any) -> Path:
@@ -375,7 +377,7 @@ def patched_retrieval(params: RetrievalParams) -> Iterator[None]:
     bound; a dropped search method returns no ranking; without a reranker `retrieve` keeps
     the fused order and applies no floor."""
 
-    def nothing(*args: Any, **kwargs: Any) -> list[str]:
+    async def nothing(*args: Any, **kwargs: Any) -> list[str]:
         return []
 
     patches: list[Any] = [

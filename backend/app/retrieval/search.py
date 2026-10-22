@@ -1,10 +1,12 @@
 """Hybrid retrieval: pgvector cosine + Postgres full-text, fused with Reciprocal Rank Fusion,
 then reranked with a cross-encoder."""
 
+import asyncio
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy import text as sql
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.ingestion.chunker import contextual_header
@@ -24,8 +26,8 @@ class Hit:
     score: float  # RRF score, or the reranker probability once reranked
 
 
-def retrieve(
-    db: Session,
+async def retrieve(
+    db: AsyncSession,
     query: str,
     report_ids: list[str] | None = None,
     candidates: int = RETRIEVAL_CANDIDATES,
@@ -36,24 +38,31 @@ def retrieve(
     `candidates` chunks each, fused with RRF; the fused list is reranked, chunks scoring
     below `min_score` are dropped, and the rest is cut to `top_k`. Without a reranker
     nothing is dropped: RRF scores are not probabilities. The limits default to the module
-    constants; the extraction registry and the evals pass their own."""
-    query_vector = get_embedder().embed_query(query)
+    constants; the extraction registry and the evals pass their own.
+
+    The model calls (embedding the query, reranking) are blocking and run in worker
+    threads; the searches themselves are async database calls."""
+    query_vector = await asyncio.to_thread(_embed_query, query)
     rankings = [
-        vector_search(db, query_vector, candidates, report_ids),
-        fulltext_search(db, query, candidates, report_ids),
+        await vector_search(db, query_vector, candidates, report_ids),
+        await fulltext_search(db, query, candidates, report_ids),
     ]
-    hits = _load_hits(db, rrf_merge(rankings)[:candidates])
-    if rerank(query, hits):
+    hits = await _load_hits(db, rrf_merge(rankings)[:candidates])
+    if await asyncio.to_thread(rerank, query, hits):
         hits = [hit for hit in hits if hit.score >= min_score]
     return hits[:top_k]
 
 
-def vector_search(
-    db: Session, query_vector: list[float], limit: int, report_ids: list[str] | None
+def _embed_query(query: str) -> list[float]:
+    return get_embedder().embed_query(query)
+
+
+async def vector_search(
+    db: AsyncSession, query_vector: list[float], limit: int, report_ids: list[str] | None
 ) -> list[str]:
     """Chunk ids by cosine distance to the query vector, nearest first."""
     where, params = _report_filter(report_ids)
-    rows = db.execute(
+    rows = await db.execute(
         sql(
             f"""
             SELECT c.id FROM chunks c
@@ -67,12 +76,14 @@ def vector_search(
     return [row[0] for row in rows]
 
 
-def fulltext_search(db: Session, query: str, limit: int, report_ids: list[str] | None) -> list[str]:
+async def fulltext_search(
+    db: AsyncSession, query: str, limit: int, report_ids: list[str] | None
+) -> list[str]:
     """Chunk ids by Postgres full-text rank, best first. A chunk matches any word of the query
     (`plainto_tsquery` with its ANDs turned into ORs, so text is never parsed as search
     syntax)."""
     where, params = _report_filter(report_ids)
-    rows = db.execute(
+    rows = await db.execute(
         sql(
             f"""
             SELECT c.id FROM chunks c,
@@ -103,7 +114,8 @@ def rrf_merge(
 
 def rerank(query: str, hits: list[Hit]) -> bool:
     """Replace RRF scores with cross-encoder probabilities and re-sort, best first. Returns
-    False, leaving the hits as they are, when no reranker is configured."""
+    False, leaving the hits as they are, when no reranker is configured. Blocking: the
+    reranker is a local model."""
     reranker = get_reranker()
     if reranker is None:
         return False
@@ -135,15 +147,14 @@ def _report_filter(report_ids: list[str] | None) -> tuple[str, dict]:
     return where, params
 
 
-def _load_hits(db: Session, ranked: list[tuple[str, float]]) -> list[Hit]:
+async def _load_hits(db: AsyncSession, ranked: list[tuple[str, float]]) -> list[Hit]:
     """Turn (chunk id, score) pairs into hits with their chunk and report rows, keeping order."""
-    rows = (
-        db.query(Chunk, Report)
+    result = await db.execute(
+        select(Chunk, Report)
         .join(Report, Report.id == Chunk.report_id)
-        .filter(Chunk.id.in_([chunk_id for chunk_id, _ in ranked]))
-        .all()
+        .where(Chunk.id.in_([chunk_id for chunk_id, _ in ranked]))
     )
-    by_id = {chunk.id: (chunk, report) for chunk, report in rows}
+    by_id = {chunk.id: (chunk, report) for chunk, report in result.all()}
     return [Hit(*by_id[chunk_id], score) for chunk_id, score in ranked if chunk_id in by_id]
 
 

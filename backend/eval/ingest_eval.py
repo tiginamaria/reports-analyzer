@@ -11,11 +11,15 @@ when the corpus is scored again.
 """
 
 import argparse
+import asyncio
 import hashlib
 import json
 import statistics
 from collections import Counter
+from collections.abc import Awaitable, Callable
 from typing import Any
+
+from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.extraction.extractor import extract_report
@@ -36,56 +40,64 @@ from eval.common import (
 )
 
 
-def ingest(doc: CorpusDoc) -> dict[str, Any]:
+async def ingest(doc: CorpusDoc) -> dict[str, Any]:
     """Run the app's stages on one report with a timer around each. A stage that raises
     marks the report failed, as the app does, and the run records the stage and error; the
     stages before it keep their timings."""
     timings: dict[str, float] = {}
     digest = hashlib.sha256(doc.path.read_bytes()).hexdigest()
-    with SessionLocal() as db:
-        if db.query(Report).filter(Report.file_hash == digest).first():
+    async with SessionLocal() as db:
+        existing = await db.execute(select(Report.id).where(Report.file_hash == digest))
+        if existing.first():
             print(f"{doc.key}: already ingested")
             return {}
         report = Report(company="", fiscal_year=0, filename=doc.path.name, file_hash=digest)
         db.add(report)
-        db.commit()
+        await db.commit()
         state: dict[str, Any] = {}
 
-        def parse() -> None:
-            state["parsed"] = pipeline._parse(db, report, doc.path)
+        async def parse() -> None:
+            state["parsed"] = await pipeline._parse(db, report, doc.path)
 
-        def detect_metadata() -> None:
-            pipeline._detect_metadata(db, report, state["parsed"])
+        async def detect_metadata() -> None:
+            await pipeline._detect_metadata(db, report, state["parsed"])
 
-        def chunk_and_store() -> None:
-            pipeline._set_progress(db, report, ReportStatus.CHUNKING)
+        async def chunk_and_store() -> None:
+            await pipeline._set_progress(db, report, ReportStatus.CHUNKING)
             pipeline._store_pages(db, report, state["parsed"])
             state["chunks"] = pipeline._chunk(db, report, state["parsed"])
 
-        def embed() -> None:
-            pipeline._set_progress(db, report, ReportStatus.EMBEDDING)
-            pipeline._embed(db, report, state["chunks"])
+        async def embed() -> None:
+            await pipeline._set_progress(db, report, ReportStatus.EMBEDDING)
+            await pipeline._embed(db, report, state["chunks"])
 
-        def extract() -> None:
-            pipeline._set_progress(db, report, ReportStatus.EXTRACTING)
-            extract_report(db, report, get_provider())
+        async def extract() -> None:
+            await pipeline._set_progress(db, report, ReportStatus.EXTRACTING)
+            await extract_report(db, report, get_provider())
 
+        stages: list[Callable[[], Awaitable[None]]] = [
+            parse,
+            detect_metadata,
+            chunk_and_store,
+            embed,
+            extract,
+        ]
         mark, embed_mark = USAGE.mark(), EMBED_USAGE.mark()
         run: dict[str, Any] = {}
-        for stage in (parse, detect_metadata, chunk_and_store, embed, extract):
+        for stage in stages:
             try:
                 with timer(timings, stage.__name__):
-                    stage()
+                    await stage()
             except Exception as exc:
-                db.rollback()
-                pipeline._mark_failed(db, report.id, exc)
+                await db.rollback()
+                await pipeline._mark_failed(db, report.id, exc)
                 run["failed"] = {
                     "stage": stage.__name__,
                     "error": f"{type(exc).__name__}: {exc}"[:300],
                 }
                 break
         else:
-            pipeline._set_progress(db, report, ReportStatus.READY, fraction=1.0)
+            await pipeline._set_progress(db, report, ReportStatus.READY, fraction=1.0)
         timings["total"] = round(sum(timings.values()), 2)
         run |= {
             "timings": timings,
@@ -116,18 +128,23 @@ def chunk_stats(chunks: list[Chunk]) -> dict[str, Any]:
     }
 
 
-def score(ingest_runs: dict[str, dict]) -> dict[str, Any]:
+async def score(ingest_runs: dict[str, dict]) -> dict[str, Any]:
     """Per report: metadata detection against the corpus, chunk statistics, datapoints
     written, and the stage timings and LLM usage of its ingestion run."""
     out: dict[str, Any] = {"reports": {}}
-    with SessionLocal() as db:
-        by_name = {r.filename: r for r in db.query(Report).all()}
+    async with SessionLocal() as db:
+        stored = (await db.execute(select(Report))).scalars()
+        by_name = {r.filename: r for r in stored}
         for doc in load_corpus():
             report = by_name.get(doc.path.name)
             if report is None:
                 continue
-            chunks = db.query(Chunk).filter(Chunk.report_id == report.id).all()
-            datapoints = db.query(Datapoint).filter(Datapoint.report_id == report.id).all()
+            chunks = list(
+                (await db.execute(select(Chunk).where(Chunk.report_id == report.id))).scalars()
+            )
+            datapoints = (
+                await db.execute(select(Datapoint).where(Datapoint.report_id == report.id))
+            ).scalars()
             out["reports"][doc.key] = {
                 "metadata": {
                     "detected": [report.company, report.fiscal_year],
@@ -186,17 +203,21 @@ def main() -> None:
     parser.add_argument("--score", action="store_true", help="score only, do not ingest")
     parser.add_argument("--tag", help="result file suffix: ingestion_<tag>.json")
     args = parser.parse_args()
-    name = f"ingestion_{args.tag}.json" if args.tag else "ingestion.json"
+    asyncio.run(_main(args.score, args.tag))
+
+
+async def _main(score_only: bool, tag: str | None) -> None:
+    name = f"ingestion_{tag}.json" if tag else "ingestion.json"
     instrument(get_provider())
     instrument_embedder(get_embedder())
     runs = _previous_runs(name)
-    if not args.score:
+    if not score_only:
         for doc in load_corpus():
-            run = ingest(doc)
+            run = await ingest(doc)
             if run:
                 runs[doc.key] = run
-                write_json(name, score(runs))  # a crash later loses nothing
-    result = score(runs)
+                write_json(name, await score(runs))  # a crash later loses nothing
+    result = await score(runs)
     print(result["summary"])
     print(write_json(name, result))
 
