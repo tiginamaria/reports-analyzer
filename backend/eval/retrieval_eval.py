@@ -48,7 +48,7 @@ from eval.common import (
 )
 
 
-def rewrites(questions: list[Question]) -> dict[str, Query]:
+async def rewrites(questions: list[Question]) -> dict[str, Query]:
     """The rewrite of every question, as the chat produces it. Cached per rewrite model
     under a key derived from the rewrite prompt and schema, so a prompt or model change
     never replays stale rewrites."""
@@ -64,7 +64,8 @@ def rewrites(questions: list[Question]) -> dict[str, Query]:
         key = f"{q.question}|{json.dumps(q.history)}"
         if key not in cache:
             history = [Message(role=t["role"], content=t["content"]) for t in q.history]
-            cache[key] = pipeline._rewrite_query(provider, q.question, history).model_dump()
+            query = await pipeline._rewrite_query(provider, q.question, history)
+            cache[key] = query.model_dump()
         out[q.id] = Query(**cache[key])
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cache, indent=1, ensure_ascii=False))
@@ -155,7 +156,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 async def evaluate(params: RetrievalParams, limit: int | None = None) -> dict[str, Any]:
     questions = load_questions(limit)
-    queries = rewrites(questions)
+    queries = await rewrites(questions)
     get_embedder()  # load the models before timing; the app loads them at startup too
     if params.rerank:
         require_reranker()

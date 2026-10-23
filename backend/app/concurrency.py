@@ -1,12 +1,12 @@
 """Bridges between the event loop and the worker threads that run blocking code.
 
-PyMuPDF, the local models and the provider SDKs are synchronous, so the pipelines run them
-with `asyncio.to_thread`. Some of that code calls back into the pipeline (a progress
-callback after every page, a cancellation check before every batch) and those callbacks
-need the database, which is async. `sync_callback` turns an async callback into a blocking
-one the worker thread can call: it schedules the coroutine on the loop and waits for the
-result, so an exception the callback raises (`IngestionCancelled`) stops the worker exactly
-where the synchronous version did."""
+PyMuPDF and the local models are synchronous, so the pipelines run them with
+`asyncio.to_thread` (the LLM providers are async and need no thread). Some of that code
+calls back into the pipeline (a progress callback after every page, a cancellation check
+before every batch) and those callbacks need the database, which is async. `sync_callback`
+turns an async callback into a blocking one the worker thread can call: it schedules the
+coroutine on the loop and waits for the result, so an exception the callback raises
+(`IngestionCancelled`) stops the worker exactly where the synchronous version did."""
 
 import asyncio
 from collections.abc import Callable, Coroutine

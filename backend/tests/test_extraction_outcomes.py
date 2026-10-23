@@ -37,7 +37,7 @@ class ScriptedProvider(LLMProvider):
     def model_name(self, small: bool = False) -> str:
         return "scripted"
 
-    def _raw_json(
+    async def _raw_json(
         self,
         *,
         system: str,

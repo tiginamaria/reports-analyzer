@@ -24,7 +24,7 @@ class AnthropicProvider(LLMProvider):
             if settings.anthropic_workspace_id
             else None
         )
-        self._client = anthropic.Anthropic(
+        self._client = anthropic.AsyncAnthropic(
             api_key=settings.anthropic_api_key, timeout=180.0, default_headers=headers
         )
         self._model = settings.anthropic_model
@@ -36,7 +36,7 @@ class AnthropicProvider(LLMProvider):
     def model_name(self, small: bool = False) -> str:
         return self._small if small else self._model
 
-    def _raw_json(
+    async def _raw_json(
         self,
         *,
         system: str,
@@ -49,7 +49,7 @@ class AnthropicProvider(LLMProvider):
         try:
             # streamed, so a long reply (a goal list can run to tens of thousands of tokens)
             # is not cut by the HTTP timeout; the caller still gets one complete message
-            with self._client.messages.stream(
+            async with self._client.messages.stream(
                 model=self.model_name(small),
                 max_tokens=max_tokens,
                 system=[{"type": "text", "text": system, "cache_control": CACHE}],
@@ -58,7 +58,7 @@ class AnthropicProvider(LLMProvider):
                     "format": {"type": "json_schema", "schema": json_schema_for(schema)}
                 },
             ) as stream:
-                response = stream.get_final_message()
+                response = await stream.get_final_message()
         except anthropic.AuthenticationError as exc:
             raise LLMError("Anthropic authentication failed: check ANTHROPIC_API_KEY") from exc
         except anthropic.RateLimitError as exc:

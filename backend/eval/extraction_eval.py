@@ -218,7 +218,7 @@ def dated_before(year: Any, fiscal_year: int) -> bool:
     return bool(years) and max(int(y) for y in years) <= fiscal_year
 
 
-def score_goals(
+async def score_goals(
     judge: LLMProvider,
     gold: list[dict],
     items: list[dict],
@@ -263,7 +263,7 @@ def score_goals(
         f"{i}. {d['label']}: {d['value']} {d['unit'] or ''} ({d['period']}) | quote: {d['quote']}"
         for i, d in enumerate(goals)
     )
-    verdict = judge.complete_json(
+    verdict = await judge.complete_json(
         system=GOAL_JUDGE,
         user=f"Gold goals:\n{gold_text}\n\nExtracted items:\n{extracted_text}",
         schema=GoalJudgement,
@@ -348,7 +348,7 @@ async def evaluate(
             }
             if GOALS_KEY in runs:
                 scored["goals"] = {
-                    **score_goals(
+                    **await score_goals(
                         judge,
                         goal_gold[doc.key],
                         runs[GOALS_KEY]["items"],

@@ -243,7 +243,7 @@ async def _detect_metadata(db: AsyncSession, report: Report, doc: ParsedDocument
         db, report, ReportStatus.PARSING, fraction=1.0, activity="Detecting company and year"
     )
     try:
-        meta = await asyncio.to_thread(detect_metadata, get_provider(), doc.pages, report.filename)
+        meta = await detect_metadata(get_provider(), doc.pages, report.filename)
     except Exception as exc:  # detection is best effort
         log.warning("Metadata detection failed for %s: %s", report.filename, exc)
         report.company = Path(report.filename).stem

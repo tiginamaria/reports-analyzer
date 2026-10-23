@@ -20,7 +20,6 @@ import dataclasses
 import statistics
 import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Literal
 
 from pydantic import BaseModel
@@ -111,7 +110,7 @@ and the quotes it cited (already checked to appear verbatim in the report).
 Be strict on numbers and periods (fiscal year), lenient on wording."""
 
 
-def judge(judge: LLMProvider, q: Question, answer: dict[str, Any]) -> Judgement:
+async def judge(judge: LLMProvider, q: Question, answer: dict[str, Any]) -> Judgement:
     quotes = "\n".join(
         f"- [{c['verification']}] {c.get('company', '')} {c.get('fiscal_year', '')} "
         f"p{c.get('page', '?')}: {c['quote']}"
@@ -125,7 +124,9 @@ def judge(judge: LLMProvider, q: Question, answer: dict[str, Any]) -> Judgement:
         f"System status: {answer.get('status')}\nSystem answer: {answer.get('answer')}\n"
         f"Cited quotes:\n{quotes or '(none)'}"
     )
-    return judge.complete_json(system=JUDGE_SYSTEM, user=user, schema=Judgement, max_tokens=800)
+    return await judge.complete_json(
+        system=JUDGE_SYSTEM, user=user, schema=Judgement, max_tokens=800
+    )
 
 
 def deterministic(q: Question, run: dict[str, Any]) -> dict[str, Any]:
@@ -230,13 +231,15 @@ async def evaluate(
         runs = list(await asyncio.gather(*(run(q) for q in questions)))
     usage = USAGE.summary()  # the judge is not instrumented and not counted
     judge_llm = judge_provider()
-    with ThreadPoolExecutor(JUDGE_WORKERS) as pool:
-        judgements = list(
-            pool.map(
-                lambda pair: judge(judge_llm, pair[0], pair[1]["answer"]),
-                zip(questions, runs, strict=True),
-            )
-        )
+    limit_judges = asyncio.Semaphore(JUDGE_WORKERS)
+
+    async def judge_one(q: Question, run: dict[str, Any]) -> Judgement:
+        async with limit_judges:
+            return await judge(judge_llm, q, run["answer"])
+
+    judgements = list(
+        await asyncio.gather(*(judge_one(q, run) for q, run in zip(questions, runs, strict=True)))
+    )
     rows = [
         {
             "id": q.id,

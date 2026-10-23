@@ -104,7 +104,7 @@ async def run_chat(
         await asyncio.to_thread(get_reranker)
 
     yield ChatEvent("stage", {"name": "analyzing"})
-    query = await asyncio.to_thread(_rewrite_query, provider, question, history)
+    query = await _rewrite_query(provider, question, history)
     yield ChatEvent("stage", {"name": "retrieving", "query": query.standalone_question})
 
     hits = await _retrieve_all(db, query, report_ids)
@@ -117,9 +117,7 @@ async def run_chat(
 
     yield ChatEvent("stage", {"name": "generating", "chunks": len(hits)})
     try:
-        answer = await asyncio.to_thread(
-            _generate_answer, provider, query.standalone_question, hits, history
-        )
+        answer = await _generate_answer(provider, query.standalone_question, hits, history)
     except LLMError as exc:
         yield ChatEvent("error", {"message": str(exc)})
         return
@@ -254,16 +252,15 @@ def _rewrite_turns(
     ]
 
 
-def _rewrite_query(provider: LLMProvider, question: str, history: list[Message]) -> Query:
+async def _rewrite_query(provider: LLMProvider, question: str, history: list[Message]) -> Query:
     """The small model rewrites the question to stand alone and splits it into subqueries,
     one per company, year and topic. Falls back to the raw question when the call fails, so
-    the chat still works. It sees the part of the conversation `_rewrite_turns` selects.
-    Blocking: run it in a worker thread."""
+    the chat still works. It sees the part of the conversation `_rewrite_turns` selects."""
     turns = _rewrite_turns(history)
     transcript = "\n".join(f"{turn.role}: {turn.content}" for turn in turns)
     user = f"Conversation so far:\n{transcript or '(none)'}\n\nQuestion: {question}"
     try:
-        return provider.complete_json(
+        return await provider.complete_json(
             system=prompts.QUERY_REWRITE,
             user=user,
             schema=Query,
@@ -302,13 +299,13 @@ def _answer_prompt(question: str, hits: list[Hit]) -> str:
     return f"Chunks:\n\n{format_context(hits)}\n\nQuestion: {question}"
 
 
-def _generate_answer(
+async def _generate_answer(
     provider: LLMProvider, question: str, hits: list[Hit], history: list[Message]
 ) -> ChatAnswer:
     """The main model's structured answer. The conversation goes as earlier turns; the final
     user turn holds this question's chunks, then the standalone question. Raises `LLMError`
-    when the call fails. Blocking: run it in a worker thread."""
-    return provider.complete_json(
+    when the call fails."""
+    return await provider.complete_json(
         system=prompts.ANSWER,
         user=_answer_prompt(question, hits),
         schema=ChatAnswer,

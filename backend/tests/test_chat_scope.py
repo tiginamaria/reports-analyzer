@@ -92,7 +92,9 @@ async def test_without_sub_queries_the_standalone_question_is_searched(monkeypat
 
 
 async def test_no_hits_abstains_without_the_model_and_says_why(monkeypatch):
-    monkeypatch.setattr(pipeline, "_rewrite_query", lambda provider, q, history: analysis("q?"))
+    monkeypatch.setattr(
+        pipeline, "_rewrite_query", as_async(lambda provider, q, history: analysis("q?"))
+    )
     monkeypatch.setattr(pipeline, "retrieve", as_async(lambda db, question, report_ids: []))
     monkeypatch.setattr(pipeline, "models_to_load", lambda: [])
     monkeypatch.setattr(

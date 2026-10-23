@@ -97,8 +97,8 @@ async def extract_report(
 
     Candidate retrieval runs entry by entry (the reranker runs on one GPU behind a lock and
     the session is not thread-safe); the model calls, which are independent and spend their
-    time waiting on the provider, run in worker threads, `EXTRACTION_WORKERS` at a time;
-    verification and storage run on the event loop again. A failed model call is recorded
+    time waiting on the provider, run concurrently, `EXTRACTION_WORKERS` at a time;
+    verification and storage follow entry by entry. A failed model call is recorded
     on its entry and the rest of the registry still runs. A failure outside one entry's
     call (the database, the reranker) marks every entry still pending as failed and
     propagates."""
@@ -157,14 +157,14 @@ async def extract_report(
 async def _ask_model_for_all(
     report: Report, specs: list[DatapointSpec], provider: LLMProvider, hits: dict[str, list[Hit]]
 ) -> dict[str, list[ExtractedItem] | Exception]:
-    """Every entry's model call, `EXTRACTION_WORKERS` in flight at once in worker threads.
-    Returns each entry's items, or the exception its call raised, so one failure never
-    hides the other entries' results."""
+    """Every entry's model call, `EXTRACTION_WORKERS` in flight at once. Returns each
+    entry's items, or the exception its call raised, so one failure never hides the other
+    entries' results."""
     limit = asyncio.Semaphore(EXTRACTION_WORKERS)
 
     async def ask(spec: DatapointSpec) -> list[ExtractedItem]:
         async with limit:
-            return await asyncio.to_thread(_ask_model, report, spec, provider, hits[spec.key])
+            return await _ask_model(report, spec, provider, hits[spec.key])
 
     results = await asyncio.gather(*(ask(spec) for spec in specs), return_exceptions=True)
     answers: dict[str, list[ExtractedItem] | Exception] = {}
@@ -266,19 +266,19 @@ async def _extract_datapoints(
     session. A failed model call raises. Used by the evaluation scripts."""
     if hits is None:
         hits = await _candidate_hits(db, report, spec)
-    items = await asyncio.to_thread(_ask_model, report, spec, provider, hits)
+    items = await _ask_model(report, spec, provider, hits)
     return await _store(db, report, spec, items, hits, provider)
 
 
-def _ask_model(
+async def _ask_model(
     report: Report, spec: DatapointSpec, provider: LLMProvider, hits: list[Hit]
 ) -> list[ExtractedItem]:
-    """The model call for one entry over its candidate chunks. Blocking, and needs no
-    database, so it runs in a worker thread. A failed call raises (an `LLMError` from the provider); the
-    caller records it on the entry instead of treating it as "nothing found"."""
+    """The model call for one entry over its candidate chunks. A failed call raises (an
+    `LLMError` from the provider); the caller records it on the entry instead of treating
+    it as "nothing found"."""
     if not hits:
         return []
-    result = provider.complete_json(
+    result = await provider.complete_json(
         system=prompts.EXTRACT,
         user=_extraction_prompt(report, spec, hits),
         schema=ExtractionResult,
@@ -402,7 +402,7 @@ async def _candidate_hits(db: AsyncSession, report: Report, spec: DatapointSpec)
     return sorted(top, key=lambda hit: (hit.chunk.page, hit.chunk.id))
 
 
-def detect_metadata(
+async def detect_metadata(
     provider: LLMProvider,
     pages: list[str],
     filename: str,
@@ -410,9 +410,9 @@ def detect_metadata(
     chars_per_page: int = METADATA_CHARS_PER_PAGE,
 ) -> ReportMetadata:
     """Company, fiscal year and title, read by the small model from the first `first_pages`
-    pages, `chars_per_page` characters of each. Blocking: run it in a worker thread."""
+    pages, `chars_per_page` characters of each."""
     sample = "\n\n".join(page[:chars_per_page] for page in pages[:first_pages])
     user = f"Filename: {filename}\n\nFirst pages:\n{sample}"
-    return provider.complete_json(
+    return await provider.complete_json(
         system=prompts.DETECT_METADATA, user=user, schema=ReportMetadata, small=True
     )

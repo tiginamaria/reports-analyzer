@@ -2,7 +2,9 @@
 
 Every provider must return JSON that validates against a Pydantic model. Providers use
 their native structured-output mode; `complete_json` validates and retries once with the
-validation error appended ("repair retry").
+validation error appended ("repair retry"). The interface is async: providers use their
+SDK's async client, so a call in flight never occupies a worker thread and is cancelled
+with the request that made it.
 
 A call is a system prompt plus a list of turns: optional earlier conversation turns and the
 current user message last. Providers send the turns as a real multi-turn conversation so the
@@ -42,7 +44,7 @@ class LLMProvider(ABC):
     def model_name(self, small: bool = False) -> str: ...
 
     @abstractmethod
-    def _raw_json(
+    async def _raw_json(
         self,
         *,
         system: str,
@@ -54,7 +56,7 @@ class LLMProvider(ABC):
         """Return the model's JSON text for the given schema. `turns` ends with the user
         message to answer; everything before it is earlier conversation."""
 
-    def complete_json(
+    async def complete_json(
         self,
         *,
         system: str,
@@ -67,7 +69,7 @@ class LLMProvider(ABC):
         last_error: Exception | None = None
         prompt = user
         for attempt in range(2):
-            raw = self._raw_json(
+            raw = await self._raw_json(
                 system=system,
                 turns=[*history, ChatTurn("user", prompt)],
                 schema=schema,

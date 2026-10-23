@@ -33,7 +33,7 @@ class OpenAIProvider(LLMProvider):
     on_response: Callable[[ChatCompletion, float], None] | None = None
 
     def __init__(self, settings: Settings) -> None:
-        self._client = openai.OpenAI(api_key=settings.openai_api_key, timeout=180.0)
+        self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key, timeout=180.0)
         self._model = settings.openai_model
         self._small = settings.openai_small_model
         self._reasoning_effort = settings.openai_reasoning_effort
@@ -41,7 +41,7 @@ class OpenAIProvider(LLMProvider):
     def model_name(self, small: bool = False) -> str:
         return self._small if small else self._model
 
-    def _raw_json(
+    async def _raw_json(
         self,
         *,
         system: str,
@@ -53,7 +53,7 @@ class OpenAIProvider(LLMProvider):
         model = self.model_name(small)
         start = time.perf_counter()
         try:
-            response = self._client.chat.completions.create(
+            response = await self._client.chat.completions.create(
                 model=model,
                 messages=_messages(system, turns),
                 response_format={

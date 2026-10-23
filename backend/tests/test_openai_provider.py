@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from app.llm.base import LLMError
 from app.llm.openai_provider import REASONING_HEADROOM, OpenAIProvider
 
+pytestmark = pytest.mark.anyio
+
 
 class Out(BaseModel):
     word: str
@@ -21,7 +23,7 @@ class FakeCompletions:
         self.content = content
         self.finish_reason = finish_reason
 
-    def create(self, **kwargs):
+    async def create(self, **kwargs):
         self.calls.append(kwargs)
         message = SimpleNamespace(content=self.content)
         return SimpleNamespace(
@@ -41,35 +43,35 @@ def provider(
     return p, fake
 
 
-def test_reasoning_models_get_headroom_and_an_effort():
+async def test_reasoning_models_get_headroom_and_an_effort():
     p, fake = provider("gpt-5")
-    assert p.complete_json(system="s", user="u", schema=Out, max_tokens=4000).word == "x"
+    assert (await p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)).word == "x"
     call = fake.calls[0]
     assert call["max_completion_tokens"] == 4000 + REASONING_HEADROOM
     assert call["reasoning_effort"] == "low"
 
 
-def test_non_reasoning_models_get_the_plain_budget():
+async def test_non_reasoning_models_get_the_plain_budget():
     p, fake = provider("gpt-4.1")
-    p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)
+    await p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)
     call = fake.calls[0]
     assert call["max_completion_tokens"] == 4000
     assert "reasoning_effort" not in call
 
 
-def test_no_effort_setting_sends_none():
+async def test_no_effort_setting_sends_none():
     p, fake = provider("gpt-5-mini", effort=None)
-    p.complete_json(system="s", user="u", schema=Out, max_tokens=100)
+    await p.complete_json(system="s", user="u", schema=Out, max_tokens=100)
     assert "reasoning_effort" not in fake.calls[0]
 
 
-def test_running_out_of_tokens_while_reasoning_is_a_clear_error():
+async def test_running_out_of_tokens_while_reasoning_is_a_clear_error():
     p, _ = provider("gpt-5", content=None, finish_reason="length")
     with pytest.raises(LLMError, match="spent the whole budget reasoning"):
-        p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)
+        await p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)
 
 
-def test_a_truncated_reply_is_not_passed_on_as_json():
+async def test_a_truncated_reply_is_not_passed_on_as_json():
     p, _ = provider("gpt-5", content='{"word": "x', finish_reason="length")
     with pytest.raises(LLMError, match="hit its output limit"):
-        p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)
+        await p.complete_json(system="s", user="u", schema=Out, max_tokens=4000)

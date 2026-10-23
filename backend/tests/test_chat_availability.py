@@ -119,8 +119,10 @@ def searchable(monkeypatch, pending: list[str]):
     monkeypatch.setattr(
         pipeline,
         "_rewrite_query",
-        lambda provider, q, history: (
-            calls.append("rewrite") or Query(standalone_question=q, subqueries=[])
+        as_async(
+            lambda provider, q, history: (
+                calls.append("rewrite") or Query(standalone_question=q, subqueries=[])
+            )
         ),
     )
     monkeypatch.setattr(
